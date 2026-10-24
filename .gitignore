@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+data/raw/
+data/train/**
+!data/train/.gitkeep
+data/validation/**
+!data/validation/.gitkeep
+data/test/**
+!data/test/.gitkeep
