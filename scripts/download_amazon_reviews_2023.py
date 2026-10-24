@@ -1,7 +1,7 @@
 """Download one category of the McAuley Lab Amazon Reviews 2023 dataset.
 
 Run from the repository root, for example:
-    python3 scripts/download_amazon_reviews.py --category All_Beauty
+    python3 scripts/download_amazon_reviews_2023.py --category All_Beauty
 """
 
 import argparse
@@ -54,7 +54,7 @@ def download_and_validate(url, destination, required_fields):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--category", default="All_Beauty", help="Amazon Reviews 2023 category name")
-    parser.add_argument("--output-root", type=Path, default=REPO_ROOT / "data/raw/amazon_reviews_2023")
+    parser.add_argument("--output-root", type=Path, default=REPO_ROOT / "data/amazon_reviews/raw/2023")
     parser.add_argument("--force", action="store_true", help="replace an existing category download")
     args = parser.parse_args()
 

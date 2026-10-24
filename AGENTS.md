@@ -2,7 +2,7 @@
 
 Kuriyo is primarily a repository for recommendation models. Read `README.md` before making changes. The repository is still being set up; do not assume a model architecture, dataset, training stack, or directory layout that has not been added yet.
 
-The `data/` directory has ignored `raw/` downloads and `train/`, `validation/`, and `test/` output directories. Preserve the raw source files and keep the split roles distinct. Document the source and splitting method when processed data is added.
+Amazon Reviews data lives under `data/amazon_reviews/`: ignored raw downloads in `raw/<year>/<category>/`, and future split outputs in `train/`, `eval/`, and `test/`. `eval/` means validation for model selection; `test/` is the held-out final evaluation. Preserve the raw source files and keep years and categories distinct. Document the source and splitting method when processed data is added.
 
 `core/` is for recommendation models and shared interfaces, `utils/` for reusable data and evaluation helpers, and `scripts/` for runnable entry points. Keep research findings and open questions in `INSIGHT.md`, separating facts from hypotheses.
 

@@ -6,30 +6,42 @@ Kuriyo 這個 repository 主要用來存放**推薦模型**及其相關的資料
 
 ## 資料目錄
 
-`data/` 目前包含原始資料位置與三個預留的資料集切分：
+Amazon Reviews 的資料統一放在 `data/amazon_reviews/`：
 
-- `data/raw/`：下載的原始資料及校驗資訊（不納入 Git）
-- `data/train/`：模型訓練資料
-- `data/validation/`：調整模型與選擇設定時使用的驗證資料
-- `data/test/`：最終評估使用的測試資料
+- `data/amazon_reviews/raw/<年份>/<分類>/`：下載的原始資料及校驗資訊（不納入 Git）
+- `data/amazon_reviews/train/`：模型訓練資料
+- `data/amazon_reviews/eval/`：調參與選擇模型使用的驗證資料
+- `data/amazon_reviews/test/`：最終評估使用的測試資料
 
 資料來源與切分方法確定後，會補上對應說明。大型資料檔不放進 Git。
 
-### Amazon Reviews 2023
+### Amazon Reviews 2014（TIGER 對應版本）
+
+下載 `Beauty` 的 5-core 評論與商品 metadata：
+
+```bash
+python3 scripts/download_amazon_reviews_2014.py --category Beauty
+```
+
+檔案會存到 `data/amazon_reviews/raw/2014/Beauty/`。腳本也支援 `Sports_and_Outdoors` 和 `Toys_and_Games` 分類。2014 年檔案是 gzip 壓縮的 Python 字典列；解析時應使用 `ast.literal_eval`，不可對下載內容使用 `eval`。資料來源：[McAuley Lab 的 Amazon 2014 資料頁](https://cseweb.ucsd.edu/~jmcauley/datasets/amazon/links.html)。
+
+本次 `Beauty` 下載含 198,502 筆 5-core 評論與 259,204 筆商品 metadata；評論中的 12,101 個商品都能對應到 metadata。
+
+### Amazon Reviews 2023（探索用）
 
 先以 McAuley Lab 的 `All_Beauty` 分類建立資料流程。下載評論及商品 metadata：
 
 ```bash
-python3 scripts/download_amazon_reviews.py --category All_Beauty
+python3 scripts/download_amazon_reviews_2023.py --category All_Beauty
 ```
 
-檔案會存到 `data/raw/amazon_reviews_2023/All_Beauty/`，並產生記錄來源版本、筆數及 SHA-256 的 `manifest.json`。腳本使用 Python 標準函式庫，不需額外安裝套件。資料來源：[Amazon Reviews 2023](https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023)。
+檔案會存到 `data/amazon_reviews/raw/2023/All_Beauty/`。兩支下載腳本都會產生記錄來源、筆數及 SHA-256 的 `manifest.json`，只用 Python 標準函式庫。資料來源：[Amazon Reviews 2023](https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023)。
 
 本次下載的 `All_Beauty` 含 701,528 筆評論與 112,590 筆商品 metadata。下載檔案和本地 manifest 由 `.gitignore` 排除；在其他電腦可用上述指令重新取得。
 
-目前不直接把下載檔案移進 `train/`、`validation/`、`test/`。先保留原始資料；選定推薦任務、互動定義及冷啟動處理方式後，再以固定規則產生切分。評估建議先考慮依互動時間切分，並確保測試互動晚於訓練互動。
+目前不直接把下載檔案移進 `train/`、`eval/`、`test/`。先保留原始資料；選定推薦任務、互動定義及冷啟動處理方式後，再以固定規則產生切分。每個切分輸出應標明年份、分類與切分版本，避免混用。
 
-若目標是重現 [TIGER](https://arxiv.org/abs/2305.05065) 論文，需另用其 2014 年 Amazon Beauty、Sports and Outdoors 或 Toys and Games 資料與對應處理規則；本次下載的 2023 `All_Beauty` 是探索用資料，不能直接與論文結果比較。TIGER 將每位使用者的互動依時間排序，保留至少五筆互動的使用者，並把最後兩筆分別用於驗證與測試。
+若目標是重現 [TIGER](https://arxiv.org/abs/2305.05065) 論文，使用 2014 年資料與對應處理規則；2023 `All_Beauty` 是不同版本，不能直接與論文結果比較。TIGER 將每位使用者的互動依時間排序，保留至少五筆互動的使用者，並把最後兩筆分別用於驗證與測試。
 
 ## 程式目錄
 
