@@ -2,9 +2,11 @@
 
 Kuriyo is primarily a repository for recommendation models. Read `README.md` before making changes. The repository is still being set up; do not assume a model architecture, dataset, training stack, or directory layout that has not been added yet.
 
-Amazon Reviews data lives under `data/amazon_reviews/`: ignored raw downloads in `raw/<year>/<category>/`, and future split outputs in `train/`, `eval/`, and `test/`. `eval/` means validation for model selection; `test/` is the held-out final evaluation. Preserve the raw source files and keep years and categories distinct. Document the source and splitting method when processed data is added.
+Amazon Reviews data lives under `data/amazon_reviews/`: ignored raw downloads in `raw/<year>/<category>/`, and prepared split outputs in `train/`, `eval/`, and `test/`. `eval/` means validation for model selection; `test/` is the held-out final evaluation. Preserve the raw source files and keep years and categories distinct. Document the source and splitting method when processed data is added.
 
-`core/` is for recommendation models and shared interfaces, `utils/` for reusable data and evaluation helpers, and `scripts/` for runnable entry points. Keep research findings and open questions in `INSIGHT.md`, separating facts from hypotheses.
+The 2014 Beauty split is produced by `python3 -m scripts.prepare_amazon_reviews_2014`. Keep its per-user chronological leave-one-out policy, source-row tie break, and 20-item history cap explicit. `Recall/` contains candidate retrieval models, with TIGER in `Recall/TIGER/`; `Ranking/` is reserved for reranking work. Root `requirements.txt` contains shared modeling dependencies and `Recall/TIGER/requirements.txt` extends them. Keep each model area's README accurate about runnable commands and work that is still planned.
+
+`core/` is for recommendation models and shared interfaces, `utils/` for reusable data and evaluation helpers, and `scripts/` for runnable entry points. Keep research findings and open questions in `INSIGHT.md`, separating facts from hypotheses and using General, Recall, Ranking, and TIGER subsections within each main section.
 
 ## Scope
 

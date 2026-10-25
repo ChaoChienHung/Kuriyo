@@ -1,6 +1,12 @@
 .DS_Store
 __pycache__/
 *.py[cod]
+.venv/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+Recall/TIGER/runs/
 data/amazon_reviews/raw/
 data/amazon_reviews/train/**
 !data/amazon_reviews/train/.gitkeep

@@ -1,0 +1,5 @@
+-r ../../requirements.txt
+
+# Text embeddings for item content and a seq2seq backbone.
+sentence-transformers>=3,<6
+transformers>=4.44,<5
