@@ -1,7 +1,10 @@
-"""Create TIGER-style train/eval/test examples from Amazon Reviews 2014 5-core.
+"""Create TIGER-style train/validation/test examples from Amazon Reviews 2014 5-core.
 
 Run from the repository root:
     python3 -m scripts.prepare_amazon_reviews_2014 --category Beauty
+
+Direct execution also works:
+    python3 scripts/prepare_amazon_reviews_2014.py --category Beauty
 """
 
 import argparse
@@ -10,13 +13,19 @@ import datetime as dt
 import json
 import os
 from pathlib import Path
+import sys
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if __package__ in (None, ""):
+    # Direct script execution adds scripts/, but not the repository root, to sys.path.
+    sys.path.insert(0, str(REPO_ROOT))
 
 from utils.amazon_reviews_2014 import (
     build_examples, file_sha256, load_catalog, load_sequences, write_jsonl_line,
 )
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
 DATA_ROOT = REPO_ROOT / "data/amazon_reviews"
 CATEGORIES = ("Beauty", "Sports_and_Outdoors", "Toys_and_Games")
 
@@ -30,14 +39,15 @@ def main():
     if args.max_history < 1:
         parser.error("--max-history must be positive")
 
-    source_dir = DATA_ROOT / "raw/2014" / args.category
+    year_dir = DATA_ROOT / "2014"
+    source_dir = year_dir / "raw" / args.category
     review_path = source_dir / "reviews_{}_5.json.gz".format(args.category)
     metadata_path = source_dir / "meta_{}.json.gz".format(args.category)
     if not review_path.is_file() or not metadata_path.is_file():
         parser.error("download both 2014 files first: {}".format(source_dir))
 
-    output_dirs = {split: DATA_ROOT / split / "2014" / args.category
-                   for split in ("train", "eval", "test")}
+    output_dirs = {split: year_dir / split / "raw" / args.category
+                   for split in ("train", "validation", "test")}
     output_paths = {split: directory / "examples.jsonl" for split, directory in output_dirs.items()}
     items_path = output_dirs["train"] / "items.jsonl"
     manifest_path = output_dirs["train"] / "split_manifest.json"
@@ -67,7 +77,7 @@ def main():
                 for record in train:
                     write_jsonl_line(outputs["train"], {"user_id": user_id, **record})
                     counts["train"] += 1
-                for split, record in (("eval", evaluation), ("test", test)):
+                for split, record in (("validation", evaluation), ("test", test)):
                     write_jsonl_line(outputs[split], {"user_id": user_id, **record})
                     counts[split] += 1
             for item_id in sorted(catalog):
@@ -85,8 +95,8 @@ def main():
                 "minimum_user_interactions": 5,
                 "ordering": "unixReviewTime ascending; source row order breaks ties",
                 "train": "all except each user's last two events; one next-item example per prefix of length >=1",
-                "eval": "penultimate event, with preceding events as history",
-                "test": "last event, with preceding events including the eval event as history",
+                "validation": "penultimate event, with preceding events as history",
+                "test": "last event, with preceding events including the validation event as history",
                 "max_history": args.max_history,
                 "duplicate_user_item_events": "preserved",
             },
@@ -96,7 +106,7 @@ def main():
                 "eligible_users": len(eligible_users),
                 "catalog_items": len(catalog),
                 "train_examples": counts["train"],
-                "eval_examples": counts["eval"],
+                "validation_examples": counts["validation"],
                 "test_examples": counts["test"],
             },
         }
@@ -112,7 +122,7 @@ def main():
             path.unlink(missing_ok=True)
 
     print(json.dumps(manifest["counts"], indent=2), flush=True)
-    print("Wrote train/eval/test under {}".format(DATA_ROOT), flush=True)
+    print("Wrote train/validation/test under {}".format(year_dir), flush=True)
 
 
 if __name__ == "__main__":

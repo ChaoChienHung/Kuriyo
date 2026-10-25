@@ -54,7 +54,7 @@ def download_and_validate(url, destination, required_fields):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--category", default="All_Beauty", help="Amazon Reviews 2023 category name")
-    parser.add_argument("--output-root", type=Path, default=REPO_ROOT / "data/amazon_reviews/raw/2023")
+    parser.add_argument("--output-root", type=Path, default=REPO_ROOT / "data/amazon_reviews/2023/raw")
     parser.add_argument("--force", action="store_true", help="replace an existing category download")
     args = parser.parse_args()
 

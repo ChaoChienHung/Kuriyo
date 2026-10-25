@@ -12,6 +12,6 @@ python3 -m scripts.prepare_amazon_reviews_2014 --category Beauty
 python3 -m unittest discover -s tests -v
 ```
 
-切分結果位於 `data/amazon_reviews/{train,eval,test}/2014/Beauty/examples.jsonl`，每筆有 `user_id`、`history`、`target_asin`、`target_timestamp`。商品內容位於 `data/amazon_reviews/train/2014/Beauty/items.jsonl`。這些資料表示下一件商品的正例，尚未包含候選商品、負例或排序標籤，因此目前**不能直接執行 Ranking 訓練或評估**。
+切分結果位於 `data/amazon_reviews/2014/{train,validation,test}/raw/Beauty/examples.jsonl`，每筆有 `user_id`、`history`、`target_asin`、`target_timestamp`。商品內容位於 `data/amazon_reviews/2014/train/raw/Beauty/items.jsonl`。這些資料表示下一件商品的正例，尚未包含候選商品、負例或排序標籤，因此目前**不能直接執行 Ranking 訓練或評估**。
 
-建立 Ranking 流程時，需先固定候選集來源、負例抽樣、訓練標籤與評估協定；eval 和 test 的候選集也需只使用當時可取得的資訊。通用資料規則見根目錄 [README](../README.md)，Recall 規劃見 [Recall README](../Recall/README.md)。
+建立 Ranking 流程時，需先固定候選集來源、負例抽樣、訓練標籤與評估協定；validation 和 test 的候選集也需只使用當時可取得的資訊。通用資料規則見根目錄 [README](../README.md)，Recall 規劃見 [Recall README](../Recall/README.md)。

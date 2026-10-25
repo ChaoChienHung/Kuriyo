@@ -7,10 +7,9 @@ __pycache__/
 *.pth
 *.safetensors
 Recall/TIGER/runs/
-data/amazon_reviews/raw/
-data/amazon_reviews/train/**
-!data/amazon_reviews/train/.gitkeep
-data/amazon_reviews/eval/**
-!data/amazon_reviews/eval/.gitkeep
-data/amazon_reviews/test/**
-!data/amazon_reviews/test/.gitkeep
+data/amazon_reviews/*/raw/*
+!data/amazon_reviews/*/raw/.gitkeep
+data/amazon_reviews/*/*/raw/*
+!data/amazon_reviews/*/*/raw/.gitkeep
+data/amazon_reviews/*/*/sids/*/*
+!data/amazon_reviews/*/*/sids/*/.gitkeep
