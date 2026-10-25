@@ -1,6 +1,6 @@
 # Kuriyo — Research Notes
 
-本文件記錄 Kuriyo 推薦模型專案的研究筆記。`Insights` 記錄從資料或實驗得到的觀察，`Facts` 記錄已確認的資料與實作，`Hypothesis` 記錄待驗證主張。新增實驗結論時，附上資料版本、切分方式、模型設定、評估指標與結果位置。各節依 General、Recall、Ranking、TIGER 分類；TIGER 是 Recall 內的具體模型。
+本文件記錄 Kuriyo 推薦模型專案的研究筆記。`Insights` 記錄從資料或實驗得到的觀察，`Facts` 記錄已確認的資料與實作，`Limitations` 記錄當前資料與實作的缺點，`Hypothesis` 記錄待驗證主張。新增實驗結論時，附上資料版本、切分方式、模型設定、評估指標與結果位置。各節依 General、Recall、Ranking、TIGER 分類；TIGER 是 Recall 內的具體模型。
 
 *建立日期：2026-10-25*
 
@@ -50,6 +50,27 @@
 - 本機已下載 Sentence-T5 base 並用 64 件商品、1 epoch 完成 Sentence-T5 + RQ-VAE smoke test；三層 codebook 使用碼數為 3、1、1（容量 16），顯示此短跑發生 collapse。產物僅在忽略目錄 `Recall/TIGER/runs/sentence-t5-smoke-64/`，沒有把這個不完整 SID 目錄當作正式 split 資料。
 - 本地 TF-IDF/SVD smoke test 對完整 12,101 件 Beauty 商品訓練 RQ-VAE 1 epoch，三層 codebook 的使用碼數分別為 27、25、15（每層容量 32），546 組三碼 SID 發生碰撞；附加第四碼後每件商品的 SID 唯一。產物在本地忽略目錄 `Recall/TIGER/runs/smoke-beauty-final/`。
 - 本地序列 smoke test 只取 128 筆 train、3 筆 validation、訓練 1 epoch；Recall@5/10 與 NDCG@5/10 均為 0。此數字僅驗證執行與指標流程，不能代表推薦品質；產物在 `Recall/TIGER/runs/smoke-sequence-from-final-sid/`。
+
+## Limitations
+
+### General
+
+- 2014 `Beauty` 的評論時間戳只精確到日期；9,719 位使用者的 validation 與 test 互動同日。來源行序能讓切分重現，但無法確認當日真實先後，時間序列評估可能受影響。
+- 2023 `All_Beauty` 目前只有原始下載檔，尚無可供模型訓練與評估的切分或 SID 資料；2014 與 2023 的結果也不能直接視為同一資料集比較。
+
+### Recall
+
+- 尚無熱門商品或其他完整資料集上的 Recall 基線；目前無法判斷 TIGER 或後續召回模型是否優於簡單方法。
+
+### Ranking
+
+- 尚未建立候選集、負例、排序標籤及 Ranking 訓練／評估程式，因此目前不能評估排序階段的品質。
+
+### TIGER
+
+- `sentence-t5_rqvae` 尚未在完整 12,101 件 Beauty 商品上產生正式 SID；`sentence-t5_kmeans` 與 `sentence-t5_lsh` 目前只有預留目錄。現有 SID smoke test 不能用作完整資料集的模型效果結論。
+- 64 件商品、1 epoch 的 Sentence-T5 + RQ-VAE 試跑出現 codebook 使用率低的情況（三層各使用 3、1、1 個碼，容量各 16）；仍須在完整資料與足夠訓練步數下確認是否持續發生。
+- 現有序列模型、訓練預算及解碼設定尚未對齊 TIGER 論文；序列 smoke test 只涵蓋極少量樣本，因此不能把目前的指標當作論文重現結果。
 
 ## Hypothesis
 
