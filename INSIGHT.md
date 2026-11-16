@@ -28,8 +28,8 @@
 ### General
 
 - 本 repository 主要用來存放推薦模型，以及相關的資料處理、訓練、評估與實驗紀錄。參見 [README.md](README.md)。
-- Amazon Reviews 依年份先分 `2014/`、`2023/`；各年份有來源 `raw/`，以及 `train/`、`validation/`、`test/`。每個 split 下以 `raw/` 保存 ASIN 樣本，以 `sids/<method>/` 保存 SID 樣本。預留方法名稱為 `sentence-t5_rqvae`、`sentence-t5_kmeans`、`sentence-t5_lsh`；2023 尚未切分或建立 SID。2014 `Beauty` 的 ASIN 切分結果已在本地產生，資料檔由 Git 忽略。
-- `core/`、`utils/`、`scripts/`、`Recall/` 和 `Ranking/` 已建立。2014 與 2023 下載腳本分別位於 `scripts/download_amazon_reviews_2014.py` 和 `scripts/download_amazon_reviews_2023.py`。
+- Amazon Reviews 依年份先分 `2014/`、`2023/`；各年份有來源 `raw/`、共用商品目錄 `catalog/`，以及 `train/`、`validation/`、`test/`。共用商品 SID 目錄位於年份層的 `artifacts/sids/<method>/<category>/<version>/`；各 split 下以 `raw/` 保存 ASIN 樣本，以 `sids/<method>/<category>/<version>/` 保存轉換後的 SID 樣本。預留方法名稱為 `sentence-t5_rqvae`、`sentence-t5_kmeans`、`sentence-t5_lsh`；2023 尚未切分或建立 SID。2014 `Beauty` 的 ASIN 切分結果已在本地產生，資料檔由 Git 忽略。
+- `core/`、`utils/`、`scripts/`、`Representations/`、`Recall/`、`Ranking/` 和 `pipelines/` 已建立。2014 與 2023 下載腳本分別位於 `scripts/download_amazon_reviews_2014.py` 和 `scripts/download_amazon_reviews_2023.py`。
 - 已下載並驗證 Amazon Reviews 2023 `All_Beauty` 的 701,528 筆評論及 112,590 筆商品 metadata。評論涵蓋 631,986 位使用者、112,565 個商品；這些商品全部能以 `parent_asin` 對應到 metadata。其中 9,159 位使用者有至少三筆評論，共貢獻 39,427 筆評論。統計由本地 JSONL 逐行計算；來源版本和校驗值記在 `data/amazon_reviews/2023/raw/All_Beauty/manifest.json`。
 - 已下載並驗證 Amazon Reviews 2014 `Beauty` 5-core 的 198,502 筆評論與 259,204 筆商品 metadata。評論包含 22,363 位使用者與 12,101 個商品；每位使用者至少有五筆評論，所有評論商品都能以 `asin` 對應到 metadata。來源及校驗值記在 `data/amazon_reviews/2014/raw/Beauty/manifest.json`。
 
@@ -44,9 +44,11 @@
 ### TIGER
 
 - 2014 `Beauty` 的 22,363 位使用者與 12,101 個商品，與 [TIGER 論文](https://arxiv.org/abs/2305.05065) 的 Beauty 資料表相符。
-- 2014 `Beauty` 切分方式：依使用者與 `unixReviewTime` 升冪排序；時間戳相同時保留原始檔行序。每位使用者的最後一筆作 test、倒數第二筆作 validation，其餘用於 train；訓練段落展開成前綴預測樣本，歷史最多 20 件。共產生 131,413 筆 train、22,363 筆 validation、22,363 筆 test，以及 12,101 件商品內容資料。規則和來源 SHA-256 記在 `data/amazon_reviews/2014/train/raw/Beauty/split_manifest.json`。
-- `Recall/TIGER/` 已有商品內容向量、三層 RQ-VAE、碰撞處理、SID 序列 Transformer 及 validation 指標的可執行流程。試跑指令與模型限制見 [TIGER README](Recall/TIGER/README.md)。
-- [`Recall/TIGER/scripts/generate_sids.py`](Recall/TIGER/scripts/generate_sids.py) 可用 Sentence-T5 與 RQ-VAE 產生 SID，目標輸出為 `data/amazon_reviews/2014/train/sids/sentence-t5_rqvae/Beauty/`。[`scripts/materialize_amazon_sids.py`](scripts/materialize_amazon_sids.py) 可將完整商品 SID 對照表套用到 train/validation/test；目前 `sentence-t5_kmeans` 與 `sentence-t5_lsh` 只有預留目錄，尚無生成器。
+- 2014 `Beauty` 切分方式：依使用者與 `unixReviewTime` 升冪排序；時間戳相同時保留原始檔行序。每位使用者的最後一筆作 test、倒數第二筆作 validation，其餘用於 train；訓練段落展開成前綴預測樣本，歷史最多 20 件。共產生 131,413 筆 train、22,363 筆 validation、22,363 筆 test，以及放在 `2014/catalog/Beauty/` 的 12,101 件商品內容資料。規則和來源 SHA-256 記在 `data/amazon_reviews/2014/train/raw/Beauty/split_manifest.json`。
+- `Representations/SID/` 已有商品內容向量、三層 RQ-VAE、碰撞處理及 SID 生成器；`Recall/TIGER/` 有 SID 序列 Transformer 與 validation 評估流程。試跑指令與模型限制見 [SID README](Representations/SID/README.md) 與 [TIGER README](Recall/TIGER/README.md)。
+- [`Representations/SID/scripts/generate_sids.py`](Representations/SID/scripts/generate_sids.py) 可用 Sentence-T5 與 RQ-VAE 產生 SID，目標輸出為 `data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/<version>/`。[`scripts/materialize_amazon_sids.py`](scripts/materialize_amazon_sids.py) 可將完整商品 SID 對照表套用到 train/validation/test，並按 SID 版本隔離樣本；目前 `sentence-t5_kmeans` 與 `sentence-t5_lsh` 只有預留目錄，尚無生成器。
+- [TIGER 論文](https://proceedings.neurips.cc/paper_files/paper/2023/file/20dcab0f14046a5c6b02b61da9f13229-Paper-Conference.pdf)報告的 Beauty 數值為 Recall@5 0.0454、NDCG@5 0.0321、Recall@10 0.0648、NDCG@10 0.0384。論文使用 Sentence-T5 向量、三層 RQ-VAE（每層 256 碼、20,000 epochs、Adagrad 0.4）與含 2,000 個 hashed user token 的 T5X 序列模型（200,000 steps）。這些數字是比較目標，尚非 Kuriyo 的結果。
+- [`scripts/run.sbatch`](scripts/run.sbatch) 可分階段準備 Beauty 資料、訓練 SID、轉換樣本及訓練 PyTorch/Hugging Face T5 baseline；[`scripts/prepare_amazon_reviews_2014_beauty.py`](scripts/prepare_amazon_reviews_2014_beauty.py) 可驗證並重用已下載資料。SoC 工作尚未提交。
 - 本機已下載 Sentence-T5 base 並用 64 件商品、1 epoch 完成 Sentence-T5 + RQ-VAE smoke test；三層 codebook 使用碼數為 3、1、1（容量 16），顯示此短跑發生 collapse。產物僅在忽略目錄 `Recall/TIGER/runs/sentence-t5-smoke-64/`，沒有把這個不完整 SID 目錄當作正式 split 資料。
 - 本地 TF-IDF/SVD smoke test 對完整 12,101 件 Beauty 商品訓練 RQ-VAE 1 epoch，三層 codebook 的使用碼數分別為 27、25、15（每層容量 32），546 組三碼 SID 發生碰撞；附加第四碼後每件商品的 SID 唯一。產物在本地忽略目錄 `Recall/TIGER/runs/smoke-beauty-final/`。
 - 本地序列 smoke test 只取 128 筆 train、3 筆 validation、訓練 1 epoch；Recall@5/10 與 NDCG@5/10 均為 0。此數字僅驗證執行與指標流程，不能代表推薦品質；產物在 `Recall/TIGER/runs/smoke-sequence-from-final-sid/`。
@@ -68,9 +70,10 @@
 
 ### TIGER
 
-- `sentence-t5_rqvae` 尚未在完整 12,101 件 Beauty 商品上產生正式 SID；`sentence-t5_kmeans` 與 `sentence-t5_lsh` 目前只有預留目錄。現有 SID smoke test 不能用作完整資料集的模型效果結論。
+- `sentence-t5_rqvae` 尚未在完整 12,101 件 Beauty 商品上產生正式 SID；`sentence-t5_kmeans` 與 `sentence-t5_lsh` 目前只有預留目錄。現有 SID smoke test 不能用作完整資料集的模型效果結論。商品目錄涵蓋三個 split；若要評估未見商品的歸納能力，仍需另訂只用 train 商品訓練 SID 的協定。
 - 64 件商品、1 epoch 的 Sentence-T5 + RQ-VAE 試跑出現 codebook 使用率低的情況（三層各使用 3、1、1 個碼，容量各 16）；仍須在完整資料與足夠訓練步數下確認是否持續發生。
-- 現有序列模型、訓練預算及解碼設定尚未對齊 TIGER 論文；序列 smoke test 只涵蓋極少量樣本，因此不能把目前的指標當作論文重現結果。
+- 原有小型序列模型、訓練預算及限制商品目錄的解碼設定尚未對齊 TIGER 論文；序列 smoke test 只涵蓋極少量樣本，因此不能把目前的指標當作論文重現結果。
+- 新增的論文設定 T5 入口尚未在完整資料與 200,000 steps 上執行；本地只通過一步訓練與解碼 smoke test。它使用 PyTorch/Hugging Face 而非原作者的 T5X，約 470 萬參數，低於論文描述的約 1,300 萬；hash 函式、訓練細節及商品文句格式也可能不同。須完整訓練與核對後才可談數值復現。
 
 ## Hypothesis
 

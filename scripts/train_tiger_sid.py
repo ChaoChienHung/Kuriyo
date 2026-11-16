@@ -1,6 +1,6 @@
 """Compatibility entry point for TIGER SID generation.
 
-The implementation lives in ``Recall.TIGER.scripts.generate_sids``.
+The implementation lives in ``Representations.SID.scripts.generate_sids``.
 """
 
 from pathlib import Path
@@ -10,7 +10,7 @@ import sys
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from Recall.TIGER.scripts.generate_sids import main
+from Representations.SID.scripts.generate_sids import main
 
 
 if __name__ == "__main__":

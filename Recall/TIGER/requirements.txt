@@ -1,6 +1,3 @@
 -r ../../requirements.txt
 
-# Text embeddings for item content and a seq2seq backbone.
-sentence-transformers>=3,<6
-transformers>=4.44,<5
-scikit-learn>=1.5,<2
+# TIGER sequence model. Install Representations/SID/requirements.txt to generate SIDs.

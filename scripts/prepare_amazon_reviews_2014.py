@@ -49,12 +49,13 @@ def main():
     output_dirs = {split: year_dir / split / "raw" / args.category
                    for split in ("train", "validation", "test")}
     output_paths = {split: directory / "examples.jsonl" for split, directory in output_dirs.items()}
-    items_path = output_dirs["train"] / "items.jsonl"
+    items_path = year_dir / "catalog" / args.category / "items.jsonl"
     manifest_path = output_dirs["train"] / "split_manifest.json"
     if not args.force and any(path.exists() for path in (*output_paths.values(), items_path, manifest_path)):
         parser.error("split output already exists; use --force to replace it")
     for directory in output_dirs.values():
         directory.mkdir(parents=True, exist_ok=True)
+    items_path.parent.mkdir(parents=True, exist_ok=True)
 
     print("Reading reviews from {}".format(review_path), flush=True)
     users, item_ids, review_count = load_sequences(review_path)
@@ -91,6 +92,8 @@ def main():
                 "reviews": {"path": str(review_path.relative_to(REPO_ROOT)), "sha256": file_sha256(review_path)},
                 "metadata": {"path": str(metadata_path.relative_to(REPO_ROOT)), "sha256": file_sha256(metadata_path)},
             },
+            "catalog": {"path": str(items_path.relative_to(REPO_ROOT)),
+                        "sha256": file_sha256(items_path.with_name(items_path.name + ".part"))},
             "rules": {
                 "minimum_user_interactions": 5,
                 "ordering": "unixReviewTime ascending; source row order breaks ties",

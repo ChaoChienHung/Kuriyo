@@ -23,7 +23,7 @@ class SIDMaterializationTests(unittest.TestCase):
                     {"asin": "B", "sid": [1, 2, 3, 1]}]
             sid_file.write_text("".join(json.dumps(row) + "\n" for row in sids))
             (sid_dir / "manifest.json").write_text(json.dumps({"method": "sentence-t5_rqvae"}))
-            item_dir = data_root / "2014/train/raw/Beauty"
+            item_dir = data_root / "2014/catalog/Beauty"
             item_dir.mkdir(parents=True)
             (item_dir / "items.jsonl").write_text(
                 "".join(json.dumps({"asin": asin}) + "\n" for asin in ("A", "B")))
@@ -40,10 +40,15 @@ class SIDMaterializationTests(unittest.TestCase):
             first = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
             self.assertEqual(first.returncode, 0, first.stderr)
             for split in ("train", "validation", "test"):
-                path = (data_root / "2014" / split / "sids/sentence-t5_rqvae/Beauty/examples.jsonl")
+                path = (data_root / "2014" / split
+                        / "sids/sentence-t5_rqvae/Beauty/sid_run/examples.jsonl")
                 row = json.loads(path.read_text())
                 self.assertEqual(row["history_sids"], [[1, 2, 3, 0]])
                 self.assertEqual(row["target_sid"], [1, 2, 3, 1])
+                self.assertFalse((path.parent / "semantic_ids.jsonl").exists())
+            split_manifest = json.loads((data_root / "2014/train/sids/sentence-t5_rqvae/Beauty"
+                                         / "sid_run/split_manifest.json").read_text())
+            self.assertEqual(split_manifest["sid_version"], "sid_run")
             second = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
             self.assertNotEqual(second.returncode, 0)
             self.assertIn("--force", second.stderr)

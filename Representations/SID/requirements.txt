@@ -1,0 +1,6 @@
+-r ../../requirements.txt
+
+# Sentence-T5 embeddings and RQ-VAE codebook initialization.
+sentence-transformers>=3,<6
+transformers>=4.44,<5
+scikit-learn>=1.5,<2

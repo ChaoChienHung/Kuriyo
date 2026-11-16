@@ -1,7 +1,7 @@
 """Build Sentence-T5 item embeddings, train RQ-VAE, and write unique TIGER SIDs.
 
 Run from the repository root with
-``python3 -m Recall.TIGER.scripts.generate_sids --help``.
+``python3 -m Representations.SID.scripts.generate_sids --help``.
 """
 
 import argparse
@@ -22,11 +22,11 @@ ROOT = Path(__file__).resolve().parents[3]
 if __package__ in (None, ""):
     sys.path.insert(0, str(ROOT))
 
-from Recall.TIGER.rqvae import RQVAE
+from Representations.SID.rqvae import RQVAE
 
 
-DEFAULT_ITEMS = ROOT / "data/amazon_reviews/2014/train/raw/Beauty/items.jsonl"
-DEFAULT_RUNS = ROOT / "Recall/TIGER/runs"
+DEFAULT_ITEMS = ROOT / "data/amazon_reviews/2014/catalog/Beauty/items.jsonl"
+DEFAULT_RUNS = ROOT / "Representations/SID/runs"
 
 
 def read_items(path, limit):
@@ -107,6 +107,8 @@ def main():
     parser.add_argument("--output-dir", type=Path,
                         help="write SID artifacts here instead of a named runs/ directory")
     parser.add_argument("--encoder", choices=("sentence-t5", "tfidf"), default="sentence-t5")
+    parser.add_argument("--paper-baseline", action="store_true",
+                        help="use TIGER paper RQ-VAE training defaults (20k epochs, Adagrad 0.4)")
     parser.add_argument("--text-model", default="sentence-transformers/sentence-t5-base")
     parser.add_argument("--text-batch-size", type=int, default=32)
     parser.add_argument("--text-dim", type=int, default=64)
@@ -121,6 +123,15 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--device", choices=("cpu", "cuda", "mps"), default="cpu")
     args = parser.parse_args()
+    if args.paper_baseline:
+        if args.encoder != "sentence-t5" or args.limit_items is not None:
+            parser.error("--paper-baseline requires the full Sentence-T5 catalog")
+        args.epochs = 20000
+        args.batch_size = 1024
+        args.codebook_size = 256
+        args.hidden_dims = (512, 256, 128)
+        args.latent_dim = 32
+        args.learning_rate = 0.4
     if args.output_dir is None and (not args.run_name
             or Path(args.run_name).name != args.run_name
             or args.run_name in (".", "..")):
@@ -158,11 +169,18 @@ def main():
         raise ValueError("non-finite item embedding")
     model = RQVAE(embeddings.shape[1], hidden_dims=tuple(args.hidden_dims),
                   latent_dim=args.latent_dim, codebook_size=args.codebook_size)
-    initialize_codebooks(model, embeddings, args.seed)
+    if args.paper_baseline:
+        initial_indices = np.random.default_rng(args.seed).permutation(len(embeddings))[:1024]
+        initialize_codebooks(model, embeddings[initial_indices], args.seed)
+    else:
+        initialize_codebooks(model, embeddings, args.seed)
     model.to(args.device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+    optimizer_name = "adagrad" if args.paper_baseline else "adam"
+    optimizer = (torch.optim.Adagrad(model.parameters(), lr=args.learning_rate)
+                 if args.paper_baseline else torch.optim.Adam(model.parameters(), lr=args.learning_rate))
     dataset = TensorDataset(torch.from_numpy(embeddings))
-    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
+    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True,
+                        generator=torch.Generator().manual_seed(args.seed))
     for epoch in range(args.epochs):
         model.train()
         total = 0.0
@@ -172,7 +190,9 @@ def main():
             loss.backward()
             optimizer.step()
             total += loss.item() * len(batch)
-        print("epoch {}/{} loss={:.6f}".format(epoch + 1, args.epochs, total / len(dataset)), flush=True)
+        if not args.paper_baseline or epoch == 0 or (epoch + 1) % 100 == 0 or epoch + 1 == args.epochs:
+            print("epoch {}/{} loss={:.6f}".format(epoch + 1, args.epochs,
+                                                   total / len(dataset)), flush=True)
 
     model.eval()
     codes = []
@@ -196,6 +216,8 @@ def main():
         "codebook_size": args.codebook_size, "latent_dim": args.latent_dim,
         "hidden_dims": args.hidden_dims, "learning_rate": args.learning_rate,
         "batch_size": args.batch_size, "device": args.device,
+        "paper_baseline": args.paper_baseline, "optimizer": optimizer_name,
+        "codebook_usage_ratio": [usage / args.codebook_size for usage in usages],
         "git_revision": revision.stdout.strip() if revision.returncode == 0 else None,
         "seed": args.seed, "collision_groups": collision_groups,
         "largest_collision_group": largest_collision, "codebook_usage": usages,

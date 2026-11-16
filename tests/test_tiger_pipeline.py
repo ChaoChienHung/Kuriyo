@@ -12,7 +12,7 @@ import unittest
 class TIGERPipelineTests(unittest.TestCase):
     def test_rqvae_forward_and_codebook_gradients(self):
         import torch
-        from Recall.TIGER.rqvae import RQVAE
+        from Representations.SID.rqvae import RQVAE
 
         model = RQVAE(4, hidden_dims=(8,), latent_dim=2, levels=3, codebook_size=4)
         loss, codes, _ = model(torch.randn(6, 4))
@@ -22,7 +22,7 @@ class TIGERPipelineTests(unittest.TestCase):
         self.assertTrue(all(codebook.grad is not None for codebook in model.codebooks))
 
     def test_collision_suffix_makes_ids_unique(self):
-        from Recall.TIGER.scripts.generate_sids import unique_semantic_ids
+        from Representations.SID.scripts.generate_sids import unique_semantic_ids
 
         sids, groups, largest = unique_semantic_ids(
             ["B", "A", "C"], [[1, 2, 3], [1, 2, 3], [4, 5, 6]])
@@ -46,7 +46,7 @@ class TIGERPipelineTests(unittest.TestCase):
 
     def test_sequence_loader_reads_materialized_sids(self):
         from Recall.TIGER.sequence import SIDTokenizer
-        from scripts.train_tiger_sequence import collate, read_examples
+        from Recall.TIGER.scripts.train_sequence import collate, read_examples
 
         tokenizer = SIDTokenizer({"A": [0, 0, 0, 0], "B": [0, 0, 0, 1]}, 2)
         record = {"user_id": "U", "history_sids": [[0, 0, 0, 0]],
