@@ -57,6 +57,8 @@ python3 -m unittest discover -s . -v
 
 在 SoC 上的完整 Beauty 準備與 TIGER baseline 入口是 [`scripts/run.sbatch`](scripts/run.sbatch)；本地可先用 `python3 -m scripts.prepare_amazon_reviews_2014_beauty` 檢查或準備共用商品目錄與切分。`run.sbatch` 的預設是長時間 GPU 訓練，提交前須查當前叢集資源與儲存規則；細節見 [SoC skill](skills/nus-soc-slurm/SKILL.md)。
 
+若先只生成商品 SID，可從 repo 根目錄執行 `STAGE=sid sbatch --export=ALL scripts/run.sbatch`。這個階段會自動準備 Beauty 原始資料、商品目錄與 ASIN 切分，再生成 SID；完整的既有資料會經檢查後重用。部分下載或不完整的切分會報錯，需先檢查，不會自動覆寫。SID 完成後再以 `STAGE=materialize` 轉換樣本、`STAGE=train` 訓練 TIGER。
+
 ### Amazon Reviews 2023（探索用）
 
 先以 McAuley Lab 的 `All_Beauty` 分類建立資料流程。下載評論及商品 metadata：

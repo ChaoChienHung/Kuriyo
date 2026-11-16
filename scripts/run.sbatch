@@ -10,8 +10,9 @@
 # Verify the live SoC partition, GPU and limits before submitting. Override
 # these example directives with sbatch flags when the cluster configuration differs.
 # STAGE=all runs prepare -> SID -> materialize -> TIGER; STAGE=test is separate.
-# Individual stages can
-# be submitted separately when the full paper-budget run exceeds one allocation.
+# STAGE=sid also prepares/verifies Beauty inputs before generating SIDs.
+# Individual stages can be submitted separately when the full paper-budget run
+# exceeds one allocation.
 
 set -euo pipefail
 cd "${SLURM_SUBMIT_DIR:?submit from the Kuriyo repository root}"
@@ -42,13 +43,13 @@ echo "job=${SLURM_JOB_ID:-local} commit=$(git rev-parse HEAD) stage=$stage sid_v
 sid_dir="data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/$sid_version"
 split_dir="data/amazon_reviews/2014/train/sids/sentence-t5_rqvae/Beauty/$sid_version"
 
-if [[ "$stage" == all || "$stage" == prepare ]]; then
+if [[ "$stage" == all || "$stage" == prepare || "$stage" == sid ]]; then
   srun .venv/bin/python -m scripts.prepare_amazon_reviews_2014_beauty
 fi
 
 if [[ "$stage" == all || "$stage" == sid ]]; then
   test -f data/amazon_reviews/2014/catalog/Beauty/items.jsonl || {
-    echo "Beauty catalog missing; run STAGE=prepare first" >&2; exit 2;
+    echo "Beauty catalog missing after preparation; inspect the preparation log" >&2; exit 2;
   }
   if [[ -e "$sid_dir" ]]; then
     test -f "$sid_dir/semantic_ids.jsonl" && test -f "$sid_dir/manifest.json" || {

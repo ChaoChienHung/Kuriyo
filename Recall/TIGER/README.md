@@ -55,6 +55,8 @@ python3.12 -m venv .venv
 
 轉換腳本用同一份商品 SID 對照表，把 ASIN 樣本變成各 split 的 `sids/sentence-t5_rqvae/Beauty/v1/examples.jsonl`；訓練目錄另有 `split_manifest.json`，其中記錄 SID 來源與校驗值。轉換後的樣本包含 `user_id`、`history_sids`、`target_sid`、`target_asin`、`target_timestamp`。這些資料檔與模型權重都由 Git 忽略。序列 run 存於 `Recall/TIGER/runs/<run-name>/`，名稱不可重複。
 
+`STAGE=sid` 會先自動下載或檢查 Beauty 資料並準備共用商品目錄及 ASIN 切分，不需要另外先提交 `STAGE=prepare`。完整資料會重用；部分下載、不完整切分或校驗失敗會停止，保留現場供檢查。
+
 ### 本地小樣本驗證
 
 若只想確認 Sentence-T5 與 RQ-VAE 都能執行，可把少量商品存到獨立的 smoke run；**少量商品產生的 SID 不能用來轉換完整 train/validation/test**：
