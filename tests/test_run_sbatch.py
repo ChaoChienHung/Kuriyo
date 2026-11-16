@@ -30,8 +30,13 @@ echo "$2" >> "$RUN_TRACE"
 case "$2" in
   pip)
     test "$3" = install
-    test "$4" = -r
-    test "$5" = requirements-soc.txt
+    test "$4" = --extra-index-url
+    test "$5" = https://download.pytorch.org/whl/cu126
+    test "$6" = torch==2.7.1+cu126
+    test "$7" = -r
+    test "$8" = Representations/SID/requirements.txt
+    test "$9" = -r
+    test "${10}" = Recall/TIGER/requirements.txt
     ;;
   scripts.prepare_amazon_reviews_2014_beauty)
     if [ "$FAIL_PREPARE" = 1 ]; then exit 17; fi

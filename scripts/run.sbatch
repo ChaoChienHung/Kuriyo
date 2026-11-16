@@ -36,7 +36,11 @@ mkdir -p "$TMPDIR" "$HF_HOME"
 if [[ ! -x .venv/bin/python ]]; then
   python3 -m venv .venv
 fi
-.venv/bin/python -m pip install -r requirements-soc.txt
+# SoC override documented in root requirements.txt; keep both in sync.
+.venv/bin/python -m pip install \
+  --extra-index-url https://download.pytorch.org/whl/cu126 \
+  "torch==2.7.1+cu126" \
+  -r Representations/SID/requirements.txt -r Recall/TIGER/requirements.txt
 
 echo "job=${SLURM_JOB_ID:-local} commit=$(git rev-parse HEAD) stage=$stage sid_version=$sid_version run=$run_name"
 sid_dir="data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/$sid_version"

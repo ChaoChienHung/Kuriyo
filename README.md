@@ -91,4 +91,4 @@ python3 scripts/download_amazon_reviews_2023.py --category All_Beauty
 
 根目錄的 `requirements.txt` 放共用建模依賴；SID 與 TIGER 各有自己的 `requirements.txt`。資料下載與準備只用 Python 標準函式庫；模型環境建議 Python 3.10 以上。各元件的 README 記錄資料指令與實作狀態；研究筆記見 [INSIGHT.md](INSIGHT.md)，待辦事項見 [TODO.md](TODO.md)。
 
-SoC Linux GPU 環境使用根目錄 `requirements-soc.txt`，固定 `torch==2.7.1+cu126`，並引入 SID 與 TIGER 依賴；`scripts/run.sbatch` 自動使用此檔，避免新環境安裝不支援 TITAN V 的 CUDA 13 build。本地 CPU／macOS 仍使用各元件 requirements。這是 GPU 相容性設定，尚非完整依賴 lockfile。
+SoC Linux GPU 的安裝指令集中記錄於根目錄 `requirements.txt` 的註解，安裝時明確指定 `torch==2.7.1+cu126` 與 CUDA 12.6 套件來源，並引入 SID 與 TIGER 依賴；`scripts/run.sbatch` 自動套用相同指令，避免新環境安裝不支援 TITAN V 的 CUDA 13 build。本地 CPU／macOS 仍使用各元件 requirements。註解不會改變 pip 行為，手動安裝 SoC 環境時須使用註解中的完整指令。這是 GPU 相容性設定，尚非完整依賴 lockfile。

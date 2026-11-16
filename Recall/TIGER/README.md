@@ -57,13 +57,16 @@ STAGE=test sbatch --export=ALL scripts/run.sbatch
 
 ## 安裝依賴與手動執行
 
-**SoC Linux x86_64 使用專用環境設定**：[`requirements-soc.txt`](../../requirements-soc.txt) 固定 `torch==2.7.1+cu126`，同時安裝 SID 與 TIGER 依賴。`run.sbatch` 已自動套用。手動安裝指令：
+**SoC Linux x86_64**：根目錄 [`requirements.txt`](../../requirements.txt) 的註解記錄 SoC 安裝方式；指令明確指定 `torch==2.7.1+cu126`，同時安裝 SID 與 TIGER 依賴。`run.sbatch` 已自動套用。手動安裝指令：
 
 ```bash
-.venv/bin/python -m pip install -r requirements-soc.txt
+.venv/bin/python -m pip install \
+  --extra-index-url https://download.pytorch.org/whl/cu126 \
+  "torch==2.7.1+cu126" \
+  -r Representations/SID/requirements.txt -r Recall/TIGER/requirements.txt
 ```
 
-此設定針對叢集 TITAN V（Volta / sm_70）；[CUDA 13 已移除 Volta 函式庫支援](https://developer.nvidia.com/blog/navigating-gpu-architecture-support-a-guide-for-nvidia-cuda-developers)，採用 [PyTorch 官方 CUDA 12.6 build](https://pytorch.org/get-started/previous-versions/)。目前只確認使用者已成功安裝，仍需在 GPU allocation 內驗證運算與完整訓練。本地 CPU／macOS 使用下方一般依賴，不安裝此 CUDA 專用檔。
+此設定針對叢集 TITAN V（Volta / sm_70）；[CUDA 13 已移除 Volta 函式庫支援](https://developer.nvidia.com/blog/navigating-gpu-architecture-support-a-guide-for-nvidia-cuda-developers)，採用 [PyTorch 官方 CUDA 12.6 build](https://pytorch.org/get-started/previous-versions/)。目前只確認使用者已成功安裝，仍需在 GPU allocation 內驗證運算與完整訓練。本地 CPU／macOS 使用下方一般依賴，不套用此 CUDA 版本覆寫。註解本身不會讓 pip 自動判斷是否位於 SoC，手動安裝時請使用上述完整指令。
 
 若 login node 的 `ulimit -v` 為 `1048576`，代表虛擬記憶體上限 1 GiB，可能導致 `libtorch_cpu.so: failed to map segment`。請在 allocation 內檢查 `ulimit -a` 並測試 Torch，不要將 login node 的載入失敗直接判定為安裝損毀；batch 是否繼承限制亦須確認。
 
