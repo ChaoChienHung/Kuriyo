@@ -28,7 +28,11 @@ class RunSbatchTests(unittest.TestCase):
         self.executable(".venv/bin/python", '''
 echo "$2" >> "$RUN_TRACE"
 case "$2" in
-  pip) ;;
+  pip)
+    test "$3" = install
+    test "$4" = -r
+    test "$5" = requirements-soc.txt
+    ;;
   scripts.prepare_amazon_reviews_2014_beauty)
     if [ "$FAIL_PREPARE" = 1 ]; then exit 17; fi
     mkdir -p data/amazon_reviews/2014/catalog/Beauty
