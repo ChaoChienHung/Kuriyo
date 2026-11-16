@@ -4,6 +4,8 @@ Kuriyo 這個 repository 主要用來存放**推薦模型**及其相關的資料
 
 專案目前仍在建立初期。2014 Amazon Beauty 的資料準備流程已可執行；獨立的 [SID 元件](Representations/SID/README.md)與 [TIGER](Recall/TIGER/README.md) 序列模型已有可執行的試跑流程，尚未重現論文結果。
 
+要執行第一版 TIGER baseline，請從 [TIGER 使用指南](Recall/TIGER/README.md) 開始：包含論文與模型介紹、依賴安裝、SoC pull 後分階段執行、手動指令、續訓、評估及目前限制。
+
 ## 資料目錄
 
 Amazon Reviews 的資料依年份存放在 `data/amazon_reviews/2014/` 與 `data/amazon_reviews/2023/`：

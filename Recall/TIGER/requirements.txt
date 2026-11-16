@@ -1,3 +1,7 @@
 -r ../../requirements.txt
 
-# TIGER sequence model. Install Representations/SID/requirements.txt to generate SIDs.
+# TIGER T5 sequence model and Adafactor optimizer.
+transformers>=4.44,<5
+
+# SID generation is a separate component; for the complete pipeline also install:
+# python -m pip install -r Representations/SID/requirements.txt
