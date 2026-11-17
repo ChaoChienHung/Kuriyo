@@ -1,0 +1,2268 @@
+Looking in indexes: https://pypi.org/simple, https://download.pytorch.org/whl/cu126
+Requirement already satisfied: torch==2.7.1+cu126 in ./.venv/lib/python3.12/site-packages (2.7.1+cu126)
+Requirement already satisfied: numpy<3,>=1.26 in ./.venv/lib/python3.12/site-packages (from -r Representations/SID/../../requirements.txt (line 2)) (2.5.5)
+Requirement already satisfied: sentence-transformers<6,>=3 in ./.venv/lib/python3.12/site-packages (from -r Representations/SID/requirements.txt (line 4)) (5.7.0)
+Requirement already satisfied: transformers<5,>=4.44 in ./.venv/lib/python3.12/site-packages (from -r Representations/SID/requirements.txt (line 5)) (4.57.6)
+Requirement already satisfied: scikit-learn<2,>=1.5 in ./.venv/lib/python3.12/site-packages (from -r Representations/SID/requirements.txt (line 6)) (1.9.1)
+Requirement already satisfied: filelock in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (4.2.10)
+Requirement already satisfied: typing-extensions>=4.10.0 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (4.16.0)
+Requirement already satisfied: setuptools in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (84.2.1)
+Requirement already satisfied: sympy>=1.13.3 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (1.14.0)
+Requirement already satisfied: networkx in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (3.7)
+Requirement already satisfied: jinja2 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (3.1.6)
+Requirement already satisfied: fsspec in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (2026.9.0)
+Requirement already satisfied: nvidia-cuda-nvrtc-cu12==12.6.77 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.77)
+Requirement already satisfied: nvidia-cuda-runtime-cu12==12.6.77 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.77)
+Requirement already satisfied: nvidia-cuda-cupti-cu12==12.6.80 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.80)
+Requirement already satisfied: nvidia-cudnn-cu12==9.5.1.17 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (9.5.1.17)
+Requirement already satisfied: nvidia-cublas-cu12==12.6.4.1 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.4.1)
+Requirement already satisfied: nvidia-cufft-cu12==11.3.0.4 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (11.3.0.4)
+Requirement already satisfied: nvidia-curand-cu12==10.3.7.77 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (10.3.7.77)
+Requirement already satisfied: nvidia-cusolver-cu12==11.7.1.2 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (11.7.1.2)
+Requirement already satisfied: nvidia-cusparse-cu12==12.5.4.2 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.5.4.2)
+Requirement already satisfied: nvidia-cusparselt-cu12==0.6.3 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (0.6.3)
+Requirement already satisfied: nvidia-nccl-cu12==2.26.2 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (2.26.2)
+Requirement already satisfied: nvidia-nvtx-cu12==12.6.77 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.77)
+Requirement already satisfied: nvidia-nvjitlink-cu12==12.6.85 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.85)
+Requirement already satisfied: nvidia-cufile-cu12==1.11.1.6 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (1.11.1.6)
+Requirement already satisfied: triton==3.3.1 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (3.3.1)
+Requirement already satisfied: tokenizers>=0.19 in ./.venv/lib/python3.12/site-packages (from sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (0.22.2)
+Requirement already satisfied: huggingface-hub>=0.23.0 in ./.venv/lib/python3.12/site-packages (from sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (0.36.2)
+Requirement already satisfied: scipy>=1.0.0 in ./.venv/lib/python3.12/site-packages (from sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (1.18.1)
+Requirement already satisfied: tqdm>=4.0.0 in ./.venv/lib/python3.12/site-packages (from sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (4.70.1)
+Requirement already satisfied: packaging>=20.0 in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (26.3)
+Requirement already satisfied: pyyaml>=5.1 in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (6.0.3)
+Requirement already satisfied: regex!=2019.12.17 in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2026.11.15)
+Requirement already satisfied: requests in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2.34.2)
+Requirement already satisfied: safetensors>=0.4.3 in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (0.8.0)
+Requirement already satisfied: joblib>=1.4.0 in ./.venv/lib/python3.12/site-packages (from scikit-learn<2,>=1.5->-r Representations/SID/requirements.txt (line 6)) (1.6.0)
+Requirement already satisfied: narwhals>=2.0.1 in ./.venv/lib/python3.12/site-packages (from scikit-learn<2,>=1.5->-r Representations/SID/requirements.txt (line 6)) (2.28.0)
+Requirement already satisfied: threadpoolctl>=3.5.0 in ./.venv/lib/python3.12/site-packages (from scikit-learn<2,>=1.5->-r Representations/SID/requirements.txt (line 6)) (3.8.0)
+Requirement already satisfied: hf-xet<2.0.0,>=1.1.3 in ./.venv/lib/python3.12/site-packages (from huggingface-hub>=0.23.0->sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (1.8.0)
+Requirement already satisfied: cloudpickle>=3.0 in ./.venv/lib/python3.12/site-packages (from joblib>=1.4.0->scikit-learn<2,>=1.5->-r Representations/SID/requirements.txt (line 6)) (3.1.2)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in ./.venv/lib/python3.12/site-packages (from sympy>=1.13.3->torch==2.7.1+cu126) (1.3.0)
+Requirement already satisfied: MarkupSafe>=2.0 in ./.venv/lib/python3.12/site-packages (from jinja2->torch==2.7.1+cu126) (3.0.4)
+Requirement already satisfied: charset_normalizer<4,>=2 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (3.5.2)
+Requirement already satisfied: idna<4,>=2.5 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (3.20)
+Requirement already satisfied: urllib3<3,>=1.26 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2.8.0)
+Requirement already satisfied: certifi>=2023.5.7 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2026.10.23)
+job=1153307 commit=5f99955a936a865b4dd122c6c890cc7e1d755a86 stage=all sid_version=tiger-paper-20261117-005232 run=tiger-paper-20261117-005232
+Beauty ready: 12101 items, 131413 train, 22363 validation, 22363 test
+Encoding 12101 items with sentence-t5
+Batches:   0%|          | 0/379 [00:00<?, ?it/s]Batches:   0%|          | 1/379 [00:00<04:43,  1.33it/s]Batches:   1%|          | 2/379 [00:00<02:27,  2.56it/s]Batches:   1%|          | 3/379 [00:01<01:41,  3.70it/s]Batches:   1%|          | 4/379 [00:01<01:17,  4.86it/s]Batches:   1%|▏         | 5/379 [00:01<01:02,  5.95it/s]Batches:   2%|▏         | 7/379 [00:01<00:47,  7.89it/s]Batches:   2%|▏         | 9/379 [00:01<00:39,  9.30it/s]Batches:   3%|▎         | 11/379 [00:01<00:34, 10.56it/s]Batches:   3%|▎         | 13/379 [00:01<00:30, 11.89it/s]Batches:   4%|▍         | 15/379 [00:01<00:28, 12.83it/s]Batches:   4%|▍         | 17/379 [00:02<00:25, 13.94it/s]Batches:   5%|▌         | 19/379 [00:02<00:24, 14.88it/s]Batches:   6%|▌         | 21/379 [00:02<00:22, 15.86it/s]Batches:   6%|▌         | 23/379 [00:02<00:21, 16.59it/s]Batches:   7%|▋         | 25/379 [00:02<00:20, 17.08it/s]Batches:   7%|▋         | 27/379 [00:02<00:20, 17.22it/s]Batches:   8%|▊         | 29/379 [00:02<00:19, 17.63it/s]Batches:   8%|▊         | 31/379 [00:02<00:19, 17.53it/s]Batches:   9%|▉         | 34/379 [00:03<00:19, 18.11it/s]Batches:   9%|▉         | 36/379 [00:03<00:18, 18.53it/s]Batches:  10%|█         | 39/379 [00:03<00:18, 18.73it/s]Batches:  11%|█         | 42/379 [00:03<00:17, 19.19it/s]Batches:  12%|█▏        | 44/379 [00:03<00:17, 19.29it/s]Batches:  12%|█▏        | 46/379 [00:03<00:17, 19.13it/s]Batches:  13%|█▎        | 49/379 [00:03<00:16, 19.50it/s]Batches:  14%|█▎        | 52/379 [00:03<00:16, 19.76it/s]Batches:  15%|█▍        | 55/379 [00:04<00:16, 20.07it/s]Batches:  15%|█▌        | 58/379 [00:04<00:15, 20.47it/s]Batches:  16%|█▌        | 61/379 [00:04<00:15, 20.17it/s]Batches:  17%|█▋        | 64/379 [00:04<00:15, 20.39it/s]Batches:  18%|█▊        | 67/379 [00:04<00:15, 20.49it/s]Batches:  18%|█▊        | 70/379 [00:04<00:14, 20.73it/s]Batches:  19%|█▉        | 73/379 [00:04<00:14, 20.81it/s]Batches:  20%|██        | 76/379 [00:05<00:14, 20.74it/s]Batches:  21%|██        | 79/379 [00:05<00:14, 20.81it/s]Batches:  22%|██▏       | 82/379 [00:05<00:14, 21.08it/s]Batches:  22%|██▏       | 85/379 [00:05<00:13, 21.13it/s]Batches:  23%|██▎       | 88/379 [00:05<00:13, 21.34it/s]Batches:  24%|██▍       | 91/379 [00:05<00:13, 21.39it/s]Batches:  25%|██▍       | 94/379 [00:05<00:13, 21.20it/s]Batches:  26%|██▌       | 97/379 [00:06<00:13, 21.45it/s]Batches:  26%|██▋       | 100/379 [00:06<00:12, 21.56it/s]Batches:  27%|██▋       | 103/379 [00:06<00:12, 21.42it/s]Batches:  28%|██▊       | 106/379 [00:06<00:12, 21.44it/s]Batches:  29%|██▉       | 109/379 [00:06<00:12, 21.73it/s]Batches:  30%|██▉       | 112/379 [00:06<00:12, 21.77it/s]Batches:  30%|███       | 115/379 [00:06<00:12, 21.75it/s]Batches:  31%|███       | 118/379 [00:07<00:11, 21.95it/s]Batches:  32%|███▏      | 121/379 [00:07<00:11, 21.76it/s]Batches:  33%|███▎      | 124/379 [00:07<00:11, 21.74it/s]Batches:  34%|███▎      | 127/379 [00:07<00:11, 21.89it/s]Batches:  34%|███▍      | 130/379 [00:07<00:11, 21.94it/s]Batches:  35%|███▌      | 133/379 [00:07<00:11, 22.14it/s]Batches:  36%|███▌      | 136/379 [00:07<00:10, 22.38it/s]Batches:  37%|███▋      | 139/379 [00:07<00:10, 22.20it/s]Batches:  37%|███▋      | 142/379 [00:08<00:10, 22.45it/s]Batches:  38%|███▊      | 145/379 [00:08<00:10, 22.49it/s]Batches:  39%|███▉      | 148/379 [00:08<00:10, 22.59it/s]Batches:  40%|███▉      | 151/379 [00:08<00:10, 22.68it/s]Batches:  41%|████      | 154/379 [00:08<00:09, 22.64it/s]Batches:  41%|████▏     | 157/379 [00:08<00:09, 22.90it/s]Batches:  42%|████▏     | 160/379 [00:08<00:09, 23.23it/s]Batches:  43%|████▎     | 163/379 [00:09<00:09, 23.00it/s]Batches:  44%|████▍     | 166/379 [00:09<00:09, 23.05it/s]Batches:  45%|████▍     | 169/379 [00:09<00:09, 22.94it/s]Batches:  45%|████▌     | 172/379 [00:09<00:09, 22.85it/s]Batches:  46%|████▌     | 175/379 [00:09<00:08, 23.03it/s]Batches:  47%|████▋     | 178/379 [00:09<00:08, 23.06it/s]Batches:  48%|████▊     | 181/379 [00:09<00:08, 23.06it/s]Batches:  49%|████▊     | 184/379 [00:09<00:08, 23.18it/s]Batches:  49%|████▉     | 187/379 [00:10<00:08, 22.96it/s]Batches:  50%|█████     | 190/379 [00:10<00:08, 23.04it/s]Batches:  51%|█████     | 193/379 [00:10<00:07, 23.32it/s]Batches:  52%|█████▏    | 196/379 [00:10<00:07, 23.04it/s]Batches:  53%|█████▎    | 199/379 [00:10<00:07, 23.23it/s]Batches:  53%|█████▎    | 202/379 [00:10<00:07, 23.56it/s]Batches:  54%|█████▍    | 205/379 [00:10<00:07, 23.76it/s]Batches:  55%|█████▍    | 208/379 [00:10<00:07, 23.49it/s]Batches:  56%|█████▌    | 211/379 [00:11<00:07, 23.44it/s]Batches:  56%|█████▋    | 214/379 [00:11<00:06, 23.60it/s]Batches:  57%|█████▋    | 217/379 [00:11<00:06, 24.20it/s]Batches:  58%|█████▊    | 220/379 [00:11<00:06, 24.26it/s]Batches:  59%|█████▉    | 223/379 [00:11<00:06, 24.37it/s]Batches:  60%|█████▉    | 226/379 [00:11<00:06, 24.52it/s]Batches:  60%|██████    | 229/379 [00:11<00:06, 24.39it/s]Batches:  61%|██████    | 232/379 [00:11<00:06, 24.45it/s]Batches:  62%|██████▏   | 235/379 [00:12<00:05, 24.31it/s]Batches:  63%|██████▎   | 238/379 [00:12<00:05, 24.43it/s]Batches:  64%|██████▎   | 241/379 [00:12<00:05, 24.43it/s]Batches:  64%|██████▍   | 244/379 [00:12<00:05, 25.05it/s]Batches:  65%|██████▌   | 247/379 [00:12<00:05, 24.90it/s]Batches:  66%|██████▌   | 250/379 [00:12<00:05, 24.97it/s]Batches:  67%|██████▋   | 253/379 [00:12<00:05, 25.07it/s]Batches:  68%|██████▊   | 256/379 [00:12<00:04, 25.42it/s]Batches:  68%|██████▊   | 259/379 [00:13<00:04, 25.42it/s]Batches:  69%|██████▉   | 262/379 [00:13<00:04, 25.96it/s]Batches:  70%|██████▉   | 265/379 [00:13<00:04, 25.90it/s]Batches:  71%|███████   | 268/379 [00:13<00:04, 26.48it/s]Batches:  72%|███████▏  | 271/379 [00:13<00:03, 27.04it/s]Batches:  72%|███████▏  | 274/379 [00:13<00:03, 27.23it/s]Batches:  73%|███████▎  | 277/379 [00:13<00:03, 26.99it/s]Batches:  74%|███████▍  | 280/379 [00:13<00:03, 26.60it/s]Batches:  75%|███████▍  | 283/379 [00:13<00:03, 25.62it/s]Batches:  75%|███████▌  | 286/379 [00:14<00:03, 26.07it/s]Batches:  76%|███████▋  | 289/379 [00:14<00:03, 25.96it/s]Batches:  77%|███████▋  | 292/379 [00:14<00:03, 26.39it/s]Batches:  78%|███████▊  | 295/379 [00:14<00:03, 26.85it/s]Batches:  79%|███████▊  | 298/379 [00:14<00:02, 27.17it/s]Batches:  79%|███████▉  | 301/379 [00:14<00:02, 27.26it/s]Batches:  80%|████████  | 304/379 [00:14<00:02, 27.30it/s]Batches:  81%|████████  | 307/379 [00:14<00:02, 27.79it/s]Batches:  82%|████████▏ | 310/379 [00:14<00:02, 27.31it/s]Batches:  83%|████████▎ | 313/379 [00:15<00:02, 26.96it/s]Batches:  83%|████████▎ | 316/379 [00:15<00:02, 27.36it/s]Batches:  84%|████████▍ | 319/379 [00:15<00:02, 27.48it/s]Batches:  85%|████████▍ | 322/379 [00:15<00:02, 27.86it/s]Batches:  86%|████████▌ | 325/379 [00:15<00:01, 28.26it/s]Batches:  87%|████████▋ | 328/379 [00:15<00:01, 28.01it/s]Batches:  87%|████████▋ | 331/379 [00:15<00:01, 28.33it/s]Batches:  88%|████████▊ | 334/379 [00:15<00:01, 28.63it/s]Batches:  89%|████████▉ | 337/379 [00:15<00:01, 28.52it/s]Batches:  90%|████████▉ | 340/379 [00:15<00:01, 28.74it/s]Batches:  91%|█████████ | 343/379 [00:16<00:01, 28.86it/s]Batches:  91%|█████████▏| 346/379 [00:16<00:01, 29.00it/s]Batches:  92%|█████████▏| 349/379 [00:16<00:01, 29.09it/s]Batches:  93%|█████████▎| 353/379 [00:16<00:00, 29.43it/s]Batches:  94%|█████████▍| 357/379 [00:16<00:00, 29.79it/s]Batches:  95%|█████████▍| 360/379 [00:16<00:00, 29.77it/s]Batches:  96%|█████████▌| 364/379 [00:16<00:00, 30.00it/s]Batches:  97%|█████████▋| 368/379 [00:16<00:00, 30.65it/s]Batches:  98%|█████████▊| 372/379 [00:17<00:00, 31.70it/s]Batches:  99%|█████████▉| 376/379 [00:17<00:00, 33.07it/s]Batches: 100%|██████████| 379/379 [00:17<00:00, 22.03it/s]
+epoch 1/20000 loss=8743993902.953560
+epoch 100/20000 loss=4.258554
+epoch 200/20000 loss=2.177984
+epoch 300/20000 loss=1.780397
+epoch 400/20000 loss=1.298570
+epoch 500/20000 loss=0.867696
+epoch 600/20000 loss=0.651048
+epoch 700/20000 loss=0.525723
+epoch 800/20000 loss=0.472951
+epoch 900/20000 loss=0.430647
+epoch 1000/20000 loss=0.399144
+epoch 1100/20000 loss=0.389219
+epoch 1200/20000 loss=0.368244
+epoch 1300/20000 loss=0.358055
+epoch 1400/20000 loss=0.345927
+epoch 1500/20000 loss=0.343050
+epoch 1600/20000 loss=0.344374
+epoch 1700/20000 loss=0.331648
+epoch 1800/20000 loss=0.326733
+epoch 1900/20000 loss=0.321940
+epoch 2000/20000 loss=0.318166
+epoch 2100/20000 loss=0.315615
+epoch 2200/20000 loss=0.310783
+epoch 2300/20000 loss=0.315248
+epoch 2400/20000 loss=0.306602
+epoch 2500/20000 loss=0.308842
+epoch 2600/20000 loss=0.301417
+epoch 2700/20000 loss=0.299761
+epoch 2800/20000 loss=0.301225
+epoch 2900/20000 loss=0.298035
+epoch 3000/20000 loss=0.294570
+epoch 3100/20000 loss=0.292317
+epoch 3200/20000 loss=0.293236
+epoch 3300/20000 loss=0.292044
+epoch 3400/20000 loss=0.290094
+epoch 3500/20000 loss=0.287100
+epoch 3600/20000 loss=0.288859
+epoch 3700/20000 loss=0.286893
+epoch 3800/20000 loss=0.291219
+epoch 3900/20000 loss=0.283804
+epoch 4000/20000 loss=0.280607
+epoch 4100/20000 loss=0.280881
+epoch 4200/20000 loss=0.290679
+epoch 4300/20000 loss=0.277372
+epoch 4400/20000 loss=0.276600
+epoch 4500/20000 loss=0.284886
+epoch 4600/20000 loss=0.274542
+epoch 4700/20000 loss=0.283298
+epoch 4800/20000 loss=0.272100
+epoch 4900/20000 loss=0.271362
+epoch 5000/20000 loss=0.271050
+epoch 5100/20000 loss=0.270117
+epoch 5200/20000 loss=0.268415
+epoch 5300/20000 loss=0.268044
+epoch 5400/20000 loss=0.268081
+epoch 5500/20000 loss=0.273514
+epoch 5600/20000 loss=0.264958
+epoch 5700/20000 loss=0.264727
+epoch 5800/20000 loss=0.263545
+epoch 5900/20000 loss=0.263381
+epoch 6000/20000 loss=0.260772
+epoch 6100/20000 loss=0.259638
+epoch 6200/20000 loss=0.258101
+epoch 6300/20000 loss=0.271454
+epoch 6400/20000 loss=0.256481
+epoch 6500/20000 loss=0.255462
+epoch 6600/20000 loss=0.254751
+epoch 6700/20000 loss=0.265950
+epoch 6800/20000 loss=0.255532
+epoch 6900/20000 loss=0.256440
+epoch 7000/20000 loss=0.253914
+epoch 7100/20000 loss=0.257718
+epoch 7200/20000 loss=0.250185
+epoch 7300/20000 loss=0.254120
+epoch 7400/20000 loss=0.248845
+epoch 7500/20000 loss=0.250667
+epoch 7600/20000 loss=0.249374
+epoch 7700/20000 loss=0.246576
+epoch 7800/20000 loss=0.246288
+epoch 7900/20000 loss=0.250022
+epoch 8000/20000 loss=0.244903
+epoch 8100/20000 loss=0.243672
+epoch 8200/20000 loss=0.243167
+epoch 8300/20000 loss=0.243307
+epoch 8400/20000 loss=0.242999
+epoch 8500/20000 loss=0.241171
+epoch 8600/20000 loss=0.240810
+epoch 8700/20000 loss=0.239502
+epoch 8800/20000 loss=0.240232
+epoch 8900/20000 loss=0.237941
+epoch 9000/20000 loss=0.237513
+epoch 9100/20000 loss=0.239329
+epoch 9200/20000 loss=0.237443
+epoch 9300/20000 loss=0.236632
+epoch 9400/20000 loss=0.235416
+epoch 9500/20000 loss=0.234424
+epoch 9600/20000 loss=0.234929
+epoch 9700/20000 loss=0.232979
+epoch 9800/20000 loss=0.232857
+epoch 9900/20000 loss=0.232411
+epoch 10000/20000 loss=0.231985
+epoch 10100/20000 loss=0.230648
+epoch 10200/20000 loss=0.231039
+epoch 10300/20000 loss=0.229727
+epoch 10400/20000 loss=0.229681
+epoch 10500/20000 loss=0.228782
+epoch 10600/20000 loss=0.228860
+epoch 10700/20000 loss=0.226776
+epoch 10800/20000 loss=0.227311
+epoch 10900/20000 loss=0.226199
+epoch 11000/20000 loss=0.225768
+epoch 11100/20000 loss=0.224984
+epoch 11200/20000 loss=0.226057
+epoch 11300/20000 loss=0.224487
+epoch 11400/20000 loss=0.223543
+epoch 11500/20000 loss=0.222817
+epoch 11600/20000 loss=0.222774
+epoch 11700/20000 loss=0.221496
+epoch 11800/20000 loss=0.221123
+epoch 11900/20000 loss=0.221661
+epoch 12000/20000 loss=0.220756
+epoch 12100/20000 loss=0.219296
+epoch 12200/20000 loss=0.218972
+epoch 12300/20000 loss=0.220701
+epoch 12400/20000 loss=0.218411
+epoch 12500/20000 loss=0.220465
+epoch 12600/20000 loss=0.216646
+epoch 12700/20000 loss=0.217111
+epoch 12800/20000 loss=0.215812
+epoch 12900/20000 loss=0.215550
+epoch 13000/20000 loss=0.214825
+epoch 13100/20000 loss=0.215376
+epoch 13200/20000 loss=0.213821
+epoch 13300/20000 loss=0.213374
+epoch 13400/20000 loss=0.212812
+epoch 13500/20000 loss=0.213561
+epoch 13600/20000 loss=0.213002
+epoch 13700/20000 loss=0.211243
+epoch 13800/20000 loss=0.211354
+epoch 13900/20000 loss=0.210480
+epoch 14000/20000 loss=0.213144
+epoch 14100/20000 loss=0.209630
+epoch 14200/20000 loss=0.211094
+epoch 14300/20000 loss=0.209413
+epoch 14400/20000 loss=0.208657
+epoch 14500/20000 loss=0.208127
+epoch 14600/20000 loss=0.207750
+epoch 14700/20000 loss=0.207442
+epoch 14800/20000 loss=0.208727
+epoch 14900/20000 loss=0.206563
+epoch 15000/20000 loss=0.206079
+epoch 15100/20000 loss=0.205641
+epoch 15200/20000 loss=0.206313
+epoch 15300/20000 loss=0.204734
+epoch 15400/20000 loss=0.204311
+epoch 15500/20000 loss=0.204183
+epoch 15600/20000 loss=0.204521
+epoch 15700/20000 loss=0.203334
+epoch 15800/20000 loss=0.202642
+epoch 15900/20000 loss=0.202072
+epoch 16000/20000 loss=0.201540
+epoch 16100/20000 loss=0.201241
+epoch 16200/20000 loss=0.202141
+epoch 16300/20000 loss=0.200874
+epoch 16400/20000 loss=0.199986
+epoch 16500/20000 loss=0.200292
+epoch 16600/20000 loss=0.199182
+epoch 16700/20000 loss=0.199066
+epoch 16800/20000 loss=0.199007
+epoch 16900/20000 loss=0.198366
+epoch 17000/20000 loss=0.197672
+epoch 17100/20000 loss=0.197712
+epoch 17200/20000 loss=0.197364
+epoch 17300/20000 loss=0.196647
+epoch 17400/20000 loss=0.202717
+epoch 17500/20000 loss=0.195989
+epoch 17600/20000 loss=0.195850
+epoch 17700/20000 loss=0.194595
+epoch 17800/20000 loss=0.193817
+epoch 17900/20000 loss=0.193265
+epoch 18000/20000 loss=0.192351
+epoch 18100/20000 loss=0.192769
+epoch 18200/20000 loss=0.190901
+epoch 18300/20000 loss=0.189916
+epoch 18400/20000 loss=0.189133
+epoch 18500/20000 loss=0.188644
+epoch 18600/20000 loss=0.187629
+epoch 18700/20000 loss=0.187028
+epoch 18800/20000 loss=0.186661
+epoch 18900/20000 loss=0.185496
+epoch 19000/20000 loss=0.185292
+epoch 19100/20000 loss=0.184366
+epoch 19200/20000 loss=0.183356
+epoch 19300/20000 loss=0.183545
+epoch 19400/20000 loss=0.181915
+epoch 19500/20000 loss=0.182072
+epoch 19600/20000 loss=0.181113
+epoch 19700/20000 loss=0.180414
+epoch 19800/20000 loss=0.179414
+epoch 19900/20000 loss=0.182220
+epoch 20000/20000 loss=0.178358
+{"run_dir": "data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/tiger-paper-20261117-005232", "item_count": 12101, "collision_groups": 228, "codebook_usage": [6, 26, 25]}
+{"method": "sentence-t5_rqvae", "sid_version": "tiger-paper-20261117-005232", "category": "Beauty", "counts": {"train": 131413, "validation": 22363, "test": 22363}, "items": 12101}
+T5 parameters=5587968 train=131413 validation=22363 starting_step=0
+step 1/200000 loss=9.989257 lr=0.01
+step 100/200000 loss=2.134429 lr=0.01
+step 200/200000 loss=2.384709 lr=0.01
+step 300/200000 loss=2.024738 lr=0.01
+step 400/200000 loss=1.972631 lr=0.01
+step 500/200000 loss=1.928675 lr=0.01
+step 600/200000 loss=1.953254 lr=0.01
+step 700/200000 loss=1.980277 lr=0.01
+step 800/200000 loss=1.971780 lr=0.01
+step 900/200000 loss=1.950142 lr=0.01
+step 1000/200000 loss=1.992809 lr=0.01
+step 1100/200000 loss=1.958395 lr=0.01
+step 1200/200000 loss=1.978832 lr=0.01
+step 1300/200000 loss=1.887982 lr=0.01
+step 1400/200000 loss=1.913663 lr=0.01
+step 1500/200000 loss=1.907676 lr=0.01
+step 1600/200000 loss=1.929130 lr=0.01
+step 1700/200000 loss=1.878710 lr=0.01
+step 1800/200000 loss=1.968925 lr=0.01
+step 1900/200000 loss=1.909253 lr=0.01
+step 2000/200000 loss=1.890653 lr=0.01
+step 2100/200000 loss=1.881069 lr=0.01
+step 2200/200000 loss=1.892450 lr=0.01
+step 2300/200000 loss=1.890682 lr=0.01
+step 2400/200000 loss=1.925388 lr=0.01
+step 2500/200000 loss=1.892192 lr=0.01
+step 2600/200000 loss=1.907753 lr=0.01
+step 2700/200000 loss=1.860649 lr=0.01
+step 2800/200000 loss=1.886242 lr=0.01
+step 2900/200000 loss=1.871990 lr=0.01
+step 3000/200000 loss=1.885003 lr=0.01
+step 3100/200000 loss=1.873838 lr=0.01
+step 3200/200000 loss=1.917672 lr=0.01
+step 3300/200000 loss=1.881643 lr=0.01
+step 3400/200000 loss=1.948719 lr=0.01
+step 3500/200000 loss=1.918777 lr=0.01
+step 3600/200000 loss=1.871129 lr=0.01
+step 3700/200000 loss=1.900112 lr=0.01
+step 3800/200000 loss=1.879860 lr=0.01
+step 3900/200000 loss=1.876278 lr=0.01
+step 4000/200000 loss=1.887911 lr=0.01
+step 4100/200000 loss=1.893322 lr=0.01
+step 4200/200000 loss=1.903052 lr=0.01
+step 4300/200000 loss=1.867858 lr=0.01
+step 4400/200000 loss=1.864662 lr=0.01
+step 4500/200000 loss=1.848936 lr=0.01
+step 4600/200000 loss=1.834352 lr=0.01
+step 4700/200000 loss=1.852381 lr=0.01
+step 4800/200000 loss=1.906271 lr=0.01
+step 4900/200000 loss=1.882857 lr=0.01
+step 5000/200000 loss=1.880925 lr=0.01
+step 5100/200000 loss=1.843540 lr=0.01
+step 5200/200000 loss=1.842620 lr=0.01
+step 5300/200000 loss=1.854004 lr=0.01
+step 5400/200000 loss=1.851599 lr=0.01
+step 5500/200000 loss=1.860925 lr=0.01
+step 5600/200000 loss=1.900008 lr=0.01
+step 5700/200000 loss=1.850774 lr=0.01
+step 5800/200000 loss=1.859507 lr=0.01
+step 5900/200000 loss=1.819231 lr=0.01
+step 6000/200000 loss=1.826200 lr=0.01
+step 6100/200000 loss=1.855879 lr=0.01
+step 6200/200000 loss=1.855789 lr=0.01
+step 6300/200000 loss=1.836992 lr=0.01
+step 6400/200000 loss=1.851150 lr=0.01
+step 6500/200000 loss=1.823735 lr=0.01
+step 6600/200000 loss=1.864837 lr=0.01
+step 6700/200000 loss=1.833717 lr=0.01
+step 6800/200000 loss=1.810517 lr=0.01
+step 6900/200000 loss=1.869715 lr=0.01
+step 7000/200000 loss=1.840530 lr=0.01
+step 7100/200000 loss=1.805021 lr=0.01
+step 7200/200000 loss=1.836912 lr=0.01
+step 7300/200000 loss=1.824145 lr=0.01
+step 7400/200000 loss=1.842411 lr=0.01
+step 7500/200000 loss=1.833129 lr=0.01
+step 7600/200000 loss=1.855596 lr=0.01
+step 7700/200000 loss=1.839001 lr=0.01
+step 7800/200000 loss=1.825890 lr=0.01
+step 7900/200000 loss=1.831425 lr=0.01
+step 8000/200000 loss=1.853226 lr=0.01
+step 8100/200000 loss=1.855689 lr=0.01
+step 8200/200000 loss=1.826719 lr=0.01
+step 8300/200000 loss=1.830975 lr=0.01
+step 8400/200000 loss=1.851590 lr=0.01
+step 8500/200000 loss=1.843591 lr=0.01
+step 8600/200000 loss=1.829110 lr=0.01
+step 8700/200000 loss=1.849564 lr=0.01
+step 8800/200000 loss=1.846262 lr=0.01
+step 8900/200000 loss=1.838337 lr=0.01
+step 9000/200000 loss=1.802246 lr=0.01
+step 9100/200000 loss=1.828293 lr=0.01
+step 9200/200000 loss=1.842978 lr=0.01
+step 9300/200000 loss=1.792810 lr=0.01
+step 9400/200000 loss=1.823090 lr=0.01
+step 9500/200000 loss=1.778472 lr=0.01
+step 9600/200000 loss=1.845854 lr=0.01
+step 9700/200000 loss=1.845347 lr=0.01
+step 9800/200000 loss=1.801770 lr=0.01
+step 9900/200000 loss=1.824096 lr=0.01
+step 10000/200000 loss=1.808352 lr=0.01
+step 10100/200000 loss=1.848624 lr=0.00995037
+step 10200/200000 loss=1.826986 lr=0.00990148
+step 10300/200000 loss=1.850457 lr=0.00985329
+step 10400/200000 loss=1.808316 lr=0.00980581
+step 10500/200000 loss=1.834953 lr=0.009759
+step 10600/200000 loss=1.795360 lr=0.00971286
+step 10700/200000 loss=1.838533 lr=0.00966736
+step 10800/200000 loss=1.777478 lr=0.0096225
+step 10900/200000 loss=1.791809 lr=0.00957826
+step 11000/200000 loss=1.831192 lr=0.00953463
+step 11100/200000 loss=1.783476 lr=0.00949158
+step 11200/200000 loss=1.810687 lr=0.00944911
+step 11300/200000 loss=1.806778 lr=0.00940721
+step 11400/200000 loss=1.791761 lr=0.00936586
+step 11500/200000 loss=1.815679 lr=0.00932505
+step 11600/200000 loss=1.814943 lr=0.00928477
+step 11700/200000 loss=1.813831 lr=0.009245
+step 11800/200000 loss=1.791932 lr=0.00920575
+step 11900/200000 loss=1.782393 lr=0.00916698
+step 12000/200000 loss=1.799524 lr=0.00912871
+step 12100/200000 loss=1.839707 lr=0.00909091
+step 12200/200000 loss=1.827162 lr=0.00905357
+step 12300/200000 loss=1.804180 lr=0.0090167
+step 12400/200000 loss=1.809045 lr=0.00898027
+step 12500/200000 loss=1.773202 lr=0.00894427
+step 12600/200000 loss=1.818288 lr=0.00890871
+step 12700/200000 loss=1.787459 lr=0.00887357
+step 12800/200000 loss=1.819909 lr=0.00883883
+step 12900/200000 loss=1.824199 lr=0.00880451
+step 13000/200000 loss=1.810277 lr=0.00877058
+step 13100/200000 loss=1.808427 lr=0.00873704
+step 13200/200000 loss=1.805060 lr=0.00870388
+step 13300/200000 loss=1.775696 lr=0.0086711
+step 13400/200000 loss=1.796484 lr=0.00863868
+step 13500/200000 loss=1.788355 lr=0.00860663
+step 13600/200000 loss=1.803046 lr=0.00857493
+step 13700/200000 loss=1.835099 lr=0.00854358
+step 13800/200000 loss=1.793398 lr=0.00851257
+step 13900/200000 loss=1.774946 lr=0.00848189
+step 14000/200000 loss=1.798888 lr=0.00845154
+step 14100/200000 loss=1.802992 lr=0.00842152
+step 14200/200000 loss=1.811365 lr=0.00839181
+step 14300/200000 loss=1.807982 lr=0.00836242
+step 14400/200000 loss=1.815067 lr=0.00833333
+step 14500/200000 loss=1.796752 lr=0.00830455
+step 14600/200000 loss=1.758216 lr=0.00827606
+step 14700/200000 loss=1.787179 lr=0.00824786
+step 14800/200000 loss=1.805196 lr=0.00821995
+step 14900/200000 loss=1.774201 lr=0.00819232
+step 15000/200000 loss=1.785064 lr=0.00816497
+step 15100/200000 loss=1.803061 lr=0.00813788
+step 15200/200000 loss=1.759335 lr=0.00811107
+step 15300/200000 loss=1.752330 lr=0.00808452
+step 15400/200000 loss=1.819639 lr=0.00805823
+step 15500/200000 loss=1.780309 lr=0.00803219
+step 15600/200000 loss=1.767910 lr=0.00800641
+step 15700/200000 loss=1.826646 lr=0.00798087
+step 15800/200000 loss=1.785829 lr=0.00795557
+step 15900/200000 loss=1.803920 lr=0.00793052
+step 16000/200000 loss=1.802064 lr=0.00790569
+step 16100/200000 loss=1.773696 lr=0.0078811
+step 16200/200000 loss=1.777956 lr=0.00785674
+step 16300/200000 loss=1.778548 lr=0.0078326
+step 16400/200000 loss=1.782805 lr=0.00780869
+step 16500/200000 loss=1.827763 lr=0.00778499
+step 16600/200000 loss=1.785384 lr=0.00776151
+step 16700/200000 loss=1.775701 lr=0.00773823
+step 16800/200000 loss=1.768638 lr=0.00771517
+step 16900/200000 loss=1.792886 lr=0.00769231
+step 17000/200000 loss=1.796577 lr=0.00766965
+step 17100/200000 loss=1.784541 lr=0.00764719
+step 17200/200000 loss=1.806149 lr=0.00762493
+step 17300/200000 loss=1.829616 lr=0.00760286
+step 17400/200000 loss=1.793492 lr=0.00758098
+step 17500/200000 loss=1.823089 lr=0.00755929
+step 17600/200000 loss=1.788297 lr=0.00753778
+step 17700/200000 loss=1.786289 lr=0.00751646
+step 17800/200000 loss=1.787080 lr=0.00749532
+step 17900/200000 loss=1.797110 lr=0.00747435
+step 18000/200000 loss=1.766646 lr=0.00745356
+step 18100/200000 loss=1.807109 lr=0.00743294
+step 18200/200000 loss=1.791024 lr=0.00741249
+step 18300/200000 loss=1.744010 lr=0.00739221
+step 18400/200000 loss=1.793427 lr=0.0073721
+step 18500/200000 loss=1.747134 lr=0.00735215
+step 18600/200000 loss=1.778856 lr=0.00733236
+step 18700/200000 loss=1.776777 lr=0.00731272
+step 18800/200000 loss=1.781274 lr=0.00729325
+step 18900/200000 loss=1.763294 lr=0.00727393
+step 19000/200000 loss=1.769136 lr=0.00725476
+step 19100/200000 loss=1.759576 lr=0.00723575
+step 19200/200000 loss=1.746239 lr=0.00721688
+step 19300/200000 loss=1.795450 lr=0.00719816
+step 19400/200000 loss=1.805484 lr=0.00717958
+step 19500/200000 loss=1.781560 lr=0.00716115
+step 19600/200000 loss=1.791948 lr=0.00714286
+step 19700/200000 loss=1.777656 lr=0.0071247
+step 19800/200000 loss=1.760578 lr=0.00710669
+step 19900/200000 loss=1.775924 lr=0.00708881
+step 20000/200000 loss=1.744424 lr=0.00707107
+{"recall@5": 0.011089746456199973, "recall@10": 0.019138755980861243, "ndcg@5": 0.006618846534579892, "ndcg@10": 0.00923181057505298, "validation_examples": 22363, "beam_size": 10, "invalid_beam_fraction": 0.0, "decoding": "unconstrained beam search; invalid IDs count as misses", "step": 20000}
+step 20100/200000 loss=1.746251 lr=0.00705346
+step 20200/200000 loss=1.784260 lr=0.00703598
+step 20300/200000 loss=1.779846 lr=0.00701862
+step 20400/200000 loss=1.803632 lr=0.0070014
+step 20500/200000 loss=1.796905 lr=0.0069843
+step 20600/200000 loss=1.757080 lr=0.00696733
+step 20700/200000 loss=1.757101 lr=0.00695048
+step 20800/200000 loss=1.787106 lr=0.00693375
+step 20900/200000 loss=1.768761 lr=0.00691714
+step 21000/200000 loss=1.783860 lr=0.00690066
+step 21100/200000 loss=1.772370 lr=0.00688428
+step 21200/200000 loss=1.795166 lr=0.00686803
+step 21300/200000 loss=1.757405 lr=0.00685189
+step 21400/200000 loss=1.760254 lr=0.00683586
+step 21500/200000 loss=1.774251 lr=0.00681994
+step 21600/200000 loss=1.778449 lr=0.00680414
+step 21700/200000 loss=1.785754 lr=0.00678844
+step 21800/200000 loss=1.798108 lr=0.00677285
+step 21900/200000 loss=1.781344 lr=0.00675737
+step 22000/200000 loss=1.762077 lr=0.006742
+step 22100/200000 loss=1.757467 lr=0.00672673
+step 22200/200000 loss=1.764672 lr=0.00671156
+step 22300/200000 loss=1.785131 lr=0.0066965
+step 22400/200000 loss=1.780962 lr=0.00668153
+step 22500/200000 loss=1.779087 lr=0.00666667
+step 22600/200000 loss=1.742816 lr=0.0066519
+step 22700/200000 loss=1.789902 lr=0.00663723
+step 22800/200000 loss=1.716641 lr=0.00662266
+step 22900/200000 loss=1.782895 lr=0.00660819
+step 23000/200000 loss=1.767104 lr=0.0065938
+step 23100/200000 loss=1.799866 lr=0.00657952
+step 23200/200000 loss=1.768880 lr=0.00656532
+step 23300/200000 loss=1.776921 lr=0.00655122
+step 23400/200000 loss=1.764331 lr=0.0065372
+step 23500/200000 loss=1.769330 lr=0.00652328
+step 23600/200000 loss=1.743679 lr=0.00650945
+step 23700/200000 loss=1.759125 lr=0.0064957
+step 23800/200000 loss=1.751301 lr=0.00648204
+step 23900/200000 loss=1.783003 lr=0.00646846
+step 24000/200000 loss=1.768162 lr=0.00645497
+step 24100/200000 loss=1.800097 lr=0.00644157
+step 24200/200000 loss=1.775753 lr=0.00642824
+step 24300/200000 loss=1.760316 lr=0.006415
+step 24400/200000 loss=1.744210 lr=0.00640184
+step 24500/200000 loss=1.750976 lr=0.00638877
+step 24600/200000 loss=1.765775 lr=0.00637577
+step 24700/200000 loss=1.778099 lr=0.00636285
+step 24800/200000 loss=1.785271 lr=0.00635001
+step 24900/200000 loss=1.770928 lr=0.00633724
+step 25000/200000 loss=1.732193 lr=0.00632456
+step 25100/200000 loss=1.780382 lr=0.00631194
+step 25200/200000 loss=1.761513 lr=0.00629941
+step 25300/200000 loss=1.746772 lr=0.00628695
+step 25400/200000 loss=1.735658 lr=0.00627456
+step 25500/200000 loss=1.778169 lr=0.00626224
+step 25600/200000 loss=1.733379 lr=0.00625
+step 25700/200000 loss=1.731914 lr=0.00623783
+step 25800/200000 loss=1.764089 lr=0.00622573
+step 25900/200000 loss=1.763638 lr=0.0062137
+step 26000/200000 loss=1.773037 lr=0.00620174
+step 26100/200000 loss=1.739816 lr=0.00618984
+step 26200/200000 loss=1.752093 lr=0.00617802
+step 26300/200000 loss=1.765478 lr=0.00616626
+step 26400/200000 loss=1.737364 lr=0.00615457
+step 26500/200000 loss=1.747268 lr=0.00614295
+step 26600/200000 loss=1.754295 lr=0.00613139
+step 26700/200000 loss=1.778671 lr=0.0061199
+step 26800/200000 loss=1.724964 lr=0.00610847
+step 26900/200000 loss=1.773254 lr=0.00609711
+step 27000/200000 loss=1.766014 lr=0.00608581
+step 27100/200000 loss=1.764194 lr=0.00607457
+step 27200/200000 loss=1.716037 lr=0.00606339
+step 27300/200000 loss=1.686549 lr=0.00605228
+step 27400/200000 loss=1.757411 lr=0.00604122
+step 27500/200000 loss=1.724533 lr=0.00603023
+step 27600/200000 loss=1.754670 lr=0.00601929
+step 27700/200000 loss=1.778641 lr=0.00600842
+step 27800/200000 loss=1.788328 lr=0.0059976
+step 27900/200000 loss=1.770254 lr=0.00598684
+step 28000/200000 loss=1.799728 lr=0.00597614
+step 28100/200000 loss=1.739750 lr=0.0059655
+step 28200/200000 loss=1.736613 lr=0.00595491
+step 28300/200000 loss=1.728165 lr=0.00594438
+step 28400/200000 loss=1.744286 lr=0.00593391
+step 28500/200000 loss=1.736460 lr=0.00592349
+step 28600/200000 loss=1.762187 lr=0.00591312
+step 28700/200000 loss=1.764174 lr=0.00590281
+step 28800/200000 loss=1.752238 lr=0.00589256
+step 28900/200000 loss=1.740474 lr=0.00588235
+step 29000/200000 loss=1.766388 lr=0.0058722
+step 29100/200000 loss=1.764956 lr=0.0058621
+step 29200/200000 loss=1.721897 lr=0.00585206
+step 29300/200000 loss=1.745621 lr=0.00584206
+step 29400/200000 loss=1.727727 lr=0.00583212
+step 29500/200000 loss=1.735151 lr=0.00582223
+step 29600/200000 loss=1.762057 lr=0.00581238
+step 29700/200000 loss=1.727034 lr=0.00580259
+step 29800/200000 loss=1.714795 lr=0.00579284
+step 29900/200000 loss=1.757642 lr=0.00578315
+step 30000/200000 loss=1.736354 lr=0.0057735
+step 30100/200000 loss=1.723591 lr=0.0057639
+step 30200/200000 loss=1.773658 lr=0.00575435
+step 30300/200000 loss=1.759787 lr=0.00574485
+step 30400/200000 loss=1.736079 lr=0.00573539
+step 30500/200000 loss=1.777695 lr=0.00572598
+step 30600/200000 loss=1.764421 lr=0.00571662
+step 30700/200000 loss=1.767165 lr=0.0057073
+step 30800/200000 loss=1.725015 lr=0.00569803
+step 30900/200000 loss=1.752614 lr=0.0056888
+step 31000/200000 loss=1.720832 lr=0.00567962
+step 31100/200000 loss=1.774499 lr=0.00567048
+step 31200/200000 loss=1.761996 lr=0.00566139
+step 31300/200000 loss=1.740093 lr=0.00565233
+step 31400/200000 loss=1.766638 lr=0.00564333
+step 31500/200000 loss=1.735807 lr=0.00563436
+step 31600/200000 loss=1.750980 lr=0.00562544
+step 31700/200000 loss=1.757827 lr=0.00561656
+step 31800/200000 loss=1.748755 lr=0.00560772
+step 31900/200000 loss=1.770394 lr=0.00559893
+step 32000/200000 loss=1.765821 lr=0.00559017
+step 32100/200000 loss=1.766978 lr=0.00558146
+step 32200/200000 loss=1.748091 lr=0.00557278
+step 32300/200000 loss=1.770373 lr=0.00556415
+step 32400/200000 loss=1.724300 lr=0.00555556
+step 32500/200000 loss=1.735299 lr=0.005547
+step 32600/200000 loss=1.760355 lr=0.00553849
+step 32700/200000 loss=1.729960 lr=0.00553001
+step 32800/200000 loss=1.748857 lr=0.00552158
+step 32900/200000 loss=1.726202 lr=0.00551318
+step 33000/200000 loss=1.740472 lr=0.00550482
+step 33100/200000 loss=1.753132 lr=0.0054965
+step 33200/200000 loss=1.719824 lr=0.00548821
+step 33300/200000 loss=1.745324 lr=0.00547997
+step 33400/200000 loss=1.700244 lr=0.00547176
+step 33500/200000 loss=1.739294 lr=0.00546358
+step 33600/200000 loss=1.729326 lr=0.00545545
+step 33700/200000 loss=1.712427 lr=0.00544735
+step 33800/200000 loss=1.749774 lr=0.00543928
+step 33900/200000 loss=1.734140 lr=0.00543125
+step 34000/200000 loss=1.739925 lr=0.00542326
+step 34100/200000 loss=1.763248 lr=0.0054153
+step 34200/200000 loss=1.743089 lr=0.00540738
+step 34300/200000 loss=1.730055 lr=0.00539949
+step 34400/200000 loss=1.763738 lr=0.00539164
+step 34500/200000 loss=1.729694 lr=0.00538382
+step 34600/200000 loss=1.718702 lr=0.00537603
+step 34700/200000 loss=1.756185 lr=0.00536828
+step 34800/200000 loss=1.729072 lr=0.00536056
+step 34900/200000 loss=1.726135 lr=0.00535288
+step 35000/200000 loss=1.728439 lr=0.00534522
+step 35100/200000 loss=1.759118 lr=0.00533761
+step 35200/200000 loss=1.709746 lr=0.00533002
+step 35300/200000 loss=1.684204 lr=0.00532246
+step 35400/200000 loss=1.704583 lr=0.00531494
+step 35500/200000 loss=1.745404 lr=0.00530745
+step 35600/200000 loss=1.712959 lr=0.00529999
+step 35700/200000 loss=1.719206 lr=0.00529256
+step 35800/200000 loss=1.750237 lr=0.00528516
+step 35900/200000 loss=1.703547 lr=0.0052778
+step 36000/200000 loss=1.710044 lr=0.00527046
+step 36100/200000 loss=1.704065 lr=0.00526316
+step 36200/200000 loss=1.737922 lr=0.00525588
+step 36300/200000 loss=1.703642 lr=0.00524864
+step 36400/200000 loss=1.700400 lr=0.00524142
+step 36500/200000 loss=1.724196 lr=0.00523424
+step 36600/200000 loss=1.709835 lr=0.00522708
+step 36700/200000 loss=1.724899 lr=0.00521996
+step 36800/200000 loss=1.719729 lr=0.00521286
+step 36900/200000 loss=1.766715 lr=0.00520579
+step 37000/200000 loss=1.729959 lr=0.00519875
+step 37100/200000 loss=1.727473 lr=0.00519174
+step 37200/200000 loss=1.726233 lr=0.00518476
+step 37300/200000 loss=1.739911 lr=0.0051778
+step 37400/200000 loss=1.753471 lr=0.00517088
+step 37500/200000 loss=1.725533 lr=0.00516398
+step 37600/200000 loss=1.711832 lr=0.00515711
+step 37700/200000 loss=1.730852 lr=0.00515026
+step 37800/200000 loss=1.717231 lr=0.00514344
+step 37900/200000 loss=1.745362 lr=0.00513665
+step 38000/200000 loss=1.706874 lr=0.00512989
+step 38100/200000 loss=1.703930 lr=0.00512316
+step 38200/200000 loss=1.731837 lr=0.00511645
+step 38300/200000 loss=1.751225 lr=0.00510976
+step 38400/200000 loss=1.683198 lr=0.0051031
+step 38500/200000 loss=1.713516 lr=0.00509647
+step 38600/200000 loss=1.730548 lr=0.00508987
+step 38700/200000 loss=1.717510 lr=0.00508329
+step 38800/200000 loss=1.728614 lr=0.00507673
+step 38900/200000 loss=1.725256 lr=0.0050702
+step 39000/200000 loss=1.709185 lr=0.0050637
+step 39100/200000 loss=1.746110 lr=0.00505722
+step 39200/200000 loss=1.718477 lr=0.00505076
+step 39300/200000 loss=1.736459 lr=0.00504433
+step 39400/200000 loss=1.730835 lr=0.00503793
+step 39500/200000 loss=1.728226 lr=0.00503155
+step 39600/200000 loss=1.723651 lr=0.00502519
+step 39700/200000 loss=1.731110 lr=0.00501886
+step 39800/200000 loss=1.702075 lr=0.00501255
+step 39900/200000 loss=1.729102 lr=0.00500626
+step 40000/200000 loss=1.733077 lr=0.005
+{"recall@5": 0.013191432276528194, "recall@10": 0.022984393864866073, "ndcg@5": 0.008046440369414242, "ndcg@10": 0.011175923047406403, "validation_examples": 22363, "beam_size": 10, "invalid_beam_fraction": 0.0, "decoding": "unconstrained beam search; invalid IDs count as misses", "step": 40000}
+step 40100/200000 loss=1.735259 lr=0.00499376
+step 40200/200000 loss=1.722232 lr=0.00498755
+step 40300/200000 loss=1.759543 lr=0.00498135
+step 40400/200000 loss=1.745220 lr=0.00497519
+step 40500/200000 loss=1.755841 lr=0.00496904
+step 40600/200000 loss=1.734893 lr=0.00496292
+step 40700/200000 loss=1.720345 lr=0.00495682
+step 40800/200000 loss=1.733938 lr=0.00495074
+step 40900/200000 loss=1.717621 lr=0.00494468
+step 41000/200000 loss=1.695137 lr=0.00493865
+step 41100/200000 loss=1.698086 lr=0.00493264
+step 41200/200000 loss=1.704353 lr=0.00492665
+step 41300/200000 loss=1.756788 lr=0.00492068
+step 41400/200000 loss=1.719813 lr=0.00491473
+step 41500/200000 loss=1.707060 lr=0.00490881
+step 41600/200000 loss=1.682912 lr=0.0049029
+step 41700/200000 loss=1.707386 lr=0.00489702
+step 41800/200000 loss=1.689849 lr=0.00489116
+step 41900/200000 loss=1.695973 lr=0.00488532
+step 42000/200000 loss=1.699359 lr=0.0048795
+step 42100/200000 loss=1.731309 lr=0.0048737
+step 42200/200000 loss=1.717619 lr=0.00486792
+step 42300/200000 loss=1.749658 lr=0.00486217
+step 42400/200000 loss=1.694781 lr=0.00485643
+step 42500/200000 loss=1.712096 lr=0.00485071
+step 42600/200000 loss=1.719432 lr=0.00484502
+step 42700/200000 loss=1.735669 lr=0.00483934
+step 42800/200000 loss=1.727170 lr=0.00483368
+step 42900/200000 loss=1.722047 lr=0.00482805
+step 43000/200000 loss=1.729286 lr=0.00482243
+step 43100/200000 loss=1.698620 lr=0.00481683
+step 43200/200000 loss=1.699044 lr=0.00481125
+step 43300/200000 loss=1.669472 lr=0.00480569
+step 43400/200000 loss=1.760131 lr=0.00480015
+step 43500/200000 loss=1.733170 lr=0.00479463
+step 43600/200000 loss=1.691087 lr=0.00478913
+step 43700/200000 loss=1.747260 lr=0.00478365
+step 43800/200000 loss=1.720316 lr=0.00477818
+step 43900/200000 loss=1.699262 lr=0.00477274
+step 44000/200000 loss=1.708634 lr=0.00476731
+step 44100/200000 loss=1.698789 lr=0.0047619
+step 44200/200000 loss=1.726014 lr=0.00475651
+step 44300/200000 loss=1.747532 lr=0.00475114
+step 44400/200000 loss=1.684004 lr=0.00474579
+step 44500/200000 loss=1.690921 lr=0.00474045
+step 44600/200000 loss=1.708843 lr=0.00473514
+step 44700/200000 loss=1.730575 lr=0.00472984
+step 44800/200000 loss=1.695554 lr=0.00472456
+step 44900/200000 loss=1.706152 lr=0.00471929
+step 45000/200000 loss=1.747505 lr=0.00471405
+step 45100/200000 loss=1.738384 lr=0.00470882
+step 45200/200000 loss=1.699533 lr=0.0047036
+step 45300/200000 loss=1.720699 lr=0.00469841
+step 45400/200000 loss=1.726410 lr=0.00469323
+step 45500/200000 loss=1.691909 lr=0.00468807
+step 45600/200000 loss=1.712512 lr=0.00468293
+step 45700/200000 loss=1.732599 lr=0.0046778
+step 45800/200000 loss=1.687625 lr=0.00467269
+step 45900/200000 loss=1.721154 lr=0.0046676
+step 46000/200000 loss=1.679986 lr=0.00466252
+step 46100/200000 loss=1.743232 lr=0.00465746
+step 46200/200000 loss=1.668085 lr=0.00465242
+step 46300/200000 loss=1.698664 lr=0.00464739
+step 46400/200000 loss=1.711967 lr=0.00464238
+step 46500/200000 loss=1.706375 lr=0.00463739
+step 46600/200000 loss=1.703891 lr=0.00463241
+step 46700/200000 loss=1.723727 lr=0.00462745
+step 46800/200000 loss=1.727132 lr=0.0046225
+step 46900/200000 loss=1.711072 lr=0.00461757
+step 47000/200000 loss=1.683142 lr=0.00461266
+step 47100/200000 loss=1.711153 lr=0.00460776
+step 47200/200000 loss=1.681496 lr=0.00460287
+step 47300/200000 loss=1.721496 lr=0.004598
+step 47400/200000 loss=1.726199 lr=0.00459315
+step 47500/200000 loss=1.730432 lr=0.00458831
+step 47600/200000 loss=1.698060 lr=0.00458349
+step 47700/200000 loss=1.714260 lr=0.00457869
+step 47800/200000 loss=1.713323 lr=0.00457389
+step 47900/200000 loss=1.712385 lr=0.00456912
+step 48000/200000 loss=1.695934 lr=0.00456435
+step 48100/200000 loss=1.724928 lr=0.00455961
+step 48200/200000 loss=1.710100 lr=0.00455488
+step 48300/200000 loss=1.689128 lr=0.00455016
+step 48400/200000 loss=1.712864 lr=0.00454545
+step 48500/200000 loss=1.703185 lr=0.00454077
+step 48600/200000 loss=1.719917 lr=0.00453609
+step 48700/200000 loss=1.722837 lr=0.00453143
+step 48800/200000 loss=1.674941 lr=0.00452679
+step 48900/200000 loss=1.713734 lr=0.00452216
+step 49000/200000 loss=1.705823 lr=0.00451754
+step 49100/200000 loss=1.691738 lr=0.00451294
+step 49200/200000 loss=1.729497 lr=0.00450835
+step 49300/200000 loss=1.709324 lr=0.00450377
+step 49400/200000 loss=1.724943 lr=0.00449921
+step 49500/200000 loss=1.660133 lr=0.00449467
+step 49600/200000 loss=1.715836 lr=0.00449013
+step 49700/200000 loss=1.716954 lr=0.00448561
+step 49800/200000 loss=1.737733 lr=0.00448111
+step 49900/200000 loss=1.683133 lr=0.00447661
+step 50000/200000 loss=1.691025 lr=0.00447214
+step 50100/200000 loss=1.709473 lr=0.00446767
+step 50200/200000 loss=1.747720 lr=0.00446322
+step 50300/200000 loss=1.713205 lr=0.00445878
+step 50400/200000 loss=1.680395 lr=0.00445435
+step 50500/200000 loss=1.687730 lr=0.00444994
+step 50600/200000 loss=1.693632 lr=0.00444554
+step 50700/200000 loss=1.703968 lr=0.00444116
+step 50800/200000 loss=1.655376 lr=0.00443678
+step 50900/200000 loss=1.656253 lr=0.00443242
+step 51000/200000 loss=1.701784 lr=0.00442807
+step 51100/200000 loss=1.668173 lr=0.00442374
+step 51200/200000 loss=1.710499 lr=0.00441942
+step 51300/200000 loss=1.735365 lr=0.00441511
+step 51400/200000 loss=1.695329 lr=0.00441081
+step 51500/200000 loss=1.700158 lr=0.00440653
+step 51600/200000 loss=1.690018 lr=0.00440225
+step 51700/200000 loss=1.713357 lr=0.00439799
+step 51800/200000 loss=1.692070 lr=0.00439375
+step 51900/200000 loss=1.733427 lr=0.00438951
+step 52000/200000 loss=1.669377 lr=0.00438529
+step 52100/200000 loss=1.644250 lr=0.00438108
+step 52200/200000 loss=1.650195 lr=0.00437688
+step 52300/200000 loss=1.693411 lr=0.00437269
+step 52400/200000 loss=1.707116 lr=0.00436852
+step 52500/200000 loss=1.714856 lr=0.00436436
+step 52600/200000 loss=1.696972 lr=0.00436021
+step 52700/200000 loss=1.726249 lr=0.00435607
+step 52800/200000 loss=1.656606 lr=0.00435194
+step 52900/200000 loss=1.658056 lr=0.00434783
+step 53000/200000 loss=1.733136 lr=0.00434372
+step 53100/200000 loss=1.738477 lr=0.00433963
+step 53200/200000 loss=1.696207 lr=0.00433555
+step 53300/200000 loss=1.706093 lr=0.00433148
+step 53400/200000 loss=1.724335 lr=0.00432742
+step 53500/200000 loss=1.724245 lr=0.00432338
+step 53600/200000 loss=1.689758 lr=0.00431934
+step 53700/200000 loss=1.733747 lr=0.00431532
+step 53800/200000 loss=1.720941 lr=0.00431131
+step 53900/200000 loss=1.708248 lr=0.0043073
+step 54000/200000 loss=1.709703 lr=0.00430331
+step 54100/200000 loss=1.703053 lr=0.00429934
+step 54200/200000 loss=1.689566 lr=0.00429537
+step 54300/200000 loss=1.667485 lr=0.00429141
+step 54400/200000 loss=1.690534 lr=0.00428746
+step 54500/200000 loss=1.700890 lr=0.00428353
+step 54600/200000 loss=1.718767 lr=0.0042796
+step 54700/200000 loss=1.725733 lr=0.00427569
+step 54800/200000 loss=1.679427 lr=0.00427179
+step 54900/200000 loss=1.692223 lr=0.0042679
+step 55000/200000 loss=1.714815 lr=0.00426401
+step 55100/200000 loss=1.698576 lr=0.00426014
+step 55200/200000 loss=1.711879 lr=0.00425628
+step 55300/200000 loss=1.691796 lr=0.00425243
+step 55400/200000 loss=1.689801 lr=0.00424859
+step 55500/200000 loss=1.724463 lr=0.00424476
+step 55600/200000 loss=1.680451 lr=0.00424094
+step 55700/200000 loss=1.720777 lr=0.00423714
+step 55800/200000 loss=1.713433 lr=0.00423334
+step 55900/200000 loss=1.722533 lr=0.00422955
+step 56000/200000 loss=1.696137 lr=0.00422577
+step 56100/200000 loss=1.652025 lr=0.004222
+step 56200/200000 loss=1.658346 lr=0.00421825
+step 56300/200000 loss=1.714889 lr=0.0042145
+step 56400/200000 loss=1.694540 lr=0.00421076
+step 56500/200000 loss=1.714484 lr=0.00420703
+step 56600/200000 loss=1.688376 lr=0.00420331
+step 56700/200000 loss=1.684884 lr=0.00419961
+step 56800/200000 loss=1.714434 lr=0.00419591
+step 56900/200000 loss=1.698408 lr=0.00419222
+step 57000/200000 loss=1.691520 lr=0.00418854
+step 57100/200000 loss=1.697398 lr=0.00418487
+step 57200/200000 loss=1.706718 lr=0.00418121
+step 57300/200000 loss=1.744032 lr=0.00417756
+step 57400/200000 loss=1.687860 lr=0.00417392
+step 57500/200000 loss=1.679330 lr=0.00417029
+step 57600/200000 loss=1.693470 lr=0.00416667
+step 57700/200000 loss=1.681380 lr=0.00416305
+step 57800/200000 loss=1.752080 lr=0.00415945
+step 57900/200000 loss=1.696573 lr=0.00415586
+step 58000/200000 loss=1.697193 lr=0.00415227
+step 58100/200000 loss=1.722655 lr=0.0041487
+step 58200/200000 loss=1.708435 lr=0.00414513
+step 58300/200000 loss=1.723712 lr=0.00414158
+step 58400/200000 loss=1.701252 lr=0.00413803
+step 58500/200000 loss=1.687146 lr=0.00413449
+step 58600/200000 loss=1.710037 lr=0.00413096
+step 58700/200000 loss=1.661525 lr=0.00412744
+step 58800/200000 loss=1.714877 lr=0.00412393
+step 58900/200000 loss=1.686576 lr=0.00412043
+step 59000/200000 loss=1.673077 lr=0.00411693
+step 59100/200000 loss=1.701109 lr=0.00411345
+step 59200/200000 loss=1.690788 lr=0.00410997
+step 59300/200000 loss=1.672353 lr=0.00410651
+step 59400/200000 loss=1.702383 lr=0.00410305
+step 59500/200000 loss=1.683107 lr=0.0040996
+step 59600/200000 loss=1.723381 lr=0.00409616
+step 59700/200000 loss=1.733073 lr=0.00409273
+step 59800/200000 loss=1.688458 lr=0.0040893
+step 59900/200000 loss=1.698720 lr=0.00408589
+step 60000/200000 loss=1.721065 lr=0.00408248
+{"recall@5": 0.017663104234673346, "recall@10": 0.028708133971291867, "ndcg@5": 0.010952737524971147, "ndcg@10": 0.014504610234227916, "validation_examples": 22363, "beam_size": 10, "invalid_beam_fraction": 0.0, "decoding": "unconstrained beam search; invalid IDs count as misses", "step": 60000}
+step 60100/200000 loss=1.663584 lr=0.00407909
+step 60200/200000 loss=1.657605 lr=0.0040757
+step 60300/200000 loss=1.691474 lr=0.00407231
+step 60400/200000 loss=1.676650 lr=0.00406894
+step 60500/200000 loss=1.690989 lr=0.00406558
+step 60600/200000 loss=1.685826 lr=0.00406222
+step 60700/200000 loss=1.681468 lr=0.00405887
+step 60800/200000 loss=1.702010 lr=0.00405554
+step 60900/200000 loss=1.711138 lr=0.0040522
+step 61000/200000 loss=1.660694 lr=0.00404888
+step 61100/200000 loss=1.689422 lr=0.00404557
+step 61200/200000 loss=1.708013 lr=0.00404226
+step 61300/200000 loss=1.723441 lr=0.00403896
+step 61400/200000 loss=1.695925 lr=0.00403567
+step 61500/200000 loss=1.722811 lr=0.00403239
+step 61600/200000 loss=1.688778 lr=0.00402911
+step 61700/200000 loss=1.700312 lr=0.00402585
+step 61800/200000 loss=1.711702 lr=0.00402259
+step 61900/200000 loss=1.745622 lr=0.00401934
+step 62000/200000 loss=1.700435 lr=0.0040161
+step 62100/200000 loss=1.703561 lr=0.00401286
+step 62200/200000 loss=1.709430 lr=0.00400963
+step 62300/200000 loss=1.709403 lr=0.00400642
+step 62400/200000 loss=1.674359 lr=0.0040032
+step 62500/200000 loss=1.741460 lr=0.004
+step 62600/200000 loss=1.687983 lr=0.0039968
+step 62700/200000 loss=1.712114 lr=0.00399362
+step 62800/200000 loss=1.684038 lr=0.00399043
+step 62900/200000 loss=1.667200 lr=0.00398726
+step 63000/200000 loss=1.670407 lr=0.0039841
+step 63100/200000 loss=1.698142 lr=0.00398094
+step 63200/200000 loss=1.682376 lr=0.00397779
+step 63300/200000 loss=1.687698 lr=0.00397464
+step 63400/200000 loss=1.679018 lr=0.00397151
+step 63500/200000 loss=1.687351 lr=0.00396838
+step 63600/200000 loss=1.706235 lr=0.00396526
+step 63700/200000 loss=1.658307 lr=0.00396214
+step 63800/200000 loss=1.687924 lr=0.00395904
+step 63900/200000 loss=1.722293 lr=0.00395594
+step 64000/200000 loss=1.665093 lr=0.00395285
+step 64100/200000 loss=1.684178 lr=0.00394976
+step 64200/200000 loss=1.687557 lr=0.00394669
+step 64300/200000 loss=1.667809 lr=0.00394362
+step 64400/200000 loss=1.696646 lr=0.00394055
+step 64500/200000 loss=1.743046 lr=0.0039375
+step 64600/200000 loss=1.705920 lr=0.00393445
+step 64700/200000 loss=1.697234 lr=0.00393141
+step 64800/200000 loss=1.661823 lr=0.00392837
+step 64900/200000 loss=1.663979 lr=0.00392534
+step 65000/200000 loss=1.704880 lr=0.00392232
+step 65100/200000 loss=1.707522 lr=0.00391931
+step 65200/200000 loss=1.687090 lr=0.0039163
+step 65300/200000 loss=1.684114 lr=0.0039133
+step 65400/200000 loss=1.685090 lr=0.00391031
+step 65500/200000 loss=1.730204 lr=0.00390732
+step 65600/200000 loss=1.696623 lr=0.00390434
+step 65700/200000 loss=1.677101 lr=0.00390137
+step 65800/200000 loss=1.673089 lr=0.00389841
+step 65900/200000 loss=1.660314 lr=0.00389545
+step 66000/200000 loss=1.652076 lr=0.00389249
+step 66100/200000 loss=1.703042 lr=0.00388955
+step 66200/200000 loss=1.714600 lr=0.00388661
+step 66300/200000 loss=1.678082 lr=0.00388368
+step 66400/200000 loss=1.698711 lr=0.00388075
+step 66500/200000 loss=1.716307 lr=0.00387783
+step 66600/200000 loss=1.681688 lr=0.00387492
+step 66700/200000 loss=1.709181 lr=0.00387202
+step 66800/200000 loss=1.681228 lr=0.00386912
+step 66900/200000 loss=1.699713 lr=0.00386622
+step 67000/200000 loss=1.696113 lr=0.00386334
+step 67100/200000 loss=1.732017 lr=0.00386046
+step 67200/200000 loss=1.702010 lr=0.00385758
+step 67300/200000 loss=1.678528 lr=0.00385472
+step 67400/200000 loss=1.692488 lr=0.00385186
+step 67500/200000 loss=1.681709 lr=0.003849
+step 67600/200000 loss=1.668094 lr=0.00384615
+step 67700/200000 loss=1.660976 lr=0.00384331
+step 67800/200000 loss=1.706078 lr=0.00384048
+step 67900/200000 loss=1.657114 lr=0.00383765
+step 68000/200000 loss=1.720454 lr=0.00383482
+step 68100/200000 loss=1.713049 lr=0.00383201
+step 68200/200000 loss=1.648603 lr=0.0038292
+step 68300/200000 loss=1.714160 lr=0.00382639
+step 68400/200000 loss=1.670122 lr=0.0038236
+step 68500/200000 loss=1.658190 lr=0.0038208
+step 68600/200000 loss=1.671433 lr=0.00381802
+step 68700/200000 loss=1.679336 lr=0.00381524
+step 68800/200000 loss=1.677171 lr=0.00381246
+step 68900/200000 loss=1.707711 lr=0.0038097
+step 69000/200000 loss=1.666316 lr=0.00380693
+step 69100/200000 loss=1.681857 lr=0.00380418
+step 69200/200000 loss=1.666951 lr=0.00380143
+step 69300/200000 loss=1.638830 lr=0.00379869
+step 69400/200000 loss=1.676043 lr=0.00379595
+step 69500/200000 loss=1.666960 lr=0.00379322
+step 69600/200000 loss=1.676715 lr=0.00379049
+step 69700/200000 loss=1.705566 lr=0.00378777
+step 69800/200000 loss=1.704668 lr=0.00378506
+step 69900/200000 loss=1.675868 lr=0.00378235
+step 70000/200000 loss=1.682463 lr=0.00377964
+step 70100/200000 loss=1.702653 lr=0.00377695
+step 70200/200000 loss=1.688653 lr=0.00377426
+step 70300/200000 loss=1.664361 lr=0.00377157
+step 70400/200000 loss=1.708802 lr=0.00376889
+step 70500/200000 loss=1.628381 lr=0.00376622
+step 70600/200000 loss=1.720957 lr=0.00376355
+step 70700/200000 loss=1.672668 lr=0.00376089
+step 70800/200000 loss=1.618975 lr=0.00375823
+step 70900/200000 loss=1.676040 lr=0.00375558
+step 71000/200000 loss=1.671570 lr=0.00375293
+step 71100/200000 loss=1.687189 lr=0.00375029
+step 71200/200000 loss=1.699828 lr=0.00374766
+step 71300/200000 loss=1.680867 lr=0.00374503
+step 71400/200000 loss=1.675061 lr=0.00374241
+step 71500/200000 loss=1.661365 lr=0.00373979
+step 71600/200000 loss=1.684813 lr=0.00373718
+step 71700/200000 loss=1.676607 lr=0.00373457
+step 71800/200000 loss=1.659040 lr=0.00373197
+step 71900/200000 loss=1.671073 lr=0.00372937
+step 72000/200000 loss=1.661931 lr=0.00372678
+step 72100/200000 loss=1.673916 lr=0.00372419
+step 72200/200000 loss=1.687138 lr=0.00372161
+step 72300/200000 loss=1.650724 lr=0.00371904
+step 72400/200000 loss=1.720872 lr=0.00371647
+step 72500/200000 loss=1.678811 lr=0.00371391
+step 72600/200000 loss=1.653711 lr=0.00371135
+step 72700/200000 loss=1.671092 lr=0.00370879
+step 72800/200000 loss=1.677378 lr=0.00370625
+step 72900/200000 loss=1.641577 lr=0.0037037
+step 73000/200000 loss=1.649913 lr=0.00370117
+step 73100/200000 loss=1.646994 lr=0.00369863
+step 73200/200000 loss=1.663137 lr=0.00369611
+step 73300/200000 loss=1.723140 lr=0.00369358
+step 73400/200000 loss=1.621540 lr=0.00369107
+step 73500/200000 loss=1.671810 lr=0.00368856
+step 73600/200000 loss=1.667265 lr=0.00368605
+step 73700/200000 loss=1.685695 lr=0.00368355
+step 73800/200000 loss=1.717778 lr=0.00368105
+step 73900/200000 loss=1.689845 lr=0.00367856
+step 74000/200000 loss=1.681354 lr=0.00367607
+step 74100/200000 loss=1.672429 lr=0.00367359
+step 74200/200000 loss=1.647871 lr=0.00367112
+step 74300/200000 loss=1.666043 lr=0.00366864
+step 74400/200000 loss=1.706135 lr=0.00366618
+step 74500/200000 loss=1.656996 lr=0.00366372
+step 74600/200000 loss=1.698644 lr=0.00366126
+step 74700/200000 loss=1.711980 lr=0.00365881
+step 74800/200000 loss=1.708752 lr=0.00365636
+step 74900/200000 loss=1.677648 lr=0.00365392
+step 75000/200000 loss=1.678352 lr=0.00365148
+step 75100/200000 loss=1.712194 lr=0.00364905
+step 75200/200000 loss=1.689824 lr=0.00364662
+step 75300/200000 loss=1.687722 lr=0.0036442
+step 75400/200000 loss=1.663527 lr=0.00364179
+step 75500/200000 loss=1.668514 lr=0.00363937
+step 75600/200000 loss=1.699288 lr=0.00363696
+step 75700/200000 loss=1.632010 lr=0.00363456
+step 75800/200000 loss=1.675978 lr=0.00363216
+step 75900/200000 loss=1.672301 lr=0.00362977
+step 76000/200000 loss=1.675964 lr=0.00362738
+step 76100/200000 loss=1.688341 lr=0.003625
+step 76200/200000 loss=1.694957 lr=0.00362262
+step 76300/200000 loss=1.629301 lr=0.00362024
+step 76400/200000 loss=1.719050 lr=0.00361787
+step 76500/200000 loss=1.649832 lr=0.00361551
+step 76600/200000 loss=1.631363 lr=0.00361315
+step 76700/200000 loss=1.679814 lr=0.00361079
+step 76800/200000 loss=1.712475 lr=0.00360844
+step 76900/200000 loss=1.626291 lr=0.00360609
+step 77000/200000 loss=1.681143 lr=0.00360375
+step 77100/200000 loss=1.669523 lr=0.00360141
+step 77200/200000 loss=1.653390 lr=0.00359908
+step 77300/200000 loss=1.671759 lr=0.00359675
+step 77400/200000 loss=1.670881 lr=0.00359443
+step 77500/200000 loss=1.677767 lr=0.00359211
+step 77600/200000 loss=1.663344 lr=0.00358979
+step 77700/200000 loss=1.677348 lr=0.00358748
+step 77800/200000 loss=1.691812 lr=0.00358517
+step 77900/200000 loss=1.678008 lr=0.00358287
+step 78000/200000 loss=1.707432 lr=0.00358057
+step 78100/200000 loss=1.633039 lr=0.00357828
+step 78200/200000 loss=1.642216 lr=0.00357599
+step 78300/200000 loss=1.693678 lr=0.00357371
+step 78400/200000 loss=1.666691 lr=0.00357143
+step 78500/200000 loss=1.672854 lr=0.00356915
+step 78600/200000 loss=1.651782 lr=0.00356688
+step 78700/200000 loss=1.653006 lr=0.00356462
+step 78800/200000 loss=1.674968 lr=0.00356235
+step 78900/200000 loss=1.691738 lr=0.00356009
+step 79000/200000 loss=1.715469 lr=0.00355784
+step 79100/200000 loss=1.663823 lr=0.00355559
+step 79200/200000 loss=1.673383 lr=0.00355335
+step 79300/200000 loss=1.683501 lr=0.0035511
+step 79400/200000 loss=1.675825 lr=0.00354887
+step 79500/200000 loss=1.657942 lr=0.00354663
+step 79600/200000 loss=1.632648 lr=0.00354441
+step 79700/200000 loss=1.649935 lr=0.00354218
+step 79800/200000 loss=1.709617 lr=0.00353996
+step 79900/200000 loss=1.668581 lr=0.00353775
+step 80000/200000 loss=1.660208 lr=0.00353553
+{"recall@5": 0.01667933640388141, "recall@10": 0.02942360148459509, "ndcg@5": 0.00984458760130625, "ndcg@10": 0.013938050474133917, "validation_examples": 22363, "beam_size": 10, "invalid_beam_fraction": 0.0, "decoding": "unconstrained beam search; invalid IDs count as misses", "step": 80000}
+step 80100/200000 loss=1.655763 lr=0.00353333
+step 80200/200000 loss=1.687228 lr=0.00353112
+step 80300/200000 loss=1.674272 lr=0.00352892
+step 80400/200000 loss=1.704386 lr=0.00352673
+step 80500/200000 loss=1.684975 lr=0.00352454
+step 80600/200000 loss=1.677916 lr=0.00352235
+step 80700/200000 loss=1.655889 lr=0.00352017
+step 80800/200000 loss=1.619745 lr=0.00351799
+step 80900/200000 loss=1.671052 lr=0.00351581
+step 81000/200000 loss=1.686481 lr=0.00351364
+step 81100/200000 loss=1.684945 lr=0.00351147
+step 81200/200000 loss=1.662496 lr=0.00350931
+step 81300/200000 loss=1.662197 lr=0.00350715
+step 81400/200000 loss=1.703704 lr=0.003505
+step 81500/200000 loss=1.668162 lr=0.00350285
+step 81600/200000 loss=1.677255 lr=0.0035007
+step 81700/200000 loss=1.642638 lr=0.00349856
+step 81800/200000 loss=1.695399 lr=0.00349642
+step 81900/200000 loss=1.668489 lr=0.00349428
+step 82000/200000 loss=1.680579 lr=0.00349215
+step 82100/200000 loss=1.670445 lr=0.00349002
+step 82200/200000 loss=1.618917 lr=0.0034879
+step 82300/200000 loss=1.669094 lr=0.00348578
+step 82400/200000 loss=1.654938 lr=0.00348367
+step 82500/200000 loss=1.625916 lr=0.00348155
+step 82600/200000 loss=1.677874 lr=0.00347945
+step 82700/200000 loss=1.660049 lr=0.00347734
+step 82800/200000 loss=1.685189 lr=0.00347524
+step 82900/200000 loss=1.666040 lr=0.00347314
+step 83000/200000 loss=1.644388 lr=0.00347105
+step 83100/200000 loss=1.666200 lr=0.00346896
+step 83200/200000 loss=1.669100 lr=0.00346688
+step 83300/200000 loss=1.642240 lr=0.00346479
+step 83400/200000 loss=1.668126 lr=0.00346272
+step 83500/200000 loss=1.662449 lr=0.00346064
+step 83600/200000 loss=1.689039 lr=0.00345857
+step 83700/200000 loss=1.697741 lr=0.00345651
+step 83800/200000 loss=1.636558 lr=0.00345444
+step 83900/200000 loss=1.700256 lr=0.00345238
+step 84000/200000 loss=1.695084 lr=0.00345033
+step 84100/200000 loss=1.703142 lr=0.00344828
+step 84200/200000 loss=1.696814 lr=0.00344623
+step 84300/200000 loss=1.646459 lr=0.00344418
+step 84400/200000 loss=1.647350 lr=0.00344214
+step 84500/200000 loss=1.673679 lr=0.0034401
+step 84600/200000 loss=1.680497 lr=0.00343807
+step 84700/200000 loss=1.687627 lr=0.00343604
+step 84800/200000 loss=1.659465 lr=0.00343401
+step 84900/200000 loss=1.718351 lr=0.00343199
+step 85000/200000 loss=1.656170 lr=0.00342997
+step 85100/200000 loss=1.681348 lr=0.00342796
+step 85200/200000 loss=1.656435 lr=0.00342594
+step 85300/200000 loss=1.647151 lr=0.00342393
+step 85400/200000 loss=1.649723 lr=0.00342193
+step 85500/200000 loss=1.687532 lr=0.00341993
+step 85600/200000 loss=1.665736 lr=0.00341793
+step 85700/200000 loss=1.673666 lr=0.00341593
+step 85800/200000 loss=1.683726 lr=0.00341394
+step 85900/200000 loss=1.633778 lr=0.00341196
+step 86000/200000 loss=1.653932 lr=0.00340997
+step 86100/200000 loss=1.702130 lr=0.00340799
+step 86200/200000 loss=1.638768 lr=0.00340601
+step 86300/200000 loss=1.621189 lr=0.00340404
+step 86400/200000 loss=1.668987 lr=0.00340207
+step 86500/200000 loss=1.667546 lr=0.0034001
+step 86600/200000 loss=1.672758 lr=0.00339814
+step 86700/200000 loss=1.632132 lr=0.00339618
+step 86800/200000 loss=1.689015 lr=0.00339422
+step 86900/200000 loss=1.672719 lr=0.00339227
+step 87000/200000 loss=1.661557 lr=0.00339032
+step 87100/200000 loss=1.680768 lr=0.00338837
+step 87200/200000 loss=1.684062 lr=0.00338643
+step 87300/200000 loss=1.639744 lr=0.00338449
+step 87400/200000 loss=1.685138 lr=0.00338255
+step 87500/200000 loss=1.673342 lr=0.00338062
+step 87600/200000 loss=1.654425 lr=0.00337869
+step 87700/200000 loss=1.653597 lr=0.00337676
+step 87800/200000 loss=1.684250 lr=0.00337484
+step 87900/200000 loss=1.609344 lr=0.00337292
+step 88000/200000 loss=1.644433 lr=0.003371
+step 88100/200000 loss=1.678541 lr=0.00336909
+step 88200/200000 loss=1.705994 lr=0.00336718
+step 88300/200000 loss=1.693621 lr=0.00336527
+step 88400/200000 loss=1.722067 lr=0.00336336
+step 88500/200000 loss=1.642847 lr=0.00336146
+step 88600/200000 loss=1.661291 lr=0.00335957
+step 88700/200000 loss=1.675727 lr=0.00335767
+step 88800/200000 loss=1.680752 lr=0.00335578
+step 88900/200000 loss=1.689714 lr=0.00335389
+step 89000/200000 loss=1.653157 lr=0.00335201
+step 89100/200000 loss=1.710307 lr=0.00335013
+step 89200/200000 loss=1.666578 lr=0.00334825
+step 89300/200000 loss=1.681599 lr=0.00334637
+step 89400/200000 loss=1.648391 lr=0.0033445
+step 89500/200000 loss=1.646306 lr=0.00334263
+step 89600/200000 loss=1.666581 lr=0.00334077
+step 89700/200000 loss=1.677123 lr=0.0033389
+step 89800/200000 loss=1.683269 lr=0.00333704
+step 89900/200000 loss=1.676167 lr=0.00333519
+step 90000/200000 loss=1.644176 lr=0.00333333
+step 90100/200000 loss=1.670657 lr=0.00333148
+step 90200/200000 loss=1.691231 lr=0.00332964
+step 90300/200000 loss=1.633188 lr=0.00332779
+step 90400/200000 loss=1.678754 lr=0.00332595
+step 90500/200000 loss=1.640971 lr=0.00332411
+step 90600/200000 loss=1.656140 lr=0.00332228
+step 90700/200000 loss=1.678107 lr=0.00332045
+step 90800/200000 loss=1.684830 lr=0.00331862
+step 90900/200000 loss=1.703252 lr=0.00331679
+step 91000/200000 loss=1.629780 lr=0.00331497
+step 91100/200000 loss=1.670375 lr=0.00331315
+step 91200/200000 loss=1.645287 lr=0.00331133
+step 91300/200000 loss=1.680485 lr=0.00330952
+step 91400/200000 loss=1.698120 lr=0.00330771
+step 91500/200000 loss=1.662065 lr=0.0033059
+step 91600/200000 loss=1.680434 lr=0.00330409
+step 91700/200000 loss=1.676989 lr=0.00330229
+step 91800/200000 loss=1.670149 lr=0.00330049
+step 91900/200000 loss=1.636586 lr=0.0032987
+step 92000/200000 loss=1.662866 lr=0.0032969
+step 92100/200000 loss=1.645530 lr=0.00329511
+step 92200/200000 loss=1.669536 lr=0.00329332
+step 92300/200000 loss=1.655145 lr=0.00329154
+step 92400/200000 loss=1.651559 lr=0.00328976
+step 92500/200000 loss=1.671441 lr=0.00328798
+step 92600/200000 loss=1.661886 lr=0.0032862
+step 92700/200000 loss=1.681708 lr=0.00328443
+step 92800/200000 loss=1.678508 lr=0.00328266
+step 92900/200000 loss=1.682859 lr=0.00328089
+step 93000/200000 loss=1.672700 lr=0.00327913
+step 93100/200000 loss=1.626377 lr=0.00327737
+step 93200/200000 loss=1.685927 lr=0.00327561
+step 93300/200000 loss=1.675413 lr=0.00327385
+step 93400/200000 loss=1.665190 lr=0.0032721
+step 93500/200000 loss=1.639140 lr=0.00327035
+step 93600/200000 loss=1.689112 lr=0.0032686
+step 93700/200000 loss=1.643895 lr=0.00326686
+step 93800/200000 loss=1.684794 lr=0.00326512
+step 93900/200000 loss=1.632978 lr=0.00326338
+step 94000/200000 loss=1.664490 lr=0.00326164
+step 94100/200000 loss=1.672598 lr=0.00325991
+step 94200/200000 loss=1.655624 lr=0.00325818
+step 94300/200000 loss=1.673594 lr=0.00325645
+step 94400/200000 loss=1.662027 lr=0.00325472
+step 94500/200000 loss=1.635979 lr=0.003253
+step 94600/200000 loss=1.683959 lr=0.00325128
+step 94700/200000 loss=1.669480 lr=0.00324956
+step 94800/200000 loss=1.670468 lr=0.00324785
+step 94900/200000 loss=1.675260 lr=0.00324614
+step 95000/200000 loss=1.640537 lr=0.00324443
+step 95100/200000 loss=1.658964 lr=0.00324272
+step 95200/200000 loss=1.638905 lr=0.00324102
+step 95300/200000 loss=1.662264 lr=0.00323932
+step 95400/200000 loss=1.704980 lr=0.00323762
+step 95500/200000 loss=1.669538 lr=0.00323592
+step 95600/200000 loss=1.689010 lr=0.00323423
+step 95700/200000 loss=1.684525 lr=0.00323254
+step 95800/200000 loss=1.662618 lr=0.00323085
+step 95900/200000 loss=1.666693 lr=0.00322917
+step 96000/200000 loss=1.674268 lr=0.00322749
+step 96100/200000 loss=1.631857 lr=0.00322581
+step 96200/200000 loss=1.666993 lr=0.00322413
+step 96300/200000 loss=1.682091 lr=0.00322245
+step 96400/200000 loss=1.708872 lr=0.00322078
+step 96500/200000 loss=1.677462 lr=0.00321911
+step 96600/200000 loss=1.708086 lr=0.00321745
+step 96700/200000 loss=1.688066 lr=0.00321578
+step 96800/200000 loss=1.676377 lr=0.00321412
+step 96900/200000 loss=1.713473 lr=0.00321246
+step 97000/200000 loss=1.677488 lr=0.00321081
+step 97100/200000 loss=1.642974 lr=0.00320915
+step 97200/200000 loss=1.667311 lr=0.0032075
+step 97300/200000 loss=1.644846 lr=0.00320585
+step 97400/200000 loss=1.703278 lr=0.00320421
+step 97500/200000 loss=1.658196 lr=0.00320256
+step 97600/200000 loss=1.697244 lr=0.00320092
+step 97700/200000 loss=1.646848 lr=0.00319928
+step 97800/200000 loss=1.602709 lr=0.00319765
+step 97900/200000 loss=1.697998 lr=0.00319601
+step 98000/200000 loss=1.671071 lr=0.00319438
+step 98100/200000 loss=1.660093 lr=0.00319275
+step 98200/200000 loss=1.653123 lr=0.00319113
+step 98300/200000 loss=1.653307 lr=0.0031895
+step 98400/200000 loss=1.649522 lr=0.00318788
+step 98500/200000 loss=1.701420 lr=0.00318626
+step 98600/200000 loss=1.678367 lr=0.00318465
+step 98700/200000 loss=1.667910 lr=0.00318304
+step 98800/200000 loss=1.645783 lr=0.00318142
+step 98900/200000 loss=1.673073 lr=0.00317982
+step 99000/200000 loss=1.655339 lr=0.00317821
+step 99100/200000 loss=1.668407 lr=0.0031766
+step 99200/200000 loss=1.689486 lr=0.003175
+step 99300/200000 loss=1.604499 lr=0.0031734
+step 99400/200000 loss=1.657032 lr=0.00317181
+step 99500/200000 loss=1.676713 lr=0.00317021
+step 99600/200000 loss=1.645885 lr=0.00316862
+step 99700/200000 loss=1.675020 lr=0.00316703
+step 99800/200000 loss=1.675467 lr=0.00316544
+step 99900/200000 loss=1.646255 lr=0.00316386
+step 100000/200000 loss=1.641567 lr=0.00316228
+{"recall@5": 0.018065554710906408, "recall@10": 0.031033403389527345, "ndcg@5": 0.010838451528824072, "ndcg@10": 0.015022026394301478, "validation_examples": 22363, "beam_size": 10, "invalid_beam_fraction": 0.0, "decoding": "unconstrained beam search; invalid IDs count as misses", "step": 100000}
+step 100100/200000 loss=1.661097 lr=0.0031607
+step 100200/200000 loss=1.630797 lr=0.00315912
+step 100300/200000 loss=1.636522 lr=0.00315754
+step 100400/200000 loss=1.672850 lr=0.00315597
+step 100500/200000 loss=1.644201 lr=0.0031544
+step 100600/200000 loss=1.644037 lr=0.00315283
+step 100700/200000 loss=1.642749 lr=0.00315127
+step 100800/200000 loss=1.633855 lr=0.0031497
+step 100900/200000 loss=1.654188 lr=0.00314814
+step 101000/200000 loss=1.642457 lr=0.00314658
+step 101100/200000 loss=1.657206 lr=0.00314503
+step 101200/200000 loss=1.670972 lr=0.00314347
+step 101300/200000 loss=1.672991 lr=0.00314192
+step 101400/200000 loss=1.677170 lr=0.00314037
+step 101500/200000 loss=1.648988 lr=0.00313882
+step 101600/200000 loss=1.633107 lr=0.00313728
+step 101700/200000 loss=1.592316 lr=0.00313574
+step 101800/200000 loss=1.612018 lr=0.0031342
+step 101900/200000 loss=1.675090 lr=0.00313266
+step 102000/200000 loss=1.693430 lr=0.00313112
+step 102100/200000 loss=1.636228 lr=0.00312959
+step 102200/200000 loss=1.646687 lr=0.00312806
+step 102300/200000 loss=1.666180 lr=0.00312653
+step 102400/200000 loss=1.636185 lr=0.003125
+step 102500/200000 loss=1.684024 lr=0.00312348
+step 102600/200000 loss=1.660267 lr=0.00312195
+step 102700/200000 loss=1.654800 lr=0.00312043
+step 102800/200000 loss=1.649921 lr=0.00311891
+step 102900/200000 loss=1.654702 lr=0.0031174
+step 103000/200000 loss=1.681479 lr=0.00311588
+step 103100/200000 loss=1.645978 lr=0.00311437
+step 103200/200000 loss=1.619747 lr=0.00311286
+step 103300/200000 loss=1.630913 lr=0.00311136
+step 103400/200000 loss=1.652110 lr=0.00310985
+step 103500/200000 loss=1.666278 lr=0.00310835
+step 103600/200000 loss=1.660179 lr=0.00310685
+step 103700/200000 loss=1.668464 lr=0.00310535
+step 103800/200000 loss=1.627475 lr=0.00310385
+step 103900/200000 loss=1.633915 lr=0.00310236
+step 104000/200000 loss=1.647036 lr=0.00310087
+step 104100/200000 loss=1.643324 lr=0.00309938
+step 104200/200000 loss=1.640019 lr=0.00309789
+step 104300/200000 loss=1.666859 lr=0.00309641
+step 104400/200000 loss=1.678470 lr=0.00309492
+step 104500/200000 loss=1.662809 lr=0.00309344
+step 104600/200000 loss=1.671880 lr=0.00309196
+step 104700/200000 loss=1.656153 lr=0.00309049
+step 104800/200000 loss=1.697690 lr=0.00308901
+step 104900/200000 loss=1.647704 lr=0.00308754
+step 105000/200000 loss=1.643906 lr=0.00308607
+step 105100/200000 loss=1.674814 lr=0.0030846
+step 105200/200000 loss=1.668348 lr=0.00308313
+step 105300/200000 loss=1.618705 lr=0.00308167
+step 105400/200000 loss=1.616523 lr=0.00308021
+step 105500/200000 loss=1.652408 lr=0.00307875
+step 105600/200000 loss=1.673231 lr=0.00307729
+step 105700/200000 loss=1.654396 lr=0.00307583
+step 105800/200000 loss=1.676812 lr=0.00307438
+step 105900/200000 loss=1.629488 lr=0.00307293
+step 106000/200000 loss=1.631203 lr=0.00307148
+step 106100/200000 loss=1.676171 lr=0.00307003
+step 106200/200000 loss=1.633052 lr=0.00306858
+step 106300/200000 loss=1.663521 lr=0.00306714
+step 106400/200000 loss=1.642986 lr=0.0030657
+step 106500/200000 loss=1.650018 lr=0.00306426
+step 106600/200000 loss=1.674134 lr=0.00306282
+step 106700/200000 loss=1.647572 lr=0.00306138
+step 106800/200000 loss=1.661808 lr=0.00305995
+step 106900/200000 loss=1.659554 lr=0.00305852
+step 107000/200000 loss=1.658931 lr=0.00305709
+step 107100/200000 loss=1.651855 lr=0.00305566
+step 107200/200000 loss=1.664054 lr=0.00305424
+step 107300/200000 loss=1.628048 lr=0.00305281
+step 107400/200000 loss=1.690267 lr=0.00305139
+step 107500/200000 loss=1.623413 lr=0.00304997
+step 107600/200000 loss=1.632783 lr=0.00304855
+step 107700/200000 loss=1.625867 lr=0.00304714
+step 107800/200000 loss=1.716230 lr=0.00304572
+step 107900/200000 loss=1.672968 lr=0.00304431
+step 108000/200000 loss=1.665282 lr=0.0030429
+step 108100/200000 loss=1.648570 lr=0.0030415
+step 108200/200000 loss=1.636372 lr=0.00304009
+step 108300/200000 loss=1.689374 lr=0.00303869
+step 108400/200000 loss=1.646212 lr=0.00303728
+step 108500/200000 loss=1.644284 lr=0.00303588
+step 108600/200000 loss=1.652128 lr=0.00303449
+step 108700/200000 loss=1.689380 lr=0.00303309
+step 108800/200000 loss=1.653540 lr=0.0030317
+step 108900/200000 loss=1.608168 lr=0.0030303
+step 109000/200000 loss=1.661626 lr=0.00302891
+step 109100/200000 loss=1.677106 lr=0.00302752
+step 109200/200000 loss=1.652491 lr=0.00302614
+step 109300/200000 loss=1.639992 lr=0.00302475
+step 109400/200000 loss=1.677269 lr=0.00302337
+step 109500/200000 loss=1.660208 lr=0.00302199
+step 109600/200000 loss=1.612485 lr=0.00302061
+step 109700/200000 loss=1.668311 lr=0.00301923
+step 109800/200000 loss=1.660830 lr=0.00301786
+step 109900/200000 loss=1.673462 lr=0.00301648
+step 110000/200000 loss=1.660180 lr=0.00301511
+step 110100/200000 loss=1.686815 lr=0.00301374
+step 110200/200000 loss=1.682624 lr=0.00301238
+step 110300/200000 loss=1.638954 lr=0.00301101
+step 110400/200000 loss=1.657481 lr=0.00300965
+step 110500/200000 loss=1.657633 lr=0.00300828
+step 110600/200000 loss=1.682698 lr=0.00300692
+step 110700/200000 loss=1.647414 lr=0.00300557
+step 110800/200000 loss=1.677692 lr=0.00300421
+step 110900/200000 loss=1.657967 lr=0.00300285
+step 111000/200000 loss=1.673134 lr=0.0030015
+step 111100/200000 loss=1.673492 lr=0.00300015
+step 111200/200000 loss=1.624402 lr=0.0029988
+step 111300/200000 loss=1.683127 lr=0.00299745
+step 111400/200000 loss=1.648517 lr=0.00299611
+step 111500/200000 loss=1.646551 lr=0.00299476
+step 111600/200000 loss=1.637618 lr=0.00299342
+step 111700/200000 loss=1.659401 lr=0.00299208
+step 111800/200000 loss=1.621624 lr=0.00299074
+step 111900/200000 loss=1.662106 lr=0.00298941
+step 112000/200000 loss=1.689008 lr=0.00298807
+step 112100/200000 loss=1.660654 lr=0.00298674
+step 112200/200000 loss=1.670375 lr=0.00298541
+step 112300/200000 loss=1.674519 lr=0.00298408
+step 112400/200000 loss=1.629306 lr=0.00298275
+step 112500/200000 loss=1.648284 lr=0.00298142
+step 112600/200000 loss=1.657791 lr=0.0029801
+step 112700/200000 loss=1.667830 lr=0.00297878
+step 112800/200000 loss=1.635978 lr=0.00297746
+step 112900/200000 loss=1.692223 lr=0.00297614
+step 113000/200000 loss=1.673635 lr=0.00297482
+step 113100/200000 loss=1.636225 lr=0.00297351
+step 113200/200000 loss=1.676996 lr=0.00297219
+step 113300/200000 loss=1.627862 lr=0.00297088
+step 113400/200000 loss=1.639549 lr=0.00296957
+step 113500/200000 loss=1.654923 lr=0.00296826
+step 113600/200000 loss=1.659235 lr=0.00296695
+step 113700/200000 loss=1.643655 lr=0.00296565
+step 113800/200000 loss=1.682414 lr=0.00296435
+step 113900/200000 loss=1.644527 lr=0.00296304
+step 114000/200000 loss=1.631895 lr=0.00296174
+step 114100/200000 loss=1.632221 lr=0.00296045
+step 114200/200000 loss=1.685132 lr=0.00295915
+step 114300/200000 loss=1.688696 lr=0.00295786
+step 114400/200000 loss=1.620674 lr=0.00295656
+step 114500/200000 loss=1.667675 lr=0.00295527
+step 114600/200000 loss=1.650234 lr=0.00295398
+step 114700/200000 loss=1.681107 lr=0.00295269
+step 114800/200000 loss=1.624331 lr=0.00295141
+step 114900/200000 loss=1.655872 lr=0.00295012
+step 115000/200000 loss=1.671550 lr=0.00294884
+step 115100/200000 loss=1.658303 lr=0.00294756
+step 115200/200000 loss=1.640552 lr=0.00294628
+step 115300/200000 loss=1.636688 lr=0.002945
+step 115400/200000 loss=1.616001 lr=0.00294372
+step 115500/200000 loss=1.673243 lr=0.00294245
+step 115600/200000 loss=1.653928 lr=0.00294118
+step 115700/200000 loss=1.656767 lr=0.00293991
+step 115800/200000 loss=1.605090 lr=0.00293864
+step 115900/200000 loss=1.657273 lr=0.00293737
+step 116000/200000 loss=1.610054 lr=0.0029361
+step 116100/200000 loss=1.670843 lr=0.00293484
+step 116200/200000 loss=1.573543 lr=0.00293357
+step 116300/200000 loss=1.635018 lr=0.00293231
+step 116400/200000 loss=1.636374 lr=0.00293105
+step 116500/200000 loss=1.610930 lr=0.00292979
+step 116600/200000 loss=1.692829 lr=0.00292854
+step 116700/200000 loss=1.644491 lr=0.00292728
+step 116800/200000 loss=1.631589 lr=0.00292603
+step 116900/200000 loss=1.682432 lr=0.00292478
+step 117000/200000 loss=1.670641 lr=0.00292353
+step 117100/200000 loss=1.626621 lr=0.00292228
+step 117200/200000 loss=1.616824 lr=0.00292103
+step 117300/200000 loss=1.602710 lr=0.00291979
+step 117400/200000 loss=1.632819 lr=0.00291854
+step 117500/200000 loss=1.613611 lr=0.0029173
+step 117600/200000 loss=1.662619 lr=0.00291606
+step 117700/200000 loss=1.639697 lr=0.00291482
+step 117800/200000 loss=1.678191 lr=0.00291358
+step 117900/200000 loss=1.673769 lr=0.00291235
+step 118000/200000 loss=1.618056 lr=0.00291111
+step 118100/200000 loss=1.637912 lr=0.00290988
+step 118200/200000 loss=1.620735 lr=0.00290865
+step 118300/200000 loss=1.662587 lr=0.00290742
+step 118400/200000 loss=1.666788 lr=0.00290619
+step 118500/200000 loss=1.668003 lr=0.00290496
+step 118600/200000 loss=1.626911 lr=0.00290374
+step 118700/200000 loss=1.652614 lr=0.00290252
+step 118800/200000 loss=1.600638 lr=0.00290129
+step 118900/200000 loss=1.669404 lr=0.00290007
+step 119000/200000 loss=1.643833 lr=0.00289886
+step 119100/200000 loss=1.657704 lr=0.00289764
+step 119200/200000 loss=1.674673 lr=0.00289642
+step 119300/200000 loss=1.656892 lr=0.00289521
+step 119400/200000 loss=1.623176 lr=0.002894
+step 119500/200000 loss=1.610010 lr=0.00289278
+step 119600/200000 loss=1.624325 lr=0.00289157
+step 119700/200000 loss=1.691864 lr=0.00289037
+step 119800/200000 loss=1.582625 lr=0.00288916
+step 119900/200000 loss=1.654392 lr=0.00288795
+step 120000/200000 loss=1.645221 lr=0.00288675
+{"recall@5": 0.018020837991324958, "recall@10": 0.030988686669945892, "ndcg@5": 0.010802739011165782, "ndcg@10": 0.01496087272822658, "validation_examples": 22363, "beam_size": 10, "invalid_beam_fraction": 0.0, "decoding": "unconstrained beam search; invalid IDs count as misses", "step": 120000}
+step 120100/200000 loss=1.627139 lr=0.00288555
+step 120200/200000 loss=1.648285 lr=0.00288435
+step 120300/200000 loss=1.630244 lr=0.00288315
+step 120400/200000 loss=1.631284 lr=0.00288195
+step 120500/200000 loss=1.630330 lr=0.00288076
+step 120600/200000 loss=1.621852 lr=0.00287956
+step 120700/200000 loss=1.620864 lr=0.00287837
+step 120800/200000 loss=1.636660 lr=0.00287718
+step 120900/200000 loss=1.622053 lr=0.00287599
+step 121000/200000 loss=1.666505 lr=0.0028748
+step 121100/200000 loss=1.601023 lr=0.00287361
+step 121200/200000 loss=1.607007 lr=0.00287242
+step 121300/200000 loss=1.647171 lr=0.00287124
+step 121400/200000 loss=1.660670 lr=0.00287006
+step 121500/200000 loss=1.630984 lr=0.00286888
+step 121600/200000 loss=1.662830 lr=0.0028677
+step 121700/200000 loss=1.616664 lr=0.00286652
+step 121800/200000 loss=1.616132 lr=0.00286534
+step 121900/200000 loss=1.628503 lr=0.00286417
+step 122000/200000 loss=1.624890 lr=0.00286299
+step 122100/200000 loss=1.623940 lr=0.00286182
+step 122200/200000 loss=1.654381 lr=0.00286065
+step 122300/200000 loss=1.620087 lr=0.00285948
+step 122400/200000 loss=1.609040 lr=0.00285831
+step 122500/200000 loss=1.644520 lr=0.00285714
+step 122600/200000 loss=1.652696 lr=0.00285598
+step 122700/200000 loss=1.641005 lr=0.00285481
+step 122800/200000 loss=1.627198 lr=0.00285365
+step 122900/200000 loss=1.678370 lr=0.00285249
+step 123000/200000 loss=1.618864 lr=0.00285133
+step 123100/200000 loss=1.652537 lr=0.00285017
+step 123200/200000 loss=1.603738 lr=0.00284901
+step 123300/200000 loss=1.666586 lr=0.00284786
+step 123400/200000 loss=1.654350 lr=0.0028467
+step 123500/200000 loss=1.675393 lr=0.00284555
+step 123600/200000 loss=1.644780 lr=0.0028444
+step 123700/200000 loss=1.671035 lr=0.00284325
+step 123800/200000 loss=1.635434 lr=0.0028421
+step 123900/200000 loss=1.623064 lr=0.00284095
+step 124000/200000 loss=1.651648 lr=0.00283981
+step 124100/200000 loss=1.600809 lr=0.00283866
+step 124200/200000 loss=1.638664 lr=0.00283752
+step 124300/200000 loss=1.657588 lr=0.00283638
+step 124400/200000 loss=1.683272 lr=0.00283524
+step 124500/200000 loss=1.633068 lr=0.0028341
+step 124600/200000 loss=1.616219 lr=0.00283296
+step 124700/200000 loss=1.641239 lr=0.00283183
+step 124800/200000 loss=1.614712 lr=0.00283069
+step 124900/200000 loss=1.638662 lr=0.00282956
+step 125000/200000 loss=1.605492 lr=0.00282843
+step 125100/200000 loss=1.608956 lr=0.0028273
+step 125200/200000 loss=1.652671 lr=0.00282617
+step 125300/200000 loss=1.641502 lr=0.00282504
+step 125400/200000 loss=1.619735 lr=0.00282391
+step 125500/200000 loss=1.665505 lr=0.00282279
+step 125600/200000 loss=1.620831 lr=0.00282166
+step 125700/200000 loss=1.651162 lr=0.00282054
+step 125800/200000 loss=1.636037 lr=0.00281942
+step 125900/200000 loss=1.641238 lr=0.0028183
+step 126000/200000 loss=1.652805 lr=0.00281718
+step 126100/200000 loss=1.676111 lr=0.00281606
+step 126200/200000 loss=1.640750 lr=0.00281495
+step 126300/200000 loss=1.659029 lr=0.00281383
+step 126400/200000 loss=1.604241 lr=0.00281272
+step 126500/200000 loss=1.682771 lr=0.00281161
+step 126600/200000 loss=1.579253 lr=0.0028105
+step 126700/200000 loss=1.599456 lr=0.00280939
+step 126800/200000 loss=1.656572 lr=0.00280828
+step 126900/200000 loss=1.607895 lr=0.00280717
+step 127000/200000 loss=1.649473 lr=0.00280607
+step 127100/200000 loss=1.634632 lr=0.00280496
+step 127200/200000 loss=1.646660 lr=0.00280386
+step 127300/200000 loss=1.592033 lr=0.00280276
+step 127400/200000 loss=1.648613 lr=0.00280166
+step 127500/200000 loss=1.674668 lr=0.00280056
+step 127600/200000 loss=1.642430 lr=0.00279946
+step 127700/200000 loss=1.589348 lr=0.00279837
+step 127800/200000 loss=1.605891 lr=0.00279727
+step 127900/200000 loss=1.646749 lr=0.00279618
+step 128000/200000 loss=1.629988 lr=0.00279508
+step 128100/200000 loss=1.626525 lr=0.00279399
+step 128200/200000 loss=1.647740 lr=0.0027929
+step 128300/200000 loss=1.650748 lr=0.00279182
+step 128400/200000 loss=1.622547 lr=0.00279073
+step 128500/200000 loss=1.668716 lr=0.00278964
+step 128600/200000 loss=1.644273 lr=0.00278856
+step 128700/200000 loss=1.656681 lr=0.00278747
+step 128800/200000 loss=1.596470 lr=0.00278639
+step 128900/200000 loss=1.658725 lr=0.00278531
+step 129000/200000 loss=1.639401 lr=0.00278423
+step 129100/200000 loss=1.624345 lr=0.00278315
+step 129200/200000 loss=1.612542 lr=0.00278207
+step 129300/200000 loss=1.648603 lr=0.002781
+step 129400/200000 loss=1.689926 lr=0.00277992
+step 129500/200000 loss=1.646217 lr=0.00277885
+step 129600/200000 loss=1.643218 lr=0.00277778
+step 129700/200000 loss=1.658912 lr=0.00277671
+step 129800/200000 loss=1.640349 lr=0.00277564
+step 129900/200000 loss=1.642520 lr=0.00277457
+step 130000/200000 loss=1.638075 lr=0.0027735
+step 130100/200000 loss=1.635668 lr=0.00277243
+step 130200/200000 loss=1.628590 lr=0.00277137
+step 130300/200000 loss=1.645260 lr=0.00277031
+step 130400/200000 loss=1.637362 lr=0.00276924
+step 130500/200000 loss=1.607270 lr=0.00276818
+step 130600/200000 loss=1.648920 lr=0.00276712
+step 130700/200000 loss=1.636971 lr=0.00276606
+step 130800/200000 loss=1.613642 lr=0.00276501
+step 130900/200000 loss=1.638110 lr=0.00276395
+step 131000/200000 loss=1.695012 lr=0.00276289
+step 131100/200000 loss=1.657003 lr=0.00276184
+step 131200/200000 loss=1.671483 lr=0.00276079
+step 131300/200000 loss=1.610279 lr=0.00275974
+step 131400/200000 loss=1.665870 lr=0.00275869
+step 131500/200000 loss=1.611629 lr=0.00275764
+step 131600/200000 loss=1.665299 lr=0.00275659
+step 131700/200000 loss=1.640808 lr=0.00275554
+step 131800/200000 loss=1.613240 lr=0.0027545
+step 131900/200000 loss=1.656061 lr=0.00275345
+step 132000/200000 loss=1.623652 lr=0.00275241
+step 132100/200000 loss=1.644680 lr=0.00275137
+step 132200/200000 loss=1.612663 lr=0.00275033
+step 132300/200000 loss=1.615636 lr=0.00274929
+step 132400/200000 loss=1.625182 lr=0.00274825
+step 132500/200000 loss=1.620857 lr=0.00274721
+step 132600/200000 loss=1.648934 lr=0.00274618
+step 132700/200000 loss=1.610396 lr=0.00274514
+step 132800/200000 loss=1.613965 lr=0.00274411
+step 132900/200000 loss=1.617168 lr=0.00274307
+step 133000/200000 loss=1.649680 lr=0.00274204
+step 133100/200000 loss=1.628464 lr=0.00274101
+step 133200/200000 loss=1.616948 lr=0.00273998
+step 133300/200000 loss=1.617234 lr=0.00273896
+step 133400/200000 loss=1.641841 lr=0.00273793
+step 133500/200000 loss=1.609367 lr=0.0027369
+step 133600/200000 loss=1.661397 lr=0.00273588
+step 133700/200000 loss=1.713146 lr=0.00273485
+step 133800/200000 loss=1.667064 lr=0.00273383
+step 133900/200000 loss=1.657907 lr=0.00273281
+step 134000/200000 loss=1.637049 lr=0.00273179
+step 134100/200000 loss=1.611484 lr=0.00273077
+step 134200/200000 loss=1.624004 lr=0.00272976
+step 134300/200000 loss=1.651831 lr=0.00272874
+step 134400/200000 loss=1.621344 lr=0.00272772
+step 134500/200000 loss=1.632570 lr=0.00272671
+step 134600/200000 loss=1.603285 lr=0.0027257
+step 134700/200000 loss=1.606073 lr=0.00272468
+step 134800/200000 loss=1.613286 lr=0.00272367
+step 134900/200000 loss=1.674186 lr=0.00272266
+step 135000/200000 loss=1.611696 lr=0.00272166
+step 135100/200000 loss=1.638142 lr=0.00272065
+step 135200/200000 loss=1.654611 lr=0.00271964
+step 135300/200000 loss=1.621009 lr=0.00271864
+step 135400/200000 loss=1.647769 lr=0.00271763
+step 135500/200000 loss=1.626791 lr=0.00271663
+step 135600/200000 loss=1.632849 lr=0.00271563
+step 135700/200000 loss=1.615781 lr=0.00271463
+step 135800/200000 loss=1.691827 lr=0.00271363
+step 135900/200000 loss=1.648917 lr=0.00271263
+step 136000/200000 loss=1.640621 lr=0.00271163
+step 136100/200000 loss=1.619929 lr=0.00271063
+step 136200/200000 loss=1.597420 lr=0.00270964
+step 136300/200000 loss=1.636760 lr=0.00270864
+step 136400/200000 loss=1.646849 lr=0.00270765
+step 136500/200000 loss=1.663177 lr=0.00270666
+step 136600/200000 loss=1.613947 lr=0.00270567
+step 136700/200000 loss=1.620525 lr=0.00270468
+step 136800/200000 loss=1.680700 lr=0.00270369
+step 136900/200000 loss=1.593818 lr=0.0027027
+step 137000/200000 loss=1.619456 lr=0.00270172
+step 137100/200000 loss=1.642962 lr=0.00270073
+step 137200/200000 loss=1.695216 lr=0.00269975
+step 137300/200000 loss=1.656714 lr=0.00269876
+step 137400/200000 loss=1.620435 lr=0.00269778
+step 137500/200000 loss=1.625639 lr=0.0026968
+step 137600/200000 loss=1.677910 lr=0.00269582
+step 137700/200000 loss=1.624826 lr=0.00269484
+step 137800/200000 loss=1.635957 lr=0.00269386
+step 137900/200000 loss=1.647022 lr=0.00269289
+step 138000/200000 loss=1.643766 lr=0.00269191
+step 138100/200000 loss=1.651383 lr=0.00269093
+step 138200/200000 loss=1.678933 lr=0.00268996
+step 138300/200000 loss=1.605879 lr=0.00268899
+step 138400/200000 loss=1.635473 lr=0.00268802
+step 138500/200000 loss=1.626360 lr=0.00268705
+step 138600/200000 loss=1.632637 lr=0.00268608
+step 138700/200000 loss=1.642781 lr=0.00268511
+step 138800/200000 loss=1.646846 lr=0.00268414
+step 138900/200000 loss=1.651543 lr=0.00268317
+step 139000/200000 loss=1.620279 lr=0.00268221
+step 139100/200000 loss=1.639823 lr=0.00268124
+step 139200/200000 loss=1.621261 lr=0.00268028
+step 139300/200000 loss=1.613632 lr=0.00267932
+step 139400/200000 loss=1.628369 lr=0.00267836
+step 139500/200000 loss=1.671210 lr=0.0026774
+step 139600/200000 loss=1.612682 lr=0.00267644
+step 139700/200000 loss=1.624635 lr=0.00267548
+step 139800/200000 loss=1.591844 lr=0.00267452
+step 139900/200000 loss=1.607054 lr=0.00267357
+step 140000/200000 loss=1.633747 lr=0.00267261
+{"recall@5": 0.019228189420024147, "recall@10": 0.031033403389527345, "ndcg@5": 0.011432717806508823, "ndcg@10": 0.015212126577467207, "validation_examples": 22363, "beam_size": 10, "invalid_beam_fraction": 0.0, "decoding": "unconstrained beam search; invalid IDs count as misses", "step": 140000}
+step 140100/200000 loss=1.642420 lr=0.00267166
+step 140200/200000 loss=1.623221 lr=0.00267071
+step 140300/200000 loss=1.617812 lr=0.00266975
+step 140400/200000 loss=1.618384 lr=0.0026688
+step 140500/200000 loss=1.675532 lr=0.00266785
+step 140600/200000 loss=1.638898 lr=0.0026669
+step 140700/200000 loss=1.638720 lr=0.00266596
+step 140800/200000 loss=1.602003 lr=0.00266501
+step 140900/200000 loss=1.645225 lr=0.00266406
+step 141000/200000 loss=1.610493 lr=0.00266312
+step 141100/200000 loss=1.650734 lr=0.00266217
+step 141200/200000 loss=1.586356 lr=0.00266123
+step 141300/200000 loss=1.631027 lr=0.00266029
+step 141400/200000 loss=1.657680 lr=0.00265935
+step 141500/200000 loss=1.671355 lr=0.00265841
+step 141600/200000 loss=1.651762 lr=0.00265747
+step 141700/200000 loss=1.625156 lr=0.00265653
+step 141800/200000 loss=1.623021 lr=0.0026556
+step 141900/200000 loss=1.616350 lr=0.00265466
+step 142000/200000 loss=1.640974 lr=0.00265372
+step 142100/200000 loss=1.624832 lr=0.00265279
+step 142200/200000 loss=1.607152 lr=0.00265186
+step 142300/200000 loss=1.627890 lr=0.00265093
+step 142400/200000 loss=1.611346 lr=0.00264999
+step 142500/200000 loss=1.608618 lr=0.00264906
+step 142600/200000 loss=1.602286 lr=0.00264814
+step 142700/200000 loss=1.639359 lr=0.00264721
+step 142800/200000 loss=1.615537 lr=0.00264628
+step 142900/200000 loss=1.625503 lr=0.00264535
+step 143000/200000 loss=1.618889 lr=0.00264443
+step 143100/200000 loss=1.667495 lr=0.00264351
+step 143200/200000 loss=1.660603 lr=0.00264258
+step 143300/200000 loss=1.615238 lr=0.00264166
+step 143400/200000 loss=1.660545 lr=0.00264074
+step 143500/200000 loss=1.603784 lr=0.00263982
+step 143600/200000 loss=1.625516 lr=0.0026389
+step 143700/200000 loss=1.657356 lr=0.00263798
+step 143800/200000 loss=1.629208 lr=0.00263706
+step 143900/200000 loss=1.609727 lr=0.00263615
+step 144000/200000 loss=1.621116 lr=0.00263523
+step 144100/200000 loss=1.606361 lr=0.00263432
+step 144200/200000 loss=1.585989 lr=0.0026334
+step 144300/200000 loss=1.622119 lr=0.00263249
+step 144400/200000 loss=1.565839 lr=0.00263158
+step 144500/200000 loss=1.605219 lr=0.00263067
+step 144600/200000 loss=1.682632 lr=0.00262976
+step 144700/200000 loss=1.651183 lr=0.00262885
+step 144800/200000 loss=1.641268 lr=0.00262794
+step 144900/200000 loss=1.643150 lr=0.00262703
+step 145000/200000 loss=1.642151 lr=0.00262613
+step 145100/200000 loss=1.642021 lr=0.00262522
+step 145200/200000 loss=1.649172 lr=0.00262432
+step 145300/200000 loss=1.655544 lr=0.00262342
+step 145400/200000 loss=1.630869 lr=0.00262251
+step 145500/200000 loss=1.621468 lr=0.00262161
+step 145600/200000 loss=1.654420 lr=0.00262071
+step 145700/200000 loss=1.602379 lr=0.00261981
+step 145800/200000 loss=1.621352 lr=0.00261891
+step 145900/200000 loss=1.656738 lr=0.00261802
+step 146000/200000 loss=1.613334 lr=0.00261712
+step 146100/200000 loss=1.649120 lr=0.00261622
+step 146200/200000 loss=1.652981 lr=0.00261533
+step 146300/200000 loss=1.633503 lr=0.00261443
+step 146400/200000 loss=1.616971 lr=0.00261354
+step 146500/200000 loss=1.669648 lr=0.00261265
+step 146600/200000 loss=1.595509 lr=0.00261176
+step 146700/200000 loss=1.661949 lr=0.00261087
+step 146800/200000 loss=1.612475 lr=0.00260998
+step 146900/200000 loss=1.640780 lr=0.00260909
+step 147000/200000 loss=1.614112 lr=0.0026082
+step 147100/200000 loss=1.615068 lr=0.00260732
+step 147200/200000 loss=1.672041 lr=0.00260643
+step 147300/200000 loss=1.615997 lr=0.00260555
+step 147400/200000 loss=1.635305 lr=0.00260466
+step 147500/200000 loss=1.611248 lr=0.00260378
+step 147600/200000 loss=1.608599 lr=0.0026029
+step 147700/200000 loss=1.663707 lr=0.00260201
+step 147800/200000 loss=1.630426 lr=0.00260113
+step 147900/200000 loss=1.619145 lr=0.00260025
+step 148000/200000 loss=1.660426 lr=0.00259938
+step 148100/200000 loss=1.623987 lr=0.0025985
+step 148200/200000 loss=1.628918 lr=0.00259762
+step 148300/200000 loss=1.624694 lr=0.00259675
+step 148400/200000 loss=1.625347 lr=0.00259587
+step 148500/200000 loss=1.624758 lr=0.002595
+step 148600/200000 loss=1.609110 lr=0.00259412
+step 148700/200000 loss=1.606548 lr=0.00259325
+step 148800/200000 loss=1.623646 lr=0.00259238
+step 148900/200000 loss=1.628169 lr=0.00259151
+step 149000/200000 loss=1.556766 lr=0.00259064
+step 149100/200000 loss=1.620719 lr=0.00258977
+step 149200/200000 loss=1.638350 lr=0.0025889
+step 149300/200000 loss=1.641714 lr=0.00258803
+step 149400/200000 loss=1.627803 lr=0.00258717
+step 149500/200000 loss=1.645366 lr=0.0025863
+step 149600/200000 loss=1.643573 lr=0.00258544
+step 149700/200000 loss=1.622470 lr=0.00258457
+step 149800/200000 loss=1.628981 lr=0.00258371
+step 149900/200000 loss=1.632372 lr=0.00258285
+step 150000/200000 loss=1.634843 lr=0.00258199
+step 150100/200000 loss=1.613446 lr=0.00258113
+step 150200/200000 loss=1.643704 lr=0.00258027
+step 150300/200000 loss=1.635676 lr=0.00257941
+step 150400/200000 loss=1.624372 lr=0.00257855
+step 150500/200000 loss=1.635145 lr=0.0025777
+step 150600/200000 loss=1.613535 lr=0.00257684
+step 150700/200000 loss=1.603095 lr=0.00257599
+step 150800/200000 loss=1.605824 lr=0.00257513
+step 150900/200000 loss=1.662843 lr=0.00257428
+step 151000/200000 loss=1.630396 lr=0.00257343
+step 151100/200000 loss=1.629693 lr=0.00257257
+step 151200/200000 loss=1.642034 lr=0.00257172
+step 151300/200000 loss=1.612976 lr=0.00257087
+step 151400/200000 loss=1.630346 lr=0.00257002
+step 151500/200000 loss=1.653360 lr=0.00256917
+step 151600/200000 loss=1.608429 lr=0.00256833
+step 151700/200000 loss=1.617710 lr=0.00256748
+step 151800/200000 loss=1.619517 lr=0.00256664
+step 151900/200000 loss=1.641325 lr=0.00256579
+step 152000/200000 loss=1.600034 lr=0.00256495
+step 152100/200000 loss=1.593491 lr=0.0025641
+step 152200/200000 loss=1.639657 lr=0.00256326
+step 152300/200000 loss=1.626847 lr=0.00256242
+step 152400/200000 loss=1.623251 lr=0.00256158
+step 152500/200000 loss=1.615413 lr=0.00256074
+step 152600/200000 loss=1.622470 lr=0.0025599
+step 152700/200000 loss=1.601317 lr=0.00255906
+step 152800/200000 loss=1.611738 lr=0.00255822
+step 152900/200000 loss=1.622149 lr=0.00255739
+step 153000/200000 loss=1.662215 lr=0.00255655
+step 153100/200000 loss=1.669002 lr=0.00255571
+step 153200/200000 loss=1.606173 lr=0.00255488
+step 153300/200000 loss=1.622556 lr=0.00255405
+step 153400/200000 loss=1.621310 lr=0.00255321
+step 153500/200000 loss=1.610977 lr=0.00255238
+step 153600/200000 loss=1.602671 lr=0.00255155
+step 153700/200000 loss=1.645204 lr=0.00255072
+step 153800/200000 loss=1.646320 lr=0.00254989
+step 153900/200000 loss=1.629202 lr=0.00254906
+step 154000/200000 loss=1.658509 lr=0.00254824
+step 154100/200000 loss=1.625932 lr=0.00254741
+step 154200/200000 loss=1.617182 lr=0.00254658
+step 154300/200000 loss=1.651862 lr=0.00254576
+step 154400/200000 loss=1.611131 lr=0.00254493
+step 154500/200000 loss=1.655390 lr=0.00254411
+step 154600/200000 loss=1.642470 lr=0.00254329
+step 154700/200000 loss=1.656855 lr=0.00254246
+step 154800/200000 loss=1.601889 lr=0.00254164
+step 154900/200000 loss=1.622048 lr=0.00254082
+step 155000/200000 loss=1.627888 lr=0.00254
+step 155100/200000 loss=1.609598 lr=0.00253918
+step 155200/200000 loss=1.638130 lr=0.00253837
+step 155300/200000 loss=1.588002 lr=0.00253755
+step 155400/200000 loss=1.627626 lr=0.00253673
+step 155500/200000 loss=1.624802 lr=0.00253592
+step 155600/200000 loss=1.628124 lr=0.0025351
+step 155700/200000 loss=1.635870 lr=0.00253429
+step 155800/200000 loss=1.607863 lr=0.00253347
+step 155900/200000 loss=1.628368 lr=0.00253266
+step 156000/200000 loss=1.658631 lr=0.00253185
+step 156100/200000 loss=1.596959 lr=0.00253104
+step 156200/200000 loss=1.648432 lr=0.00253023
+step 156300/200000 loss=1.625625 lr=0.00252942
+step 156400/200000 loss=1.641036 lr=0.00252861
+step 156500/200000 loss=1.603764 lr=0.0025278
+step 156600/200000 loss=1.649311 lr=0.00252699
+step 156700/200000 loss=1.640697 lr=0.00252619
+step 156800/200000 loss=1.635366 lr=0.00252538
+step 156900/200000 loss=1.601204 lr=0.00252458
+step 157000/200000 loss=1.628720 lr=0.00252377
+step 157100/200000 loss=1.653451 lr=0.00252297
+step 157200/200000 loss=1.612066 lr=0.00252217
+step 157300/200000 loss=1.655700 lr=0.00252136
+step 157400/200000 loss=1.640292 lr=0.00252056
+step 157500/200000 loss=1.629327 lr=0.00251976
+step 157600/200000 loss=1.619621 lr=0.00251896
+step 157700/200000 loss=1.605605 lr=0.00251816
+step 157800/200000 loss=1.656321 lr=0.00251737
+step 157900/200000 loss=1.614967 lr=0.00251657
+step 158000/200000 loss=1.622650 lr=0.00251577
+step 158100/200000 loss=1.591535 lr=0.00251498
+step 158200/200000 loss=1.624656 lr=0.00251418
+step 158300/200000 loss=1.638092 lr=0.00251339
+step 158400/200000 loss=1.675887 lr=0.00251259
+step 158500/200000 loss=1.601276 lr=0.0025118
+step 158600/200000 loss=1.636758 lr=0.00251101
+step 158700/200000 loss=1.660550 lr=0.00251022
+step 158800/200000 loss=1.618354 lr=0.00250943
+step 158900/200000 loss=1.620534 lr=0.00250864
+step 159000/200000 loss=1.650055 lr=0.00250785
+step 159100/200000 loss=1.612880 lr=0.00250706
+step 159200/200000 loss=1.570991 lr=0.00250627
+step 159300/200000 loss=1.602050 lr=0.00250549
+step 159400/200000 loss=1.643286 lr=0.0025047
+step 159500/200000 loss=1.645281 lr=0.00250392
+step 159600/200000 loss=1.634604 lr=0.00250313
+step 159700/200000 loss=1.564865 lr=0.00250235
+step 159800/200000 loss=1.604899 lr=0.00250156
+step 159900/200000 loss=1.636433 lr=0.00250078
+step 160000/200000 loss=1.664859 lr=0.0025
+{"recall@5": 0.019451773017931405, "recall@10": 0.03344810624692573, "ndcg@5": 0.0117499184126674, "ndcg@10": 0.016233350286974178, "validation_examples": 22363, "beam_size": 10, "invalid_beam_fraction": 0.0, "decoding": "unconstrained beam search; invalid IDs count as misses", "step": 160000}
+step 160100/200000 loss=1.634255 lr=0.00249922
+step 160200/200000 loss=1.614344 lr=0.00249844
+step 160300/200000 loss=1.650935 lr=0.00249766
+step 160400/200000 loss=1.606629 lr=0.00249688
+step 160500/200000 loss=1.627351 lr=0.0024961
+step 160600/200000 loss=1.591349 lr=0.00249533
+step 160700/200000 loss=1.608814 lr=0.00249455
+step 160800/200000 loss=1.648708 lr=0.00249377
+step 160900/200000 loss=1.630647 lr=0.002493
+step 161000/200000 loss=1.628305 lr=0.00249222
+step 161100/200000 loss=1.582292 lr=0.00249145
+step 161200/200000 loss=1.622457 lr=0.00249068
+step 161300/200000 loss=1.593895 lr=0.00248991
+step 161400/200000 loss=1.646862 lr=0.00248913
+step 161500/200000 loss=1.621859 lr=0.00248836
+step 161600/200000 loss=1.612311 lr=0.00248759
+step 161700/200000 loss=1.596160 lr=0.00248682
+step 161800/200000 loss=1.624491 lr=0.00248606
+step 161900/200000 loss=1.669894 lr=0.00248529
+step 162000/200000 loss=1.640746 lr=0.00248452
+step 162100/200000 loss=1.633450 lr=0.00248375
+step 162200/200000 loss=1.599206 lr=0.00248299
+step 162300/200000 loss=1.599000 lr=0.00248222
+step 162400/200000 loss=1.619098 lr=0.00248146
+step 162500/200000 loss=1.601192 lr=0.00248069
+step 162600/200000 loss=1.674956 lr=0.00247993
+step 162700/200000 loss=1.590356 lr=0.00247917
+step 162800/200000 loss=1.633964 lr=0.00247841
+step 162900/200000 loss=1.591317 lr=0.00247765
+step 163000/200000 loss=1.582498 lr=0.00247689
+step 163100/200000 loss=1.628510 lr=0.00247613
+step 163200/200000 loss=1.623116 lr=0.00247537
+step 163300/200000 loss=1.653972 lr=0.00247461
+step 163400/200000 loss=1.685683 lr=0.00247385
+step 163500/200000 loss=1.597662 lr=0.0024731
+step 163600/200000 loss=1.591743 lr=0.00247234
+step 163700/200000 loss=1.652401 lr=0.00247159
+step 163800/200000 loss=1.632485 lr=0.00247083
+step 163900/200000 loss=1.648204 lr=0.00247008
+step 164000/200000 loss=1.618258 lr=0.00246932
+step 164100/200000 loss=1.596570 lr=0.00246857
+step 164200/200000 loss=1.598124 lr=0.00246782
+step 164300/200000 loss=1.648965 lr=0.00246707
+step 164400/200000 loss=1.621528 lr=0.00246632
+step 164500/200000 loss=1.645529 lr=0.00246557
+step 164600/200000 loss=1.604435 lr=0.00246482
+step 164700/200000 loss=1.636842 lr=0.00246407
+step 164800/200000 loss=1.632513 lr=0.00246332
+step 164900/200000 loss=1.608184 lr=0.00246258
+step 165000/200000 loss=1.646738 lr=0.00246183
+step 165100/200000 loss=1.648311 lr=0.00246108
+step 165200/200000 loss=1.600644 lr=0.00246034
+step 165300/200000 loss=1.625945 lr=0.00245959
+step 165400/200000 loss=1.632084 lr=0.00245885
+step 165500/200000 loss=1.622795 lr=0.00245811
+step 165600/200000 loss=1.607797 lr=0.00245737
+step 165700/200000 loss=1.617264 lr=0.00245662
+step 165800/200000 loss=1.623511 lr=0.00245588
+step 165900/200000 loss=1.632322 lr=0.00245514
+step 166000/200000 loss=1.638380 lr=0.0024544
+step 166100/200000 loss=1.630643 lr=0.00245366
+step 166200/200000 loss=1.618687 lr=0.00245293
+step 166300/200000 loss=1.688136 lr=0.00245219
+step 166400/200000 loss=1.619703 lr=0.00245145
+step 166500/200000 loss=1.644822 lr=0.00245072
+step 166600/200000 loss=1.646741 lr=0.00244998
+step 166700/200000 loss=1.628750 lr=0.00244924
+step 166800/200000 loss=1.677269 lr=0.00244851
+step 166900/200000 loss=1.588318 lr=0.00244778
+step 167000/200000 loss=1.669407 lr=0.00244704
+step 167100/200000 loss=1.631347 lr=0.00244631
+step 167200/200000 loss=1.608814 lr=0.00244558
+step 167300/200000 loss=1.596302 lr=0.00244485
+step 167400/200000 loss=1.586347 lr=0.00244412
+step 167500/200000 loss=1.598925 lr=0.00244339
+step 167600/200000 loss=1.636041 lr=0.00244266
+step 167700/200000 loss=1.558807 lr=0.00244193
+step 167800/200000 loss=1.623788 lr=0.0024412
+step 167900/200000 loss=1.615555 lr=0.00244048
+step 168000/200000 loss=1.590367 lr=0.00243975
+step 168100/200000 loss=1.630504 lr=0.00243902
+step 168200/200000 loss=1.631937 lr=0.0024383
+step 168300/200000 loss=1.638197 lr=0.00243757
+step 168400/200000 loss=1.609431 lr=0.00243685
+step 168500/200000 loss=1.646065 lr=0.00243613
+step 168600/200000 loss=1.609952 lr=0.00243541
+step 168700/200000 loss=1.666471 lr=0.00243468
+step 168800/200000 loss=1.651479 lr=0.00243396
+step 168900/200000 loss=1.610030 lr=0.00243324
+step 169000/200000 loss=1.602948 lr=0.00243252
+step 169100/200000 loss=1.598297 lr=0.0024318
+step 169200/200000 loss=1.638068 lr=0.00243108
+step 169300/200000 loss=1.578860 lr=0.00243037
+step 169400/200000 loss=1.634429 lr=0.00242965
+step 169500/200000 loss=1.636949 lr=0.00242893
+step 169600/200000 loss=1.630301 lr=0.00242821
+step 169700/200000 loss=1.645023 lr=0.0024275
+step 169800/200000 loss=1.594570 lr=0.00242678
+step 169900/200000 loss=1.643065 lr=0.00242607
+step 170000/200000 loss=1.570946 lr=0.00242536
+step 170100/200000 loss=1.613589 lr=0.00242464
+step 170200/200000 loss=1.617884 lr=0.00242393
+step 170300/200000 loss=1.580929 lr=0.00242322
+step 170400/200000 loss=1.610345 lr=0.00242251
+step 170500/200000 loss=1.561846 lr=0.0024218
+step 170600/200000 loss=1.614492 lr=0.00242109
+step 170700/200000 loss=1.643270 lr=0.00242038
+step 170800/200000 loss=1.624018 lr=0.00241967
+step 170900/200000 loss=1.660237 lr=0.00241896
+step 171000/200000 loss=1.620344 lr=0.00241825
+step 171100/200000 loss=1.643355 lr=0.00241755
+step 171200/200000 loss=1.632019 lr=0.00241684
+step 171300/200000 loss=1.574586 lr=0.00241614
+step 171400/200000 loss=1.619580 lr=0.00241543
+step 171500/200000 loss=1.584496 lr=0.00241473
+step 171600/200000 loss=1.618510 lr=0.00241402
+step 171700/200000 loss=1.610721 lr=0.00241332
+step 171800/200000 loss=1.607693 lr=0.00241262
+step 171900/200000 loss=1.650143 lr=0.00241192
+step 172000/200000 loss=1.628807 lr=0.00241121
+step 172100/200000 loss=1.604665 lr=0.00241051
+step 172200/200000 loss=1.616722 lr=0.00240981
+step 172300/200000 loss=1.563951 lr=0.00240911
+step 172400/200000 loss=1.564727 lr=0.00240842
+step 172500/200000 loss=1.641564 lr=0.00240772
+step 172600/200000 loss=1.621754 lr=0.00240702
+step 172700/200000 loss=1.652441 lr=0.00240632
+step 172800/200000 loss=1.597188 lr=0.00240563
+step 172900/200000 loss=1.629856 lr=0.00240493
+step 173000/200000 loss=1.614009 lr=0.00240424
+step 173100/200000 loss=1.655269 lr=0.00240354
+step 173200/200000 loss=1.665534 lr=0.00240285
+step 173300/200000 loss=1.616500 lr=0.00240215
+step 173400/200000 loss=1.592979 lr=0.00240146
+step 173500/200000 loss=1.660595 lr=0.00240077
+step 173600/200000 loss=1.650178 lr=0.00240008
+step 173700/200000 loss=1.626482 lr=0.00239939
+step 173800/200000 loss=1.648306 lr=0.0023987
+step 173900/200000 loss=1.625001 lr=0.00239801
+step 174000/200000 loss=1.638425 lr=0.00239732
+step 174100/200000 loss=1.624972 lr=0.00239663
+step 174200/200000 loss=1.618455 lr=0.00239594
+step 174300/200000 loss=1.647333 lr=0.00239525
+step 174400/200000 loss=1.611602 lr=0.00239457
+step 174500/200000 loss=1.640111 lr=0.00239388
+step 174600/200000 loss=1.652549 lr=0.00239319
+step 174700/200000 loss=1.625811 lr=0.00239251
+step 174800/200000 loss=1.612610 lr=0.00239182
+step 174900/200000 loss=1.602360 lr=0.00239114
+step 175000/200000 loss=1.605015 lr=0.00239046
+step 175100/200000 loss=1.589755 lr=0.00238977
+step 175200/200000 loss=1.637118 lr=0.00238909
+step 175300/200000 loss=1.599927 lr=0.00238841
+step 175400/200000 loss=1.626595 lr=0.00238773
+step 175500/200000 loss=1.614626 lr=0.00238705
+step 175600/200000 loss=1.614110 lr=0.00238637
+step 175700/200000 loss=1.640106 lr=0.00238569
+step 175800/200000 loss=1.625307 lr=0.00238501
+step 175900/200000 loss=1.663162 lr=0.00238433
+step 176000/200000 loss=1.632780 lr=0.00238366
+step 176100/200000 loss=1.648815 lr=0.00238298
+step 176200/200000 loss=1.603945 lr=0.0023823
+step 176300/200000 loss=1.621850 lr=0.00238163
+step 176400/200000 loss=1.606256 lr=0.00238095
+step 176500/200000 loss=1.611527 lr=0.00238028
+step 176600/200000 loss=1.599336 lr=0.0023796
+step 176700/200000 loss=1.586391 lr=0.00237893
+step 176800/200000 loss=1.625987 lr=0.00237826
+step 176900/200000 loss=1.623559 lr=0.00237759
+step 177000/200000 loss=1.648877 lr=0.00237691
+step 177100/200000 loss=1.635639 lr=0.00237624
+step 177200/200000 loss=1.601530 lr=0.00237557
+step 177300/200000 loss=1.654293 lr=0.0023749
+step 177400/200000 loss=1.613910 lr=0.00237423
+step 177500/200000 loss=1.580048 lr=0.00237356
+step 177600/200000 loss=1.634338 lr=0.00237289
+step 177700/200000 loss=1.672211 lr=0.00237223
+step 177800/200000 loss=1.623396 lr=0.00237156
+step 177900/200000 loss=1.598883 lr=0.00237089
+step 178000/200000 loss=1.646895 lr=0.00237023
+step 178100/200000 loss=1.621625 lr=0.00236956
+step 178200/200000 loss=1.649256 lr=0.0023689
+step 178300/200000 loss=1.652250 lr=0.00236823
+step 178400/200000 loss=1.655425 lr=0.00236757
+step 178500/200000 loss=1.603938 lr=0.00236691
+step 178600/200000 loss=1.592771 lr=0.00236624
+step 178700/200000 loss=1.602515 lr=0.00236558
+step 178800/200000 loss=1.613155 lr=0.00236492
+step 178900/200000 loss=1.625376 lr=0.00236426
+step 179000/200000 loss=1.634458 lr=0.0023636
+step 179100/200000 loss=1.588967 lr=0.00236294
+step 179200/200000 loss=1.629754 lr=0.00236228
+step 179300/200000 loss=1.631914 lr=0.00236162
+step 179400/200000 loss=1.603981 lr=0.00236096
+step 179500/200000 loss=1.589794 lr=0.0023603
+step 179600/200000 loss=1.631074 lr=0.00235965
+step 179700/200000 loss=1.607874 lr=0.00235899
+step 179800/200000 loss=1.599058 lr=0.00235833
+step 179900/200000 loss=1.631468 lr=0.00235768
+step 180000/200000 loss=1.628770 lr=0.00235702
+{"recall@5": 0.02012252381165318, "recall@10": 0.033939990162321694, "ndcg@5": 0.012125416216956874, "ndcg@10": 0.01655927824038325, "validation_examples": 22363, "beam_size": 10, "invalid_beam_fraction": 0.0, "decoding": "unconstrained beam search; invalid IDs count as misses", "step": 180000}
+step 180100/200000 loss=1.608101 lr=0.00235637
+step 180200/200000 loss=1.607347 lr=0.00235571
+step 180300/200000 loss=1.579962 lr=0.00235506
+step 180400/200000 loss=1.567924 lr=0.00235441
+step 180500/200000 loss=1.634727 lr=0.00235376
+step 180600/200000 loss=1.579386 lr=0.0023531
+step 180700/200000 loss=1.599564 lr=0.00235245
+step 180800/200000 loss=1.645107 lr=0.0023518
+step 180900/200000 loss=1.619514 lr=0.00235115
+step 181000/200000 loss=1.654144 lr=0.0023505
+step 181100/200000 loss=1.623927 lr=0.00234985
+step 181200/200000 loss=1.607010 lr=0.0023492
+step 181300/200000 loss=1.600180 lr=0.00234856
+step 181400/200000 loss=1.592947 lr=0.00234791
+step 181500/200000 loss=1.621579 lr=0.00234726
+step 181600/200000 loss=1.630442 lr=0.00234662
+step 181700/200000 loss=1.595237 lr=0.00234597
+step 181800/200000 loss=1.626001 lr=0.00234533
+step 181900/200000 loss=1.590459 lr=0.00234468
+step 182000/200000 loss=1.660731 lr=0.00234404
+step 182100/200000 loss=1.649334 lr=0.00234339
+step 182200/200000 loss=1.634285 lr=0.00234275
+step 182300/200000 loss=1.632336 lr=0.00234211
+step 182400/200000 loss=1.584122 lr=0.00234146
+step 182500/200000 loss=1.605764 lr=0.00234082
+step 182600/200000 loss=1.631358 lr=0.00234018
+step 182700/200000 loss=1.597331 lr=0.00233954
+step 182800/200000 loss=1.587389 lr=0.0023389
+step 182900/200000 loss=1.608513 lr=0.00233826
+step 183000/200000 loss=1.643120 lr=0.00233762
+step 183100/200000 loss=1.618608 lr=0.00233698
+step 183200/200000 loss=1.629709 lr=0.00233635
+step 183300/200000 loss=1.621167 lr=0.00233571
+step 183400/200000 loss=1.586694 lr=0.00233507
+step 183500/200000 loss=1.586571 lr=0.00233444
+step 183600/200000 loss=1.626912 lr=0.0023338
+step 183700/200000 loss=1.593012 lr=0.00233316
+step 183800/200000 loss=1.584815 lr=0.00233253
+step 183900/200000 loss=1.675598 lr=0.0023319
+step 184000/200000 loss=1.574964 lr=0.00233126
+step 184100/200000 loss=1.624540 lr=0.00233063
+step 184200/200000 loss=1.596984 lr=0.00233
+step 184300/200000 loss=1.598368 lr=0.00232936
+step 184400/200000 loss=1.603182 lr=0.00232873
+step 184500/200000 loss=1.616720 lr=0.0023281
+step 184600/200000 loss=1.619024 lr=0.00232747
+step 184700/200000 loss=1.626265 lr=0.00232684
+step 184800/200000 loss=1.626087 lr=0.00232621
+step 184900/200000 loss=1.620709 lr=0.00232558
+step 185000/200000 loss=1.601251 lr=0.00232495
+step 185100/200000 loss=1.609344 lr=0.00232432
+step 185200/200000 loss=1.629477 lr=0.0023237
+step 185300/200000 loss=1.605766 lr=0.00232307
+step 185400/200000 loss=1.646996 lr=0.00232244
+step 185500/200000 loss=1.632808 lr=0.00232182
+step 185600/200000 loss=1.618724 lr=0.00232119
+step 185700/200000 loss=1.647987 lr=0.00232057
+step 185800/200000 loss=1.584712 lr=0.00231994
+step 185900/200000 loss=1.634633 lr=0.00231932
+step 186000/200000 loss=1.603720 lr=0.00231869
+step 186100/200000 loss=1.587978 lr=0.00231807
+step 186200/200000 loss=1.609664 lr=0.00231745
+step 186300/200000 loss=1.587931 lr=0.00231683
+step 186400/200000 loss=1.658355 lr=0.00231621
+step 186500/200000 loss=1.591212 lr=0.00231558
+step 186600/200000 loss=1.627537 lr=0.00231496
+step 186700/200000 loss=1.600220 lr=0.00231434
+step 186800/200000 loss=1.612364 lr=0.00231372
+step 186900/200000 loss=1.648326 lr=0.00231311
+step 187000/200000 loss=1.604050 lr=0.00231249
+step 187100/200000 loss=1.629696 lr=0.00231187
+step 187200/200000 loss=1.622701 lr=0.00231125
+step 187300/200000 loss=1.608977 lr=0.00231063
+step 187400/200000 loss=1.591743 lr=0.00231002
+step 187500/200000 loss=1.551650 lr=0.0023094
+step 187600/200000 loss=1.601163 lr=0.00230879
+step 187700/200000 loss=1.614301 lr=0.00230817
+step 187800/200000 loss=1.619987 lr=0.00230756
+step 187900/200000 loss=1.622574 lr=0.00230694
+step 188000/200000 loss=1.634949 lr=0.00230633
+step 188100/200000 loss=1.618968 lr=0.00230571
+step 188200/200000 loss=1.625651 lr=0.0023051
+step 188300/200000 loss=1.601005 lr=0.00230449
+step 188400/200000 loss=1.632427 lr=0.00230388
+step 188500/200000 loss=1.627635 lr=0.00230327
+step 188600/200000 loss=1.641112 lr=0.00230266
+step 188700/200000 loss=1.634858 lr=0.00230205
+step 188800/200000 loss=1.593716 lr=0.00230144
+step 188900/200000 loss=1.572910 lr=0.00230083
+step 189000/200000 loss=1.606985 lr=0.00230022
+step 189100/200000 loss=1.634094 lr=0.00229961
+step 189200/200000 loss=1.589762 lr=0.002299
+step 189300/200000 loss=1.629484 lr=0.0022984
+step 189400/200000 loss=1.569224 lr=0.00229779
+step 189500/200000 loss=1.547930 lr=0.00229718
+step 189600/200000 loss=1.618674 lr=0.00229658
+step 189700/200000 loss=1.602556 lr=0.00229597
+step 189800/200000 loss=1.629804 lr=0.00229537
+step 189900/200000 loss=1.601149 lr=0.00229476
+step 190000/200000 loss=1.619962 lr=0.00229416
+step 190100/200000 loss=1.614566 lr=0.00229355
+step 190200/200000 loss=1.615763 lr=0.00229295
+step 190300/200000 loss=1.599294 lr=0.00229235
+step 190400/200000 loss=1.591171 lr=0.00229175
+step 190500/200000 loss=1.595637 lr=0.00229114
+step 190600/200000 loss=1.627241 lr=0.00229054
+step 190700/200000 loss=1.633293 lr=0.00228994
+step 190800/200000 loss=1.603026 lr=0.00228934
+step 190900/200000 loss=1.615275 lr=0.00228874
+step 191000/200000 loss=1.623496 lr=0.00228814
+step 191100/200000 loss=1.604366 lr=0.00228755
+step 191200/200000 loss=1.547985 lr=0.00228695
+step 191300/200000 loss=1.633900 lr=0.00228635
+step 191400/200000 loss=1.598920 lr=0.00228575
+step 191500/200000 loss=1.620232 lr=0.00228515
+step 191600/200000 loss=1.649459 lr=0.00228456
+step 191700/200000 loss=1.584179 lr=0.00228396
+step 191800/200000 loss=1.577910 lr=0.00228337
+step 191900/200000 loss=1.638751 lr=0.00228277
+step 192000/200000 loss=1.600875 lr=0.00228218
+step 192100/200000 loss=1.604885 lr=0.00228158
+step 192200/200000 loss=1.589002 lr=0.00228099
+step 192300/200000 loss=1.634500 lr=0.0022804
+step 192400/200000 loss=1.592256 lr=0.0022798
+step 192500/200000 loss=1.625401 lr=0.00227921
+step 192600/200000 loss=1.619577 lr=0.00227862
+step 192700/200000 loss=1.619195 lr=0.00227803
+step 192800/200000 loss=1.651335 lr=0.00227744
+step 192900/200000 loss=1.596966 lr=0.00227685
+step 193000/200000 loss=1.560597 lr=0.00227626
+step 193100/200000 loss=1.623084 lr=0.00227567
+step 193200/200000 loss=1.582235 lr=0.00227508
+step 193300/200000 loss=1.645521 lr=0.00227449
+step 193400/200000 loss=1.629106 lr=0.0022739
+step 193500/200000 loss=1.568450 lr=0.00227331
+step 193600/200000 loss=1.604756 lr=0.00227273
+step 193700/200000 loss=1.585473 lr=0.00227214
+step 193800/200000 loss=1.615018 lr=0.00227155
+step 193900/200000 loss=1.613763 lr=0.00227097
+step 194000/200000 loss=1.591836 lr=0.00227038
+step 194100/200000 loss=1.572814 lr=0.0022698
+step 194200/200000 loss=1.643954 lr=0.00226921
+step 194300/200000 loss=1.654642 lr=0.00226863
+step 194400/200000 loss=1.630615 lr=0.00226805
+step 194500/200000 loss=1.588821 lr=0.00226746
+step 194600/200000 loss=1.646083 lr=0.00226688
+step 194700/200000 loss=1.608277 lr=0.0022663
+step 194800/200000 loss=1.564109 lr=0.00226572
+step 194900/200000 loss=1.603820 lr=0.00226513
+step 195000/200000 loss=1.584733 lr=0.00226455
+step 195100/200000 loss=1.604213 lr=0.00226397
+step 195200/200000 loss=1.578189 lr=0.00226339
+step 195300/200000 loss=1.655284 lr=0.00226281
+step 195400/200000 loss=1.595553 lr=0.00226224
+step 195500/200000 loss=1.640268 lr=0.00226166
+step 195600/200000 loss=1.616631 lr=0.00226108
+step 195700/200000 loss=1.622818 lr=0.0022605
+step 195800/200000 loss=1.637116 lr=0.00225992
+step 195900/200000 loss=1.619471 lr=0.00225935
+step 196000/200000 loss=1.618124 lr=0.00225877
+step 196100/200000 loss=1.629833 lr=0.00225819
+step 196200/200000 loss=1.614003 lr=0.00225762
+step 196300/200000 loss=1.595041 lr=0.00225704
+step 196400/200000 loss=1.600184 lr=0.00225647
+step 196500/200000 loss=1.588278 lr=0.00225589
+step 196600/200000 loss=1.582714 lr=0.00225532
+step 196700/200000 loss=1.631128 lr=0.00225475
+step 196800/200000 loss=1.611026 lr=0.00225417
+step 196900/200000 loss=1.612358 lr=0.0022536
+step 197000/200000 loss=1.595948 lr=0.00225303
+step 197100/200000 loss=1.633160 lr=0.00225246
+step 197200/200000 loss=1.578225 lr=0.00225189
+step 197300/200000 loss=1.609196 lr=0.00225132
+step 197400/200000 loss=1.604836 lr=0.00225075
+step 197500/200000 loss=1.594492 lr=0.00225018
+step 197600/200000 loss=1.583938 lr=0.00224961
+step 197700/200000 loss=1.578789 lr=0.00224904
+step 197800/200000 loss=1.607093 lr=0.00224847
+step 197900/200000 loss=1.616328 lr=0.0022479
+step 198000/200000 loss=1.599993 lr=0.00224733
+step 198100/200000 loss=1.604519 lr=0.00224677
+step 198200/200000 loss=1.636485 lr=0.0022462
+step 198300/200000 loss=1.604085 lr=0.00224563
+step 198400/200000 loss=1.598212 lr=0.00224507
+step 198500/200000 loss=1.592615 lr=0.0022445
+step 198600/200000 loss=1.552655 lr=0.00224394
+step 198700/200000 loss=1.604294 lr=0.00224337
+step 198800/200000 loss=1.606310 lr=0.00224281
+step 198900/200000 loss=1.646762 lr=0.00224224
+step 199000/200000 loss=1.616116 lr=0.00224168
+step 199100/200000 loss=1.587938 lr=0.00224112
+step 199200/200000 loss=1.621490 lr=0.00224055
+step 199300/200000 loss=1.581417 lr=0.00223999
+step 199400/200000 loss=1.616590 lr=0.00223943
+step 199500/200000 loss=1.591241 lr=0.00223887
+step 199600/200000 loss=1.643790 lr=0.00223831
+step 199700/200000 loss=1.618815 lr=0.00223775
+step 199800/200000 loss=1.615273 lr=0.00223719
+step 199900/200000 loss=1.569241 lr=0.00223663
+step 200000/200000 loss=1.585509 lr=0.00223607
+{"recall@5": 0.02056969100746769, "recall@10": 0.0342082904798104, "ndcg@5": 0.012409266913717245, "ndcg@10": 0.01678775804491988, "validation_examples": 22363, "beam_size": 10, "invalid_beam_fraction": 0.0, "decoding": "unconstrained beam search; invalid IDs count as misses", "step": 200000}
+Saved /home/c/chaoch/Kuriyo/Recall/TIGER/runs/tiger-paper-20261117-005232
