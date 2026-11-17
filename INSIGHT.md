@@ -51,9 +51,9 @@
 - [`scripts/run.sbatch`](scripts/run.sbatch) 可分階段準備 Beauty 資料、訓練 SID、轉換樣本及訓練 PyTorch/Hugging Face T5 baseline；[`scripts/prepare_amazon_reviews_2014_beauty.py`](scripts/prepare_amazon_reviews_2014_beauty.py) 可驗證並重用已下載資料。SoC job 1153307 已執行至 200,000 steps 並印出 Saved；完整 log `slurm-kuriyo-tiger-1153307.out` 曾同步進 repo，已於 `2ad21c7` 移除，可用 `git show 2ad21c7^:slurm-kuriyo-tiger-1153307.out` 取回。
 - 完整 run `tiger-paper-20261117-005232`（程式 `5f99955`）對 12,101 商品產生 SID，20,000 epochs 結束時使用碼數 6/26/25，碰撞群組 228。第一 epoch loss=8743993902.953560，最後 epoch loss=0.178358；尚無分項 loss 可定位原因。228 群組不能直接換算碰撞商品比例。
 - step 200,000 的 validation（22,363 examples）：Recall@5=0.020569691、Recall@10=0.034208290、NDCG@5=0.012409267、NDCG@10=0.016787758；依已記錄 NDCG@10 為最佳，沒有最終 test。資料源為 job 1153307 log（見上一條取回方式），不是本機 smoke 指標。
-- 本機已下載 Sentence-T5 base 並用 64 件商品、1 epoch 完成 Sentence-T5 + RQ-VAE smoke test；三層 codebook 使用碼數為 3、1、1（容量 16），顯示此短跑發生 collapse。產物僅在忽略目錄 `Recall/TIGER/runs/sentence-t5-smoke-64/`，沒有把這個不完整 SID 目錄當作正式 split 資料。
-- 本地 TF-IDF/SVD smoke test 對完整 12,101 件 Beauty 商品訓練 RQ-VAE 1 epoch，三層 codebook 的使用碼數分別為 27、25、15（每層容量 32），546 組三碼 SID 發生碰撞；附加第四碼後每件商品的 SID 唯一。產物在本地忽略目錄 `Recall/TIGER/runs/smoke-beauty-final/`。
-- 本地序列 smoke test 只取 128 筆 train、3 筆 validation、訓練 1 epoch；Recall@5/10 與 NDCG@5/10 均為 0。此數字僅驗證執行與指標流程，不能代表推薦品質；產物在 `Recall/TIGER/runs/smoke-sequence-from-final-sid/`。
+- 本機已下載 Sentence-T5 base 並用 64 件商品、1 epoch 完成 Sentence-T5 + RQ-VAE smoke test；三層 codebook 使用碼數為 3、1、1（容量 16），顯示此短跑發生 collapse。產物僅在忽略目錄 `Recall/TIGER/baseline/runs/sentence-t5-smoke-64/`，沒有把這個不完整 SID 目錄當作正式 split 資料。
+- 本地 TF-IDF/SVD smoke test 對完整 12,101 件 Beauty 商品訓練 RQ-VAE 1 epoch，三層 codebook 的使用碼數分別為 27、25、15（每層容量 32），546 組三碼 SID 發生碰撞；附加第四碼後每件商品的 SID 唯一。產物在本地忽略目錄 `Recall/TIGER/baseline/runs/smoke-beauty-final/`。
+- 本地序列 smoke test 只取 128 筆 train、3 筆 validation、訓練 1 epoch；Recall@5/10 與 NDCG@5/10 均為 0。此數字僅驗證執行與指標流程，不能代表推薦品質；產物在 `Recall/TIGER/baseline/runs/smoke-sequence-from-final-sid/`。
 
 ## Limitations
 
