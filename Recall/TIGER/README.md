@@ -215,3 +215,14 @@ SID 完成後有 `semantic_ids.jsonl`、`manifest.json`、`embeddings.npz`、`rq
 TIGER 專有測試放在 `tests/`，共用 Recall 測試放在 `../tests/`。從 repo 根目錄執行 `.venv/bin/python -m unittest discover -s . -v` 可涵蓋兩者。家族與變體組織原則見 [根目錄 README](../../README.md#模型家族變體與測試)；目前 baseline 入口不變，尚未建立 variants 目錄。
 
 paper baseline 的 run 內新增 `train.jsonl`（每 step loss、learning rate）與 `events.log`（JSON Lines 事件）；直接執行 Python 也會保存。續訓追加紀錄並以 session ID 區分，原有 config、validation/test JSON 與 checkpoint 繼續保留。run 仍被 Git 忽略；Slurm log 可提交不代表 run 內檔案也會同步。
+
+### 匯入舊 Slurm 訓練紀錄
+
+新版 logger 不會回填過去的 run。已有舊 `.out` 時，可從 repo 根目錄執行（只用標準函式庫）：
+
+```bash
+python3 -m scripts.import_slurm_training_log slurm-kuriyo-tiger-1153307.out \
+  --output-dir Recall/TIGER/runs/tiger-paper-20261117-005232/imports/slurm-1153307
+```
+
+輸出分成 `tiger/` 與 `sid/`，各含 `train.jsonl`、`events.log`，另有 `import_manifest.json` 記錄來源 SHA-256、job、筆數與匯入時間。每筆記錄標明 `origin=slurm_import` 和來源行號。只保留實際印出的數值與精度：原事件時間、經過秒數及未印出的 SID learning rate 為 `null`；不補造缺少的 steps、checkpoint 或完成事件。匯入目錄必須不存在，重跑不會覆寫或重複追加。輸出仍被 Git 忽略，可由已提交的來源 log 與此指令重建。
