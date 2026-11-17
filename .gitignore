@@ -8,7 +8,7 @@ __pycache__/
 *.pt
 *.pth
 *.safetensors
-Recall/TIGER/runs/
+Recall/**/runs/
 Representations/SID/runs/
 data/amazon_reviews/*/raw/*
 !data/amazon_reviews/*/raw/.gitkeep

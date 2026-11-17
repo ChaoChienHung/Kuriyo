@@ -110,7 +110,7 @@ def main():
     parser.add_argument("--data-root", type=Path, default=ROOT / "data/amazon_reviews")
     parser.add_argument("--category", default="Beauty")
     parser.add_argument("--run-name", required=True)
-    parser.add_argument("--runs-dir", type=Path, default=ROOT / "Recall/TIGER/runs")
+    parser.add_argument("--runs-dir", type=Path, default=ROOT / "Recall/TIGER/baseline/runs")
     parser.add_argument("--steps", type=int, default=200000)
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--eval-batch-size", type=int, default=16)

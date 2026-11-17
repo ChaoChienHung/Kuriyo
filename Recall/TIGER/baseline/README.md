@@ -2,7 +2,14 @@
 
 `baseline/` 是 TIGER 家族目前的比較起點：依 [TIGER 論文](https://arxiv.org/abs/2305.05065)已公開設定建立的 PyTorch／Hugging Face T5 實作，不是作者的 T5X 程式。`baseline` 代表後續變體的比較對象，**不代表已重現論文數值**。
 
-SoC job 1153307 以此實作（當時位於 `Recall/TIGER/scripts/train_paper_baseline.py`，程式 `5f99955`）完成首輪 200,000-step 訓練與 validation，run 為 `tiger-paper-20261117-005232`；尚無最終 test 結果。
+SoC job 1153307 以此實作（當時位於 `Recall/TIGER/scripts/train_paper_baseline.py`，程式 `5f99955`）完成首輪 200,000-step 訓練與 validation，run 為 `tiger-paper-20261117-005232`；尚無最終 test 結果。該 run 在 SoC 上原本位於 `Recall/TIGER/runs/`，續訓或 test 前需先搬移：
+
+```bash
+mkdir -p Recall/TIGER/baseline/runs
+mv Recall/TIGER/runs/tiger-paper-20261117-005232 Recall/TIGER/baseline/runs/
+```
+
+`scripts/run.sbatch` 若發現同名 run 只在舊路徑，會停止並提示搬移，不會在新路徑從頭開新 run。
 
 ## 執行
 
@@ -14,7 +21,7 @@ SoC job 1153307 以此實作（當時位於 `Recall/TIGER/scripts/train_paper_ba
   --run-name "$RUN_NAME" --device cuda
 ```
 
-續訓加 `--resume`；模型定案後的最終 held-out test 加 `--eval-test-only`。輸出寫到 `Recall/TIGER/runs/<RUN_NAME>/`（Git 忽略）；預設設定與產物說明見 [TIGER README](../README.md#家族結構與變體)。
+續訓加 `--resume`；模型定案後的最終 held-out test 加 `--eval-test-only`。輸出寫到 `Recall/TIGER/baseline/runs/<RUN_NAME>/`（Git 忽略）；預設設定與產物說明見 [TIGER README](../README.md#家族結構與變體)。
 
 ## 與家族共用的部分
 

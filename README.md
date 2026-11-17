@@ -112,11 +112,12 @@ SoC Linux GPU 的安裝指令集中記錄於根目錄 `requirements.txt` 的註�
 Recall/TIGER/
 ├── sequence.py, scripts/, tests/   # 家族共用
 ├── baseline/                       # 目前執行的 paper-configured T5（python -m Recall.TIGER.baseline.train）
-├── <variant-name>/                 # 之後的變體，例如 constrained-decoding/
-└── runs/<RUN_NAME>/                # Git 忽略的訓練產物，變體共用、以 RUN_NAME 區分
+│   └── runs/<RUN_NAME>/            # 此變體的 Git 忽略訓練產物
+├── <variant-name>/                 # 之後的變體，例如 constrained-decoding/，同樣有自己的 runs/
+└── runs/                           # 只放家族層 smoke 工具的產物
 ```
 
-只有超參數不同時，優先在既有變體加具名設定；確實有不同實作時，才新增變體目錄。名稱表達差異，例如 `baseline`、`constrained-decoding`，避免無法辨識內容的 `variant1`、`v2`。變體 import 家族層與 `Recall/core/` 的共用元件，不每個版本複製一套訓練、評估與 logging。`baseline/` 代表比較起點，不代表已重現論文。
+只有超參數不同時，優先在既有變體加具名設定；確實有不同實作時，才新增變體目錄。名稱表達差異，例如 `baseline`、`constrained-decoding`，避免無法辨識內容的 `variant1`、`v2`。變體 import 家族層與 `Recall/core/` 的共用元件，不每個版本複製一套訓練、評估與 logging。每個變體的訓練產物放在自己目錄下的 `runs/<RUN_NAME>/`，結果不會混到其他變體。`baseline/` 代表比較起點，不代表已重現論文。
 
 測試按責任分層：
 

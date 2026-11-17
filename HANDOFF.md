@@ -46,7 +46,7 @@ Kuriyo 是推薦模型研究 repo，預計包含 Recall、Ranking、其他推薦
 
 尚無此 run 的最終 test 結果。不能把 validation 與論文 test 直接比較，也不能宣稱低碼本使用率已被證明是差距原因。低使用率及第一 epoch 巨大 loss 是下一步的調查線索。
 
-完整 SoC 產物預期在 `Recall/TIGER/runs/<RUN_NAME>/` 和上述 SID 路徑；本地只有舊 smoke 產物、已提交 Slurm log 及重建的匯入紀錄，不假設已同步完整 GPU checkpoints／manifest。
+baseline run 現在的標準位置是 `Recall/TIGER/baseline/runs/<RUN_NAME>/`。SoC 上的 `tiger-paper-20261117-005232` 仍在舊路徑 `Recall/TIGER/runs/`，續訓或 test 前需 `mkdir -p Recall/TIGER/baseline/runs && mv Recall/TIGER/runs/tiger-paper-20261117-005232 Recall/TIGER/baseline/runs/`（尚未執行；`run.sbatch` 遇到只在舊路徑的 run 會拒絕執行）。SID 產物路徑不變；本地只有舊 smoke 產物、已提交 Slurm log 及重建的匯入紀錄，不假設已同步完整 GPU checkpoints／manifest。
 
 ## Logging 與匯入狀態
 
@@ -54,13 +54,13 @@ Kuriyo 是推薦模型研究 repo，預計包含 Recall、Ranking、其他推薦
 
 完整 run 使用的是新版 logger 之前的程式，因此不能回溯逐 step loss／時間。已用 `scripts/import_slurm_training_log.py` 在本地建立：
 
-`Recall/TIGER/runs/tiger-paper-20261117-005232/imports/slurm-1153307/`
+`Recall/TIGER/baseline/runs/tiger-paper-20261117-005232/imports/slurm-1153307/`
 
 內含 tiger 的 2,001 training rows／14 events、sid 的 201 epoch rows／2 events，以及 import_manifest。來源 SHA、行號和 `origin=slurm_import` 可追溯；缺少的時間、SID learning rate 為 null。不可把匯入時間當訓練時間。此目錄被忽略，可重建：
 
 ```bash
 python3 -m scripts.import_slurm_training_log slurm-kuriyo-tiger-1153307.out \
-  --output-dir Recall/TIGER/runs/tiger-paper-20261117-005232/imports/slurm-1153307
+  --output-dir Recall/TIGER/baseline/runs/tiger-paper-20261117-005232/imports/slurm-1153307
 ```
 
 已有目錄時拒絕覆寫；不要為重跑命令直接刪除已有紀錄。SoC 是否已執行匯入未確認。

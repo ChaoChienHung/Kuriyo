@@ -46,6 +46,9 @@ case "$2" in
   Representations.SID.scripts.generate_sids)
     test -s data/amazon_reviews/2014/catalog/Beauty/items.jsonl
     ;;
+  Recall.TIGER.baseline.train)
+    echo "$*" > "$RUN_TRACE.train"
+    ;;
   *) exit 99 ;;
 esac
 ''')
@@ -89,6 +92,31 @@ esac
         self.assertEqual(self.trace.read_text().splitlines(), [
             "pip", "scripts.prepare_amazon_reviews_2014_beauty",
         ])
+
+    def prepare_train_stage(self):
+        self.env["STAGE"] = "train"
+        split = self.root / "data/amazon_reviews/2014/train/sids/sentence-t5_rqvae/Beauty/test-v1"
+        split.mkdir(parents=True)
+        (split / "split_manifest.json").write_text("{}\n")
+
+    def test_train_resumes_baseline_run_from_variant_directory(self):
+        self.prepare_train_stage()
+        run = self.root / "Recall/TIGER/baseline/runs/test-v1"
+        run.mkdir(parents=True)
+        (run / "latest.pt").write_text("")
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--resume", Path(str(self.trace) + ".train").read_text())
+
+    def test_train_refuses_run_left_at_legacy_family_path(self):
+        self.prepare_train_stage()
+        legacy = self.root / "Recall/TIGER/runs/test-v1"
+        legacy.mkdir(parents=True)
+        (legacy / "latest.pt").write_text("")
+        result = self.run_job()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("legacy path", result.stderr)
+        self.assertEqual(self.trace.read_text().splitlines(), ["pip"])
 
 
 if __name__ == "__main__":

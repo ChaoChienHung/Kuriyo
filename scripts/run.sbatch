@@ -87,8 +87,13 @@ if [[ "$stage" == all || "$stage" == train ]]; then
   }
   args=(--sid-run "$sid_dir" --sid-method sentence-t5_rqvae
         --run-name "$run_name" --device cuda)
-  if [[ -e "Recall/TIGER/runs/$run_name" ]]; then
-    test -f "Recall/TIGER/runs/$run_name/latest.pt" || {
+  run_dir="Recall/TIGER/baseline/runs/$run_name"
+  if [[ ! -e "$run_dir" && -e "Recall/TIGER/runs/$run_name" ]]; then
+    echo "Run $run_name is at the legacy path Recall/TIGER/runs/; move it to $run_dir first" >&2
+    exit 2
+  fi
+  if [[ -e "$run_dir" ]]; then
+    test -f "$run_dir/latest.pt" || {
       echo "Incomplete run without checkpoint: $run_name" >&2; exit 2;
     }
     args+=(--resume)

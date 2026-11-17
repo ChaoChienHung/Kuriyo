@@ -140,9 +140,10 @@ Recall/TIGER/
 ├── baseline/            # 目前在 SoC 執行的 paper-configured T5 baseline
 │   ├── README.md
 │   ├── train.py         # python -m Recall.TIGER.baseline.train
-│   └── tests/
-├── <variant-name>/      # 之後的變體：與 baseline 同層，同樣有 README.md、入口、tests/
-└── runs/<RUN_NAME>/     # Git 忽略的訓練產物（所有變體共用，靠 RUN_NAME 區分）
+│   ├── tests/
+│   └── runs/<RUN_NAME>/ # baseline 的 Git 忽略訓練產物
+├── <variant-name>/      # 之後的變體：與 baseline 同層，同樣有 README.md、入口、tests/、runs/
+└── runs/                # 只放家族層 smoke trainer 的產物
 ```
 
 | 變體 | 狀態 | 說明 |
@@ -186,7 +187,8 @@ baseline 的目前預設值如下，實際定義在 [`baseline/train.py`](baseli
 | ASIN 樣本 | `data/amazon_reviews/2014/<train\|validation\|test>/raw/Beauty/examples.jsonl` |
 | SID catalog、模型、manifest | `data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/<SID_VERSION>/` |
 | SID 樣本 | `data/amazon_reviews/2014/<train\|validation\|test>/sids/sentence-t5_rqvae/Beauty/<SID_VERSION>/examples.jsonl` |
-| 序列模型實驗 | `Recall/TIGER/runs/<RUN_NAME>/` |
+| baseline 實驗 | `Recall/TIGER/baseline/runs/<RUN_NAME>/` |
+| 家族層 smoke trainer | `Recall/TIGER/runs/<RUN_NAME>/` |
 
 SID 完成後有 `semantic_ids.jsonl`、`manifest.json`、`embeddings.npz`、`rqvae.pt`。manifest 記錄商品來源 SHA、item count 與 codebook usage；應確認完整 12,101 件商品、沒有 `limit_items`，並檢查碼本使用率與碰撞。轉換器會檢查 ASIN 覆蓋是否與 catalog 完全一致，並將來源 SHA 寫入 train SID 目錄的 `split_manifest.json`；訓練入口也會檢查 catalog 與 SID split 的一致性。
 
@@ -242,7 +244,7 @@ paper baseline 的 run 內新增 `train.jsonl`（每 step loss、learning rate�
 
 ```bash
 python3 -m scripts.import_slurm_training_log slurm-kuriyo-tiger-1153307.out \
-  --output-dir Recall/TIGER/runs/tiger-paper-20261117-005232/imports/slurm-1153307
+  --output-dir Recall/TIGER/baseline/runs/tiger-paper-20261117-005232/imports/slurm-1153307
 ```
 
 輸出分成 `tiger/` 與 `sid/`，各含 `train.jsonl`、`events.log`，另有 `import_manifest.json` 記錄來源 SHA-256、job、筆數與匯入時間。每筆記錄標明 `origin=slurm_import` 和來源行號。只保留實際印出的數值與精度：原事件時間、經過秒數及未印出的 SID learning rate 為 `null`；不補造缺少的 steps、checkpoint 或完成事件。匯入目錄必須不存在，重跑不會覆寫或重複追加。輸出仍被 Git 忽略，可由已提交的來源 log 與此指令重建。
