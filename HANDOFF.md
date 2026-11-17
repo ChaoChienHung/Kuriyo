@@ -8,15 +8,15 @@
 
 Kuriyo 是推薦模型研究 repo，預計包含 Recall、Ranking、其他推薦鏈路與端到端模型，也容納同一家族的實驗變體。近期目標是建立 Amazon Reviews 2014 Beauty 上的 TIGER baseline，逐項核對論文設定、盡可能重現數值；目前只是可執行的 PyTorch/Hugging Face 實作，不能稱為已完成論文重現。
 
-模型變體應共享元件、訓練與 logging；只有設定不同時使用具名設定，有實作差異時才加入家族內 `variants/<name>/`。目前沒有 variants registry 或 baseline 子目錄，不要把規劃當作已實作；現有入口仍是 `Recall/TIGER/scripts/train_paper_baseline.py`。
+模型變體應共享元件、訓練與 logging；只有設定不同時使用具名設定，有實作差異時才在家族下新增與 `baseline/` 同層的變體目錄。目前只有 `Recall/TIGER/baseline/`（入口 `python -m Recall.TIGER.baseline.train`，由 `Recall/TIGER/scripts/train_paper_baseline.py` 搬移、程式不變）；沒有 variants registry。
 
 ## Repo 分工與保留原則
 
 - `core/`：跨鏈路工具，目前是 `RunLogger`；`Recall/core/`：召回模型共用 padding、metrics、Transformer、實驗工具。
 - `Representations/SID/`：獨立商品表示、Sentence-T5/RQ-VAE，不隸屬 TIGER。
-- `Recall/TIGER/`：SID tokenization、解碼、smoke trainer、paper-configured trainer、專有 tests。
+- `Recall/TIGER/`：家族共用的 SID tokenization、解碼、smoke trainer 與 tests；`Recall/TIGER/baseline/`：paper-configured trainer 與其整合 tests。
 - `scripts/`：資料下載／準備／轉換、Slurm orchestration、舊 log 匯入；兩個 `train_tiger_*` 是保留的相容入口。
-- `tests/`：跨階段與資料元件；`Recall/tests/`：共用 Recall 行為；`Recall/TIGER/tests/`：模型專有與訓練／續訓／test 整合。
+- `tests/`：跨階段與資料元件；`Recall/tests/`：共用 Recall 行為；`Recall/TIGER/tests/`：TIGER 家族共用；`Recall/TIGER/baseline/tests/`：baseline 訓練／續訓／test 整合。
 - `Ranking/`、`pipelines/` 尚為規劃／說明，不是已完成模型。
 - 原始資料、SID、checkpoints、環境與 cache 不入 Git。不刪除前次實驗來「整理」目錄；小型 smoke 產物雖舊，仍有研究追溯價值。
 
@@ -81,7 +81,7 @@ SoC 安裝指令在根 requirements.txt 註解與 run.sbatch，明確使用 torc
 2. 調查 RQ-VAE：embedding 尺度、初始化、reconstruction/codebook/commitment 分項 loss、梯度、碼本頻率與碰撞分布；先補有針對性的元件測試與小跑，再完整重訓。不要直接把「低使用率」當結論。
 3. 核對 paper/T5X 與 HF T5 的容量、商品文字、user hash、訓練樣本、optimizer、解碼與評估設定；將事實與猜測分開記錄。
 4. 保留本 run 作比較起點，新增實驗用新 SID_VERSION/RUN_NAME；固定 validation，先建立熱門商品基線。模型定案後才執行一次 held-out test。
-5. 增加 SID checkpoint/resume；有第二個實際模型變體時才實作 variants 目錄與載入介面。
+5. 增加 SID checkpoint/resume；有第二個實際模型變體時，於 `Recall/TIGER/<variant-name>/` 新增並視需要建立載入介面。
 
 ## 驗證與限制
 

@@ -26,7 +26,8 @@
 - [ ] SID 增加 checkpoint/resume（目前無中途恢復）。
 - [ ] 完整環境 lock／環境快照與 GPU preflight；既有 Torch pin 不是完整 lockfile。
 - [ ] 增加小型 run summary 匯出機制，方便分享 config／metrics／manifest，而不提交 runs/checkpoints。
-- [ ] 真正新增變體時實作具名設定或 variants/<name>，共用訓練與評估，補變體專有測試。
+- [x] TIGER 家族改為 `baseline/` 子目錄結構，記錄於 README/AGENTS。
+- [ ] 真正新增變體時實作具名設定或 `Recall/TIGER/<variant-name>/`，共用訓練與評估，補變體專有測試。
 
 ## P2 — 後續模型與資料
 

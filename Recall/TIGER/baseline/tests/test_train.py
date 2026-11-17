@@ -10,7 +10,7 @@ from tempfile import TemporaryDirectory
 import unittest
 
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 
 
 @unittest.skipUnless(importlib.util.find_spec("torch") and importlib.util.find_spec("transformers"),
@@ -51,7 +51,7 @@ class PaperBaselineTests(unittest.TestCase):
             run("scripts.materialize_amazon_sids", "--data-root", str(data_root),
                 "--method", "sentence-t5_rqvae",
                 "--sid-file", str(sid_run / "semantic_ids.jsonl"))
-            base_command = ("Recall.TIGER.scripts.train_paper_baseline",
+            base_command = ("Recall.TIGER.baseline.train",
                             "--data-root", str(data_root), "--sid-run", str(sid_run),
                             "--runs-dir", str(base / "runs"), "--run-name", "smoke",
                             "--batch-size", "1", "--eval-every", "1",

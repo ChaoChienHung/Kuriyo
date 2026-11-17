@@ -93,11 +93,11 @@ if [[ "$stage" == all || "$stage" == train ]]; then
     }
     args+=(--resume)
   fi
-  srun .venv/bin/python -m Recall.TIGER.scripts.train_paper_baseline "${args[@]}"
+  srun .venv/bin/python -m Recall.TIGER.baseline.train "${args[@]}"
 fi
 
 if [[ "$stage" == test ]]; then
-  srun .venv/bin/python -m Recall.TIGER.scripts.train_paper_baseline \
+  srun .venv/bin/python -m Recall.TIGER.baseline.train \
     --sid-run "$sid_dir" --sid-method sentence-t5_rqvae \
     --run-name "$run_name" --device cuda --eval-test-only
 fi

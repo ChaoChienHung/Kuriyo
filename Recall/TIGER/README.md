@@ -107,7 +107,7 @@ export SID_DIR="data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty
   --sid-file "$SID_DIR/semantic_ids.jsonl"
 
 # 4. 訓練與 validation。
-.venv/bin/python -m Recall.TIGER.scripts.train_paper_baseline \
+.venv/bin/python -m Recall.TIGER.baseline.train \
   --sid-run "$SID_DIR" --sid-method sentence-t5_rqvae \
   --run-name "$RUN_NAME" --device cuda
 ```
@@ -126,14 +126,34 @@ export SID_DIR="data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty
 
 Kuriyo 的 SID 使用三層量化碼，再附加碰撞消歧 token；相同量化碼的商品依 ASIN 排序決定消歧 token。SID 由獨立的 [`Representations/SID/`](../../Representations/SID/README.md) 負責，其他模型可以共用，無需每個模型各自生成。
 
-目前有兩個序列模型入口，解碼與評估協定不同，結果不能混為同一 baseline：
+## 家族結構與變體
 
-| 入口 | 用途 | 解碼 |
+`Recall/TIGER/` 是一個模型家族。家族層放各變體共用的 SID tokenizer、解碼工具與 smoke trainer；每個有獨立實作的變體各自一個子目錄，放該變體的入口、說明與專有測試：
+
+```text
+Recall/TIGER/
+├── README.md            # 家族說明與完整操作指南（本檔）
+├── sequence.py          # 共用：SIDTokenizer、constrained beam search、小型 Transformer
+├── config.py            # 小型 smoke 模型的參考設定
+├── scripts/             # 共用：train_sequence.py（smoke trainer、read_examples）
+├── tests/               # 家族共用契約測試
+├── baseline/            # 目前在 SoC 執行的 paper-configured T5 baseline
+│   ├── README.md
+│   ├── train.py         # python -m Recall.TIGER.baseline.train
+│   └── tests/
+├── <variant-name>/      # 之後的變體：與 baseline 同層，同樣有 README.md、入口、tests/
+└── runs/<RUN_NAME>/     # Git 忽略的訓練產物（所有變體共用，靠 RUN_NAME 區分）
+```
+
+| 變體 | 狀態 | 說明 |
 | --- | --- | --- |
-| [`train_paper_baseline.py`](scripts/train_paper_baseline.py) | 依論文已公開設定建立的 HF T5 baseline；`run.sbatch` 使用此入口 | Unconstrained beam search；無效 SID 和重複商品保留排名位置並計為未命中 |
-| [`train_sequence.py`](scripts/train_sequence.py) | 小型 PyTorch Transformer，供流程試跑 | 限定有效商品 SID 的 constrained beam search |
+| [`baseline/`](baseline/README.md) | 已完成首輪 SoC 訓練與 validation | 依論文已公開設定的 HF T5；`run.sbatch` 使用此入口 |
 
-正式入口的目前預設值如下，實際定義在 `train_paper_baseline.py`；[`config.py`](config.py) 是小型模型的初始參考設定，不控制正式入口。
+新增變體時：只有超參數不同，優先在既有變體加具名設定；確實需要不同實作時，才建立與 `baseline/` 同層的新目錄，名稱描述差異（例如 `constrained-decoding/`），不用 `variant1/`、`v2/`。變體從家族層與 `Recall/core/` import 共用元件，不複製整套訓練程式；同時跑家族共用測試與自己的 `tests/`。
+
+另有家族層 smoke 入口 [`scripts/train_sequence.py`](scripts/train_sequence.py)：小型 PyTorch Transformer，使用限定有效商品 SID 的 constrained beam search，只供流程試跑，結果不能與 baseline 混為同一比較。
+
+baseline 的目前預設值如下，實際定義在 [`baseline/train.py`](baseline/train.py)；[`config.py`](config.py) 是小型模型的初始參考設定，不控制 baseline。
 
 | 設定 | 目前實作 |
 | --- | --- |
@@ -203,7 +223,7 @@ SID 完成後有 `semantic_ids.jsonl`、`manifest.json`、`embeddings.npz`、`rq
 
 ## 程式導覽
 
-- [`scripts/train_paper_baseline.py`](scripts/train_paper_baseline.py)：T5 建模、訓練、續訓及最終評估。
+- [`baseline/train.py`](baseline/train.py)：baseline 的 T5 建模、訓練、續訓及最終評估。
 - [`scripts/train_sequence.py`](scripts/train_sequence.py)、[`sequence.py`](sequence.py)：小型序列模型入口與 SID tokenizer／解碼工具。
 - [`Recall/core/`](../core/README.md)：共用 metrics、batching、實驗記錄及基礎 Transformer；測試位於 [`Recall/tests/`](../tests/)。
 - [`Representations/SID/`](../../Representations/SID/README.md)：商品向量與 RQ-VAE SID 生成。
@@ -212,7 +232,7 @@ SID 完成後有 `semantic_ids.jsonl`、`manifest.json`、`embeddings.npz`、`rq
 
 ## 元件測試與訓練紀錄
 
-TIGER 專有測試放在 `tests/`，共用 Recall 測試放在 `../tests/`。從 repo 根目錄執行 `.venv/bin/python -m unittest discover -s . -v` 可涵蓋兩者。家族與變體組織原則見 [根目錄 README](../../README.md#模型家族變體與測試)；目前 baseline 入口不變，尚未建立 variants 目錄。
+TIGER 家族共用測試放在 `tests/`，baseline 的訓練／續訓／test 整合測試放在 `baseline/tests/`，共用 Recall 測試放在 `../tests/`。從 repo 根目錄執行 `.venv/bin/python -m unittest discover -s . -v` 可涵蓋全部。家族與變體組織原則見 [根目錄 README](../../README.md#模型家族變體與測試)。
 
 paper baseline 的 run 內新增 `train.jsonl`（每 step loss、learning rate）與 `events.log`（JSON Lines 事件）；直接執行 Python 也會保存。續訓追加紀錄並以 session ID 區分，原有 config、validation/test JSON 與 checkpoint 繼續保留。run 仍被 Git 忽略；Slurm log 可提交不代表 run 內檔案也會同步。
 

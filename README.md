@@ -92,7 +92,7 @@ python3 scripts/download_amazon_reviews_2023.py --category All_Beauty
 - [`scripts/`](scripts/README.md)：資料下載、準備、log 匯入與相容入口
 - [`Representations/`](Representations/README.md)：可供多個模型共用的商品表示；SID 生成器位於 [`Representations/SID/`](Representations/SID/README.md)
 - [`Recall/`](Recall/README.md)：候選商品召回模型及資料執行說明
-- [`Recall/TIGER/`](Recall/TIGER/README.md)：TIGER 序列模型、訓練與評估
+- [`Recall/TIGER/`](Recall/TIGER/README.md)：TIGER 模型家族；共用 SID tokenizer／解碼，目前執行的 paper-configured 實作在 [`baseline/`](Recall/TIGER/baseline/README.md)
 - [`Ranking/`](Ranking/README.md)：候選商品排序模型及資料需求說明
 - [`pipelines/`](pipelines/README.md)：預留跨鏈路與端到端推薦流程
 - [`skills/`](skills/README.md)：repo 內可版本化的操作技能，目前包含 NUS SoC Slurm
@@ -106,13 +106,24 @@ SoC Linux GPU 的安裝指令集中記錄於根目錄 `requirements.txt` 的註�
 
 相關模型變體集中在同一個家族，例如 `Recall/TIGER/`。跨模型可重用的召回元件放 `Recall/core/`；跨鏈路工具放 `core/`；商品 SID 放 `Representations/SID/`，供不同模型共用。
 
-只有超參數不同時，優先用具名設定；確實有不同實作時，再建立家族內的 `variants/<name>/`，放差異程式、說明及專有測試。名稱優先表達差異，例如 `baseline`、`constrained-decoding`，避免只用無法辨識內容的 `v1`、`v2`。共用的訓練、評估與 logging 不應每個版本複製一套。目前尚未新增 variants 目錄；TIGER baseline 仍由 `Recall/TIGER/scripts/train_paper_baseline.py` 執行，baseline 代表比較起點，不代表已重現論文。
+每個家族目錄的根層放家族共用程式（tokenizer、解碼、資料載入、共用測試）；每個有獨立實作的變體是家族底下的一個子目錄，與其他變體同層，各自包含 `README.md`、入口程式與 `tests/`：
+
+```text
+Recall/TIGER/
+├── sequence.py, scripts/, tests/   # 家族共用
+├── baseline/                       # 目前執行的 paper-configured T5（python -m Recall.TIGER.baseline.train）
+├── <variant-name>/                 # 之後的變體，例如 constrained-decoding/
+└── runs/<RUN_NAME>/                # Git 忽略的訓練產物，變體共用、以 RUN_NAME 區分
+```
+
+只有超參數不同時，優先在既有變體加具名設定；確實有不同實作時，才新增變體目錄。名稱表達差異，例如 `baseline`、`constrained-decoding`，避免無法辨識內容的 `variant1`、`v2`。變體 import 家族層與 `Recall/core/` 的共用元件，不每個版本複製一套訓練、評估與 logging。`baseline/` 代表比較起點，不代表已重現論文。
 
 測試按責任分層：
 
 - `tests/`：資料準備、SID 共用元件、跨階段流程與 run logging。
 - `Recall/tests/`：共用 Transformer、padding、指標等行為契約。
-- `Recall/TIGER/tests/`：TIGER 的 SID 解碼、資料載入，以及 baseline 訓練／續訓／test 整合測試。
+- `Recall/TIGER/tests/`：TIGER 家族共用的 SID 解碼與資料載入。
+- `Recall/TIGER/<variant>/tests/`：變體專有測試，例如 `baseline/tests/` 的訓練／續訓／test 整合測試。
 
 修改或新增變體時，同時跑共用元件與模型專有測試；小型測試通過不等於完整資料上的指標已達標。從根目錄執行：
 
