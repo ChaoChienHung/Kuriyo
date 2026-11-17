@@ -8,15 +8,15 @@
 
 Kuriyo 是推薦模型研究 repo，預計包含 Recall、Ranking、其他推薦鏈路與端到端模型，也容納同一家族的實驗變體。近期目標是建立 Amazon Reviews 2014 Beauty 上的 TIGER baseline，逐項核對論文設定、盡可能重現數值；目前只是可執行的 PyTorch/Hugging Face 實作，不能稱為已完成論文重現。
 
-模型變體應共享元件、訓練與 logging；只有設定不同時使用具名設定，有實作差異時才在家族下新增與 `baseline/` 同層的變體目錄。目前只有 `Recall/TIGER/baseline/`（入口 `python -m Recall.TIGER.baseline.train`，由 `Recall/TIGER/scripts/train_paper_baseline.py` 搬移、程式不變）；沒有 variants registry。
+每個模型變體是家族下自成一體的完整目錄（程式、依賴、README、tests、runs），變體之間不互相 import，只共用 `Recall/core/`、`core/` 等跨模型元件；只有設定不同時使用具名設定。目前只有 `Recall/TIGER/baseline/`（入口 `python -m Recall.TIGER.baseline.train`，原 `Recall/TIGER/` 下的 sequence、smoke trainer、config、requirements、tests 全部搬入，程式邏輯不變）；家族根層只剩 README。
 
 ## Repo 分工與保留原則
 
 - `core/`：跨鏈路工具，目前是 `RunLogger`；`Recall/core/`：召回模型共用 padding、metrics、Transformer、實驗工具。
 - `Representations/SID/`：獨立商品表示、Sentence-T5/RQ-VAE，不隸屬 TIGER。
-- `Recall/TIGER/`：家族共用的 SID tokenization、解碼、smoke trainer 與 tests；`Recall/TIGER/baseline/`：paper-configured trainer 與其整合 tests。
+- `Recall/TIGER/`：家族 README；`Recall/TIGER/baseline/`：SID tokenization、解碼、smoke trainer、paper-configured trainer、requirements、tests 與 runs。
 - `scripts/`：資料下載／準備／轉換、Slurm orchestration、舊 log 匯入；兩個 `train_tiger_*` 是保留的相容入口。
-- `tests/`：跨階段與資料元件；`Recall/tests/`：共用 Recall 行為；`Recall/TIGER/tests/`：TIGER 家族共用；`Recall/TIGER/baseline/tests/`：baseline 訓練／續訓／test 整合。
+- `tests/`：跨階段與資料元件；`Recall/tests/`：共用 Recall 行為；`Recall/TIGER/baseline/tests/`：baseline 的解碼、資料載入與訓練／續訓／test 整合。
 - `Ranking/`、`pipelines/` 尚為規劃／說明，不是已完成模型。
 - 原始資料、SID、checkpoints、環境與 cache 不入 Git。不刪除前次實驗來「整理」目錄；小型 smoke 產物雖舊，仍有研究追溯價值。
 
@@ -85,7 +85,7 @@ SoC 安裝指令在根 requirements.txt 註解與 run.sbatch，明確使用 torc
 
 ## 驗證與限制
 
-最近已執行：22 項核心／TIGER／logging 測試通過，SID 8-item TF-IDF 小跑驗證新 logger；之後新增的 2 項 Slurm importer 測試通過，真實 log 筆數、最後 step、10 次 validation 已核對。本次整理後已跑完整 unittest discovery：24 項測試全數通過；文件本地連結與 git diff --check 通過。
+最近已執行：22 項核心／TIGER／logging 測試通過，SID 8-item TF-IDF 小跑驗證新 logger；之後新增的 2 項 Slurm importer 測試通過，真實 log 筆數、最後 step、10 次 validation 已核對。TIGER 改為 `baseline/` 自成空間後，完整 unittest discovery 26 項全數通過（含 run.sbatch 舊路徑保護測試）；文件本地連結與 git diff --check 通過。
 
 ```bash
 .venv/bin/python -m unittest discover -s . -v

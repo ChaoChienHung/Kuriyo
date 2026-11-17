@@ -13,4 +13,4 @@
 | `train_tiger_sid.py` | 舊指令相容 wrapper，轉交 `Representations.SID.scripts.generate_sids` |
 | `train_tiger_sequence.py` | 舊指令相容 wrapper，轉交 TIGER smoke trainer；不是 paper baseline |
 
-新指令優先使用元件的 `python -m ...` 入口，不複製模型實作進本目錄。相容 wrapper 仍保留，避免破壞舊使用方式。完整流程見 [TIGER README](../Recall/TIGER/README.md)，當前進度見 [HANDOFF](../HANDOFF.md)。
+新指令優先使用元件的 `python -m ...` 入口，不複製模型實作進本目錄。相容 wrapper 仍保留，避免破壞舊使用方式。完整流程見 [TIGER baseline README](../Recall/TIGER/baseline/README.md)，當前進度見 [HANDOFF](../HANDOFF.md)。

@@ -40,7 +40,7 @@ fi
 .venv/bin/python -m pip install \
   --extra-index-url https://download.pytorch.org/whl/cu126 \
   "torch==2.7.1+cu126" \
-  -r Representations/SID/requirements.txt -r Recall/TIGER/requirements.txt
+  -r Representations/SID/requirements.txt -r Recall/TIGER/baseline/requirements.txt
 
 echo "job=${SLURM_JOB_ID:-local} commit=$(git rev-parse HEAD) stage=$stage sid_version=$sid_version run=$run_name"
 sid_dir="data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/$sid_version"

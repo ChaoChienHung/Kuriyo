@@ -12,3 +12,7 @@ Append-only. Newest entries at the bottom.
   and `.claude/scripts/docs-lint.py`
 
 - Started in grow mode：只寫 [[model-family-layout]]（來自 TIGER baseline/ 重整的工作），其他區塊於後續工作時補上。
+
+## [2026-11-17] update | 變體改為自成完整空間
+
+- `Recall/TIGER/` 下所有程式、依賴、tests 搬入 `baseline/`；更新 [[model-family-layout]]。

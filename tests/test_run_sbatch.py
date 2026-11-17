@@ -36,7 +36,7 @@ case "$2" in
     test "$7" = -r
     test "$8" = Representations/SID/requirements.txt
     test "$9" = -r
-    test "${10}" = Recall/TIGER/requirements.txt
+    test "${10}" = Recall/TIGER/baseline/requirements.txt
     ;;
   scripts.prepare_amazon_reviews_2014_beauty)
     if [ "$FAIL_PREPARE" = 1 ]; then exit 17; fi

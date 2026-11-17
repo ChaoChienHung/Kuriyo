@@ -4,7 +4,7 @@ Kuriyo 這個 repository 主要用來存放**推薦模型**及其相關的資料
 
 專案目前仍在建立初期。2014 Amazon Beauty 的資料準備流程已可執行；獨立的 [SID 元件](Representations/SID/README.md)與 [TIGER](Recall/TIGER/README.md) 序列模型已在 SoC 完成首輪完整 Beauty SID 與 200,000-step 訓練；已取得 validation，尚無最終 test 結果，也尚未重現論文結果。
 
-要執行第一版 TIGER baseline，請從 [TIGER 使用指南](Recall/TIGER/README.md) 開始：包含論文與模型介紹、依賴安裝、SoC pull 後分階段執行、手動指令、續訓、評估及目前限制。
+要執行第一版 TIGER baseline，請從 [TIGER baseline 使用指南](Recall/TIGER/baseline/README.md) 開始：包含論文與模型介紹、依賴安裝、SoC pull 後分階段執行、手動指令、續訓、評估及目前限制。
 
 ## 文件導覽與目前狀態
 
@@ -63,7 +63,7 @@ python3 -m unittest discover -s . -v
 
 本次 Beauty 輸出為 **131,413 train**、**22,363 validation**、**22,363 test** 筆樣本。2014 年資料的時間戳可能相同：9,719 位使用者的 validation 和 test 事件同時間戳，當日內的實際先後無法由時間戳判定；來源行序使切分可重現，但不代表知道真實先後。
 
-商品 SID 的產生與三個 split 的轉換指令見 [SID README](Representations/SID/README.md)；TIGER 的訓練指令見 [TIGER README](Recall/TIGER/README.md)。`sentence-t5_rqvae` 的完整 Beauty SID 已由 SoC job 1153307 產生，但碼本使用率偏低，仍需診斷；小樣本 smoke test 的 SID 不用作正式 split 資料。
+商品 SID 的產生與三個 split 的轉換指令見 [SID README](Representations/SID/README.md)；TIGER 的訓練指令見 [TIGER baseline README](Recall/TIGER/baseline/README.md)。`sentence-t5_rqvae` 的完整 Beauty SID 已由 SoC job 1153307 產生，但碼本使用率偏低，仍需診斷；小樣本 smoke test 的 SID 不用作正式 split 資料。
 
 在 SoC 上的完整 Beauty 準備與 TIGER baseline 入口是 [`scripts/run.sbatch`](scripts/run.sbatch)；本地可先用 `python3 -m scripts.prepare_amazon_reviews_2014_beauty` 檢查或準備共用商品目錄與切分。`run.sbatch` 的預設是長時間 GPU 訓練，提交前須查當前叢集資源與儲存規則；細節見 [SoC skill](skills/nus-soc-slurm/SKILL.md)。
 
@@ -92,7 +92,7 @@ python3 scripts/download_amazon_reviews_2023.py --category All_Beauty
 - [`scripts/`](scripts/README.md)：資料下載、準備、log 匯入與相容入口
 - [`Representations/`](Representations/README.md)：可供多個模型共用的商品表示；SID 生成器位於 [`Representations/SID/`](Representations/SID/README.md)
 - [`Recall/`](Recall/README.md)：候選商品召回模型及資料執行說明
-- [`Recall/TIGER/`](Recall/TIGER/README.md)：TIGER 模型家族；共用 SID tokenizer／解碼，目前執行的 paper-configured 實作在 [`baseline/`](Recall/TIGER/baseline/README.md)
+- [`Recall/TIGER/`](Recall/TIGER/README.md)：TIGER 模型家族；每個變體自成完整空間，目前執行的實作在 [`baseline/`](Recall/TIGER/baseline/README.md)
 - [`Ranking/`](Ranking/README.md)：候選商品排序模型及資料需求說明
 - [`pipelines/`](pipelines/README.md)：預留跨鏈路與端到端推薦流程
 - [`skills/`](skills/README.md)：repo 內可版本化的操作技能，目前包含 NUS SoC Slurm
@@ -106,27 +106,26 @@ SoC Linux GPU 的安裝指令集中記錄於根目錄 `requirements.txt` 的註�
 
 相關模型變體集中在同一個家族，例如 `Recall/TIGER/`。跨模型可重用的召回元件放 `Recall/core/`；跨鏈路工具放 `core/`；商品 SID 放 `Representations/SID/`，供不同模型共用。
 
-每個家族目錄的根層放家族共用程式（tokenizer、解碼、資料載入、共用測試）；每個有獨立實作的變體是家族底下的一個子目錄，與其他變體同層，各自包含 `README.md`、入口程式與 `tests/`：
+每個變體是家族底下的一個子目錄，**自成一個完整的空間**：自己的 `README.md`、`requirements.txt`、模型與訓練程式、入口、`tests/` 及 Git 忽略的 `runs/<RUN_NAME>/`。家族根層只放家族 README（說明與變體列表）：
 
 ```text
 Recall/TIGER/
-├── sequence.py, scripts/, tests/   # 家族共用
-├── baseline/                       # 目前執行的 paper-configured T5（python -m Recall.TIGER.baseline.train）
-│   └── runs/<RUN_NAME>/            # 此變體的 Git 忽略訓練產物
-├── <variant-name>/                 # 之後的變體，例如 constrained-decoding/，同樣有自己的 runs/
-└── runs/                           # 只放家族層 smoke 工具的產物
+├── README.md                       # 家族說明與變體列表
+├── baseline/                       # 目前執行的實作（python -m Recall.TIGER.baseline.train）
+│   ├── README.md, requirements.txt, train.py, sequence.py, ..., tests/
+│   └── runs/<RUN_NAME>/
+└── <variant-name>/                 # 之後的變體，例如 constrained-decoding/，同樣自成完整空間
 ```
 
-只有超參數不同時，優先在既有變體加具名設定；確實有不同實作時，才新增變體目錄。名稱表達差異，例如 `baseline`、`constrained-decoding`，避免無法辨識內容的 `variant1`、`v2`。變體 import 家族層與 `Recall/core/` 的共用元件，不每個版本複製一套訓練、評估與 logging。每個變體的訓練產物放在自己目錄下的 `runs/<RUN_NAME>/`，結果不會混到其他變體。`baseline/` 代表比較起點，不代表已重現論文。
+變體之間不互相 import，修改 baseline 不會悄悄改變其他變體的結果；只可 import `Recall/core/`、`core/`、`Representations/` 等跨模型共用元件。只有超參數不同時，優先在既有變體加具名設定；確實有不同實作時，才新增變體目錄，通常以複製 `baseline/` 為起點。名稱表達差異，例如 `baseline`、`constrained-decoding`，避免無法辨識內容的 `variant1`、`v2`。`baseline/` 代表比較起點，不代表已重現論文。
 
 測試按責任分層：
 
 - `tests/`：資料準備、SID 共用元件、跨階段流程與 run logging。
 - `Recall/tests/`：共用 Transformer、padding、指標等行為契約。
-- `Recall/TIGER/tests/`：TIGER 家族共用的 SID 解碼與資料載入。
-- `Recall/TIGER/<variant>/tests/`：變體專有測試，例如 `baseline/tests/` 的訓練／續訓／test 整合測試。
+- `Recall/TIGER/<variant>/tests/`：變體自己的測試，例如 `baseline/tests/` 的 SID 解碼、資料載入與訓練／續訓／test 整合測試。
 
-修改或新增變體時，同時跑共用元件與模型專有測試；小型測試通過不等於完整資料上的指標已達標。從根目錄執行：
+修改或新增變體時，同時跑共用元件與該變體的測試；小型測試通過不等於完整資料上的指標已達標。從根目錄執行：
 
 ```bash
 .venv/bin/python -m unittest discover -s . -v

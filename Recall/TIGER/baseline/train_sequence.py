@@ -14,14 +14,14 @@ ROOT = Path(__file__).resolve().parents[3]
 if __package__ in (None, ""):
     sys.path.insert(0, str(ROOT))
 
-from Recall.TIGER.sequence import SIDTokenizer, TIGERTransformer, constrained_beam_search
+from Recall.TIGER.baseline.sequence import SIDTokenizer, TIGERTransformer, constrained_beam_search
 from Recall.core.data import pad_token_sequences
 from Recall.core.experiment import file_sha256, git_revision, seed_everything, write_json
 from Recall.core.metrics import ranking_metrics
 
 
 DEFAULT_DATA = ROOT / "data/amazon_reviews"
-DEFAULT_RUNS = ROOT / "Recall/TIGER/runs"
+DEFAULT_RUNS = ROOT / "Recall/TIGER/baseline/runs"
 
 
 def read_examples(path, limit, tokenizer):

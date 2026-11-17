@@ -19,8 +19,8 @@ ROOT = Path(__file__).resolve().parents[3]
 if __package__ in (None, ""):
     sys.path.insert(0, str(ROOT))
 
-from Recall.TIGER.scripts.train_sequence import read_examples
-from Recall.TIGER.sequence import SIDTokenizer
+from Recall.TIGER.baseline.train_sequence import read_examples
+from Recall.TIGER.baseline.sequence import SIDTokenizer
 from Recall.core.data import pad_token_sequences
 from Recall.core.experiment import file_sha256, git_revision, seed_everything, write_json
 from Recall.core.metrics import ranking_metrics

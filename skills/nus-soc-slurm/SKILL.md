@@ -16,7 +16,7 @@ Use this skill for cluster work; read the repository `AGENTS.md`, the relevant c
 ## Prepare a reproducible run
 
 - Prepare the code and batch script locally. Inspect the Git diff, test the Python entry point, and record the intended Git revision. Sync code to SoC through the project's approved workflow; pushing or pulling is a separate action governed by `AGENTS.md` and the user's instructions. A job already running keeps the code and environment it started with.
-- On SoC, enter the Kuriyo repository root, verify `README.md`, the expected Git revision, `.venv/bin/python`, input files, and output parent directory. Install `Representations/SID/requirements.txt` for SID generation and `Recall/TIGER/requirements.txt` for TIGER sequence training. Verify imports and `torch.cuda.is_available()` inside the intended environment.
+- On SoC, enter the Kuriyo repository root, verify `README.md`, the expected Git revision, `.venv/bin/python`, input files, and output parent directory. Install `Representations/SID/requirements.txt` for SID generation and `Recall/TIGER/baseline/requirements.txt` for TIGER sequence training. Verify imports and `torch.cuda.is_available()` inside the intended environment.
 - Keep Amazon source data, SID artifacts, checkpoints, caches, and logs on a permitted persistent filesystem. Confirm storage quota and free space. If a pip or Git install fails with `/tmp` quota errors, set `TMPDIR` to a writable project or home directory **before** retrying; `--no-cache-dir` alone does not relocate temporary checkouts. Do not assume a generic node-local scratch path persists after the job.
 - Use a new SID version and model run name. For the current Beauty fixed-catalog workflow, SID generation covers all 12,101 catalog items at `data/amazon_reviews/2014/catalog/Beauty/items.jsonl`; the resulting SID catalog belongs under `data/amazon_reviews/2014/artifacts/sids/<method>/Beauty/<version>/`. Materialize split examples before TIGER training. Do not treat a limited-item smoke run as a full catalog.
 - Keep validation for model selection and test for the final report. Record source file SHA, split manifest, SID catalog/version/SHA, config, seed, Git revision, metrics, and output path for each run.
@@ -47,7 +47,7 @@ srun .venv/bin/python -m Representations.SID.scripts.generate_sids \
   --encoder sentence-t5 --device cuda
 ```
 
-Adapt the command for TIGER using `python -m Recall.TIGER.scripts.train_sequence` and its documented `--sid-run`, `--sid-method`, and `--run-name`. Do not copy the `rl-test` project paths or model-specific environment variables into Kuriyo. Do not pin a specific node unless the workload requires it. A single-process job gains no speed from requesting extra GPUs without multi-GPU code.
+Adapt the command for TIGER using `python -m Recall.TIGER.baseline.train_sequence` and its documented `--sid-run`, `--sid-method`, and `--run-name`. Do not copy the `rl-test` project paths or model-specific environment variables into Kuriyo. Do not pin a specific node unless the workload requires it. A single-process job gains no speed from requesting extra GPUs without multi-GPU code.
 
 ## Submission and monitoring
 

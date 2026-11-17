@@ -12,7 +12,7 @@ import unittest
 class TIGERSequenceTests(unittest.TestCase):
     def test_sequence_decoding_returns_catalog_items(self):
         import torch
-        from Recall.TIGER.sequence import SIDTokenizer, TIGERTransformer, constrained_beam_search
+        from Recall.TIGER.baseline.sequence import SIDTokenizer, TIGERTransformer, constrained_beam_search
 
         torch.set_num_threads(1)
         tokenizer = SIDTokenizer({"A": [0, 0, 0, 0], "B": [0, 0, 0, 1]}, 2)
@@ -24,8 +24,8 @@ class TIGERSequenceTests(unittest.TestCase):
         self.assertEqual(set(output), {"A", "B"})
 
     def test_sequence_loader_reads_materialized_sids(self):
-        from Recall.TIGER.sequence import SIDTokenizer
-        from Recall.TIGER.scripts.train_sequence import collate, read_examples
+        from Recall.TIGER.baseline.sequence import SIDTokenizer
+        from Recall.TIGER.baseline.train_sequence import collate, read_examples
 
         tokenizer = SIDTokenizer({"A": [0, 0, 0, 0], "B": [0, 0, 0, 1]}, 2)
         record = {"user_id": "U", "history_sids": [[0, 0, 0, 0]],

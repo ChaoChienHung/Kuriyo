@@ -1,4 +1,4 @@
--r ../../requirements.txt
+-r ../../../requirements.txt
 
 # TIGER T5 sequence model and Adafactor optimizer.
 transformers>=4.44,<5

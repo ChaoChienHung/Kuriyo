@@ -5,6 +5,6 @@ torch>=2.4,<3  # General/local environment; SoC override: torch==2.7.1+cu126
 # SoC cluster (Linux x86_64, TITAN V / sm_70): pin the CUDA 12.6 build.
 # Comments are documentation only; use this command from the repository root:
 # python -m pip install --extra-index-url https://download.pytorch.org/whl/cu126 \
-#   "torch==2.7.1+cu126" -r Representations/SID/requirements.txt -r Recall/TIGER/requirements.txt
+#   "torch==2.7.1+cu126" -r Representations/SID/requirements.txt -r Recall/TIGER/baseline/requirements.txt
 # Component requirements include this file. scripts/run.sbatch uses the same override.
 # This pins Torch's CUDA build, not every transitive dependency.

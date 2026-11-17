@@ -8,7 +8,7 @@ repository. The rules are in [`CLAUDE.md`](CLAUDE.md).
 ## Start here
 
 1. 根目錄 `README.md` → `AGENTS.md` → `HANDOFF.md`
-2. [[model-family-layout]] -- 模型家族與變體（`baseline/` 等）的目錄規則
+2. [[model-family-layout]] -- 模型家族與變體的目錄規則：每個變體自成完整空間
 
 ---
 
@@ -18,7 +18,7 @@ repository. The rules are in [`CLAUDE.md`](CLAUDE.md).
 
 ## architecture
 
-- [[model-family-layout]] -- 家族根層放共用程式，變體為同層子目錄，各自有 tests/ 與 runs/
+- [[model-family-layout]] -- 每個變體（如 `Recall/TIGER/baseline/`）自成完整空間，變體間不互相 import
 
 ## subsystems
 
