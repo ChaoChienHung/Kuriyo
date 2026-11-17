@@ -4,7 +4,6 @@ __pycache__/
 .venv/
 .tmp/
 .cache/
-slurm-*.out
 *.ckpt
 *.pt
 *.pth

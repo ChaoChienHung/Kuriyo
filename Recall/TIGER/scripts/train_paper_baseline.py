@@ -24,6 +24,7 @@ from Recall.TIGER.sequence import SIDTokenizer
 from Recall.core.data import pad_token_sequences
 from Recall.core.experiment import file_sha256, git_revision, seed_everything, write_json
 from Recall.core.metrics import ranking_metrics
+from core.run_logging import RunLogger
 
 
 def user_token(user_id, offset, buckets=2000):
@@ -207,13 +208,15 @@ def main():
         test_path = year / "test/sids" / args.sid_method / args.category / sid_version / "examples.jsonl"
         test = read_examples(test_path, None, tokenizer)
         model.load_state_dict(torch.load(best_path, map_location="cpu", weights_only=True))
-        metrics = evaluate(model, tokenizer, test, args.max_history, args.device,
-                           args.eval_batch_size, args.beam_size)
-        metrics["test_examples"] = metrics.pop("validation_examples")
-        metrics["selected_validation_ndcg@10"] = json.loads(
-            (run_dir / "best-metrics.json").read_text())["ndcg@10"]
-        write_json(test_metrics_path, metrics)
-        print(json.dumps(metrics), flush=True)
+        with RunLogger(run_dir) as logger:
+            metrics = evaluate(model, tokenizer, test, args.max_history, args.device,
+                               args.eval_batch_size, args.beam_size)
+            metrics["test_examples"] = metrics.pop("validation_examples")
+            metrics["selected_validation_ndcg@10"] = json.loads(
+                (run_dir / "best-metrics.json").read_text())["ndcg@10"]
+            write_json(test_metrics_path, metrics)
+            print(json.dumps(metrics), flush=True)
+            logger.event("test_completed", metrics=metrics)
         return
     if args.resume:
         if not (run_dir / "latest.pt").is_file():
@@ -243,46 +246,51 @@ def main():
         permutation = torch.randperm(len(train), generator=sampler)
         cursor = 0
         best = -1.0
-    print("T5 parameters={} train={} validation={} starting_step={}".format(
-        sum(parameter.numel() for parameter in model.parameters()), len(train),
-        len(validation), start_step), flush=True)
-    for step in range(start_step + 1, args.steps + 1):
-        if cursor + args.batch_size > len(train):
-            permutation = torch.randperm(len(train), generator=sampler)
-            cursor = 0
-        indices = permutation[cursor:cursor + args.batch_size].tolist()
-        cursor += args.batch_size
-        batch = [train[index] for index in indices]
-        source, mask, labels = collate(batch, tokenizer, args.max_history)
-        learning_rate = 0.01 if step <= 10000 else 0.01 * math.sqrt(10000 / step)
-        for group in optimizer.param_groups:
-            group["lr"] = learning_rate
-        model.train()
-        optimizer.zero_grad()
-        loss = model(input_ids=source.to(args.device), attention_mask=mask.to(args.device),
-                     labels=labels.to(args.device)).loss
-        if not torch.isfinite(loss):
-            raise RuntimeError("non-finite loss at step {}".format(step))
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        optimizer.step()
-        if step == 1 or step % 100 == 0:
-            print("step {}/{} loss={:.6f} lr={:.6g}".format(
-                step, args.steps, loss.item(), learning_rate), flush=True)
-        if step % args.eval_every == 0 or step == args.steps:
-            metrics = evaluate(model, tokenizer, validation, args.max_history,
-                               args.device, args.eval_batch_size, args.beam_size)
-            metrics["step"] = step
-            write_json(run_dir / "validation-step-{}.json".format(step), metrics)
-            print(json.dumps(metrics), flush=True)
-            if metrics["ndcg@10"] > best:
-                best = metrics["ndcg@10"]
-                torch.save(model.state_dict(), run_dir / "best.pt")
-                write_json(run_dir / "best-metrics.json", metrics)
-        if step % args.save_every == 0 or step == args.steps:
-            save_checkpoint(run_dir / "latest.pt", model, optimizer, step,
-                            sampler, permutation, cursor, best)
-    print("Saved {}".format(run_dir), flush=True)
+    with RunLogger(run_dir) as logger:
+        logger.event("resume" if args.resume else "training_started", starting_step=start_step, target_steps=args.steps)
+        print("T5 parameters={} train={} validation={} starting_step={}".format(
+            sum(parameter.numel() for parameter in model.parameters()), len(train),
+            len(validation), start_step), flush=True)
+        for step in range(start_step + 1, args.steps + 1):
+            if cursor + args.batch_size > len(train):
+                permutation = torch.randperm(len(train), generator=sampler)
+                cursor = 0
+            indices = permutation[cursor:cursor + args.batch_size].tolist()
+            cursor += args.batch_size
+            batch = [train[index] for index in indices]
+            source, mask, labels = collate(batch, tokenizer, args.max_history)
+            learning_rate = 0.01 if step <= 10000 else 0.01 * math.sqrt(10000 / step)
+            for group in optimizer.param_groups:
+                group["lr"] = learning_rate
+            model.train()
+            optimizer.zero_grad()
+            loss = model(input_ids=source.to(args.device), attention_mask=mask.to(args.device),
+                         labels=labels.to(args.device)).loss
+            if not torch.isfinite(loss):
+                raise RuntimeError("non-finite loss at step {}".format(step))
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            optimizer.step()
+            logger.train(step=step, loss=loss.item(), learning_rate=learning_rate)
+            if step == 1 or step % 100 == 0:
+                print("step {}/{} loss={:.6f} lr={:.6g}".format(
+                    step, args.steps, loss.item(), learning_rate), flush=True)
+            if step % args.eval_every == 0 or step == args.steps:
+                metrics = evaluate(model, tokenizer, validation, args.max_history,
+                                   args.device, args.eval_batch_size, args.beam_size)
+                metrics["step"] = step
+                write_json(run_dir / "validation-step-{}.json".format(step), metrics)
+                logger.event("validation", metrics=metrics)
+                print(json.dumps(metrics), flush=True)
+                if metrics["ndcg@10"] > best:
+                    best = metrics["ndcg@10"]
+                    torch.save(model.state_dict(), run_dir / "best.pt")
+                    write_json(run_dir / "best-metrics.json", metrics)
+            if step % args.save_every == 0 or step == args.steps:
+                save_checkpoint(run_dir / "latest.pt", model, optimizer, step,
+                                sampler, permutation, cursor, best)
+                logger.event("checkpoint_saved", step=step, path="latest.pt")
+        print("Saved {}".format(run_dir), flush=True)
 
 
 if __name__ == "__main__":

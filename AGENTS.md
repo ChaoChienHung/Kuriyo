@@ -21,6 +21,25 @@ The 2014 Beauty split is produced by `python3 -m scripts.prepare_amazon_reviews_
 - Give each run a unique output location. Preserve previous run configurations and results rather than overwriting them.
 - Add focused tests for data joins, split logic, and recommendation metrics when implementing those components.
 
+## Model families, variants, and tests
+
+- Group related variants under their model family (for example `Recall/TIGER/`). Reuse shared modules; do not copy an entire training stack for each variant. Prefer descriptive variant names over unexplained `v1`/`v2` names.
+- Keep configuration-only differences as named configurations. When a variant requires distinct implementation, place it in a family-local variant directory such as `variants/<name>/`, with its own description and focused tests. `baseline` denotes the comparison implementation, not proof of paper reproduction. Currently TIGER's baseline remains in `scripts/train_paper_baseline.py`; a variants directory is not yet implemented.
+- Root `tests/` covers cross-stage utilities, data preparation, and pipeline contracts; `Recall/tests/` covers shared Recall modules; model-specific contracts and integration tests belong in `<model>/tests/`. Keep `__init__.py` files so root unittest discovery includes nested suites.
+- Test observable behavior: causal masking, padding invariance, valid SID decoding, gradients, checkpoint/resume, and held-out evaluation. For a variant, run both shared contracts and its own tests; passing a smoke test does not establish recommendation quality.
+- Use `core/run_logging.py` for scheduler-independent run logging. Append training measurements to `train.jsonl` and lifecycle events to `events.log`; distinguish invocations with session IDs, preserve prior history on resume, and record the restored step. Never treat Slurm stdout as the only experiment record.
+
+## Staged batch pipelines
+
+- Prefer a single stage-selectable `run.sbatch` entry point for each training pipeline, following `scripts/run.sbatch`. Keep orchestration in the batch script and implementation in reusable Python entry points.
+- Support individual stages and an `all` path that runs them in dependency order. The current TIGER pipeline uses `STAGE=prepare|sid|materialize|train|test|all`; `all` runs prepare → sid → materialize → train, while final held-out `test` is explicitly separate.
+- Validate stage names and required input artifacts before expensive work. Stop on failure. Document any automatic prerequisites, such as `STAGE=sid` preparing or verifying Beauty inputs first.
+- Reuse completed artifacts only after checking their required files and relevant manifests. Treat partial outputs as incomplete; do not silently overwrite or delete them. Resume only stages with implemented checkpoint support. Currently TIGER training can resume from `latest.pt`, but SID/RQ-VAE generation cannot resume mid-training.
+- Keep dataset, SID version, and run identity consistent across stages. Expose settings such as `SID_VERSION` and `RUN_NAME`, validate values used in paths, and use fresh output locations for new experiments.
+- Document Git-pull-to-run commands, environment installation, stage prerequisites and outputs, log locations, checkpoint behavior, and final evaluation in the relevant README. Keep SoC dependency overrides aligned with root `requirements.txt`.
+- Use batch jobs for full runs and short interactive allocations for diagnostics. Record job ID and code revision in logs; distinguish time-limit termination from successful completion and verify expected artifacts before reporting results.
+- Add focused orchestration tests when changing stage behavior, including prerequisite ordering, artifact reuse, and failure propagation. These tests should not require Slurm, downloads, or a GPU.
+
 ## Editing and running
 
 - Update `README.md` when setup steps, data sources, commands, or the repository layout become concrete.

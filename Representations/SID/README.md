@@ -20,3 +20,7 @@ python3 -m venv .venv
 `--paper-baseline` 使用[論文所報告的 RQ-VAE 設定](https://proceedings.neurips.cc/paper_files/paper/2023/file/20dcab0f14046a5c6b02b61da9f13229-Paper-Conference.pdf)：三層、每層 256 碼、32 維 latent、512/256/128 隱層、β=0.25、Adagrad 0.4、batch 1024、20,000 epochs，並用首批商品的 k-means 初始化 codebook。這是長時間 GPU 工作；輸出 manifest 中的 `codebook_usage_ratio` 應檢查是否接近論文所述的至少 80%。
 
 `sentence-t5_kmeans` 與 `sentence-t5_lsh` 目前只有資料目錄，沒有生成器。目前 2014 Beauty 採固定商品目錄設定：先對 `items.jsonl` 中所有 12,101 件候選商品建立 SID，讓三個 split 共用同一份 ASIN ↔ SID 對照表。這會使用 validation／test 所涉及商品的 metadata，但不使用它們的互動目標來訓練序列模型。若研究目標是訓練時未見商品的歸納能力，須另訂只用訓練期商品擬合 SID 模型、再為新商品指派 SID 的協定，並分開報告結果。
+
+## 訓練紀錄
+
+生成器會在輸出目錄保存 `train.jsonl`（每 epoch 的 loss、learning rate、UTC 時間、session ID）與 `events.log`（JSON Lines 執行事件）。這些紀錄不依賴 Slurm；輸出目錄仍由 Git 忽略。輸出目錄會在編碼前建立，因此失敗時可能只有 log；須確認 `semantic_ids.jsonl` 與 `manifest.json` 等必要產物，不能僅以目錄存在判定完成。RQ-VAE 目前沒有中途續訓功能。

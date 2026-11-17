@@ -10,7 +10,7 @@ from tempfile import TemporaryDirectory
 import unittest
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 
 
 @unittest.skipUnless(importlib.util.find_spec("torch") and importlib.util.find_spec("transformers"),
@@ -64,3 +64,9 @@ class PaperBaselineTests(unittest.TestCase):
             self.assertEqual(json.loads((run_dir / "test-metrics.json").read_text())
                              ["test_examples"], 1)
             self.assertTrue((run_dir / "best.pt").is_file())
+            history = [json.loads(line) for line in (run_dir / "train.jsonl").read_text().splitlines()]
+            self.assertEqual([row["step"] for row in history], [1, 2])
+            self.assertNotEqual(history[0]["session_id"], history[1]["session_id"])
+            events = [json.loads(line)["event"] for line in (run_dir / "events.log").read_text().splitlines()]
+            self.assertIn("resume", events)
+            self.assertIn("test_completed", events)

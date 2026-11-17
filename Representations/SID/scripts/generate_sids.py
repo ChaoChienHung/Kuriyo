@@ -25,6 +25,9 @@ if __package__ in (None, ""):
 from Representations.SID.rqvae import RQVAE
 
 
+from core.run_logging import RunLogger
+
+
 DEFAULT_ITEMS = ROOT / "data/amazon_reviews/2014/catalog/Beauty/items.jsonl"
 DEFAULT_RUNS = ROOT / "Representations/SID/runs"
 
@@ -163,77 +166,81 @@ def main():
     items, items_sha256 = read_items(args.items, args.limit_items)
     if args.codebook_size > len(items):
         parser.error("--codebook-size cannot exceed the number of items")
-    print("Encoding {} items with {}".format(len(items), args.encoder), flush=True)
-    embeddings = embed_items(items, args)
-    if not np.isfinite(embeddings).all():
-        raise ValueError("non-finite item embedding")
-    model = RQVAE(embeddings.shape[1], hidden_dims=tuple(args.hidden_dims),
-                  latent_dim=args.latent_dim, codebook_size=args.codebook_size)
-    if args.paper_baseline:
-        initial_indices = np.random.default_rng(args.seed).permutation(len(embeddings))[:1024]
-        initialize_codebooks(model, embeddings[initial_indices], args.seed)
-    else:
-        initialize_codebooks(model, embeddings, args.seed)
-    model.to(args.device)
-    optimizer_name = "adagrad" if args.paper_baseline else "adam"
-    optimizer = (torch.optim.Adagrad(model.parameters(), lr=args.learning_rate)
-                 if args.paper_baseline else torch.optim.Adam(model.parameters(), lr=args.learning_rate))
-    dataset = TensorDataset(torch.from_numpy(embeddings))
-    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True,
-                        generator=torch.Generator().manual_seed(args.seed))
-    for epoch in range(args.epochs):
-        model.train()
-        total = 0.0
-        for (batch,) in loader:
-            optimizer.zero_grad()
-            loss, _, _ = model(batch.to(args.device))
-            loss.backward()
-            optimizer.step()
-            total += loss.item() * len(batch)
-        if not args.paper_baseline or epoch == 0 or (epoch + 1) % 100 == 0 or epoch + 1 == args.epochs:
-            print("epoch {}/{} loss={:.6f}".format(epoch + 1, args.epochs,
-                                                   total / len(dataset)), flush=True)
-
-    model.eval()
-    codes = []
-    with torch.no_grad():
-        for (batch,) in DataLoader(dataset, batch_size=args.batch_size):
-            codes.extend(model.encode_codes(batch.to(args.device)).cpu().tolist())
-    asins = [item["asin"] for item in items]
-    sids, collision_groups, largest_collision = unique_semantic_ids(asins, codes)
-    usages = [len(set(code[level] for code in codes)) for level in range(3)]
-    revision = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
-                              capture_output=True, text=True, check=False)
-    manifest = {
-        "method": "{}_rqvae".format(args.encoder),
-        "source_items": str(args.items.resolve()), "source_sha256": items_sha256,
-        "item_count": len(items), "encoder": args.encoder,
-        "text_model": args.text_model if args.encoder == "sentence-t5" else None,
-        "text_dim": args.text_dim if args.encoder == "tfidf" else None,
-        "max_features": args.max_features if args.encoder == "tfidf" else None,
-        "limit_items": args.limit_items, "text_batch_size": args.text_batch_size,
-        "embedding_dim": int(embeddings.shape[1]), "epochs": args.epochs,
-        "codebook_size": args.codebook_size, "latent_dim": args.latent_dim,
-        "hidden_dims": args.hidden_dims, "learning_rate": args.learning_rate,
-        "batch_size": args.batch_size, "device": args.device,
-        "paper_baseline": args.paper_baseline, "optimizer": optimizer_name,
-        "codebook_usage_ratio": [usage / args.codebook_size for usage in usages],
-        "git_revision": revision.stdout.strip() if revision.returncode == 0 else None,
-        "seed": args.seed, "collision_groups": collision_groups,
-        "largest_collision_group": largest_collision, "codebook_usage": usages,
-        "sid_length": 4, "collision_token_rule": "zero-based rank by asin within each 3-code group",
-    }
     run_dir.mkdir(parents=True)
-    np.savez_compressed(run_dir / "embeddings.npz", asins=np.asarray(asins), embeddings=embeddings)
-    torch.save(model.state_dict(), run_dir / "rqvae.pt")
-    with (run_dir / "semantic_ids.jsonl").open("w", encoding="utf-8") as output:
-        for asin in asins:
-            output.write(json.dumps({"asin": asin, "sid": sids[asin]}) + "\n")
-    with (run_dir / "manifest.json").open("w", encoding="utf-8") as output:
-        json.dump(manifest, output, indent=2)
-        output.write("\n")
-    print(json.dumps({"run_dir": str(run_dir), "item_count": len(items),
-                      "collision_groups": collision_groups, "codebook_usage": usages}), flush=True)
+    with RunLogger(run_dir) as logger:
+        logger.event("sid_started", item_count=len(items), epochs=args.epochs)
+        print("Encoding {} items with {}".format(len(items), args.encoder), flush=True)
+        embeddings = embed_items(items, args)
+        if not np.isfinite(embeddings).all():
+            raise ValueError("non-finite item embedding")
+        model = RQVAE(embeddings.shape[1], hidden_dims=tuple(args.hidden_dims),
+                      latent_dim=args.latent_dim, codebook_size=args.codebook_size)
+        if args.paper_baseline:
+            initial_indices = np.random.default_rng(args.seed).permutation(len(embeddings))[:1024]
+            initialize_codebooks(model, embeddings[initial_indices], args.seed)
+        else:
+            initialize_codebooks(model, embeddings, args.seed)
+        model.to(args.device)
+        optimizer_name = "adagrad" if args.paper_baseline else "adam"
+        optimizer = (torch.optim.Adagrad(model.parameters(), lr=args.learning_rate)
+                     if args.paper_baseline else torch.optim.Adam(model.parameters(), lr=args.learning_rate))
+        dataset = TensorDataset(torch.from_numpy(embeddings))
+        loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True,
+                            generator=torch.Generator().manual_seed(args.seed))
+        for epoch in range(args.epochs):
+            model.train()
+            total = 0.0
+            for (batch,) in loader:
+                optimizer.zero_grad()
+                loss, _, _ = model(batch.to(args.device))
+                loss.backward()
+                optimizer.step()
+                total += loss.item() * len(batch)
+            logger.train(epoch=epoch + 1, loss=total / len(dataset), learning_rate=args.learning_rate)
+            if not args.paper_baseline or epoch == 0 or (epoch + 1) % 100 == 0 or epoch + 1 == args.epochs:
+                print("epoch {}/{} loss={:.6f}".format(epoch + 1, args.epochs,
+                                                       total / len(dataset)), flush=True)
+
+        model.eval()
+        codes = []
+        with torch.no_grad():
+            for (batch,) in DataLoader(dataset, batch_size=args.batch_size):
+                codes.extend(model.encode_codes(batch.to(args.device)).cpu().tolist())
+        asins = [item["asin"] for item in items]
+        sids, collision_groups, largest_collision = unique_semantic_ids(asins, codes)
+        usages = [len(set(code[level] for code in codes)) for level in range(3)]
+        revision = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
+                                  capture_output=True, text=True, check=False)
+        manifest = {
+            "method": "{}_rqvae".format(args.encoder),
+            "source_items": str(args.items.resolve()), "source_sha256": items_sha256,
+            "item_count": len(items), "encoder": args.encoder,
+            "text_model": args.text_model if args.encoder == "sentence-t5" else None,
+            "text_dim": args.text_dim if args.encoder == "tfidf" else None,
+            "max_features": args.max_features if args.encoder == "tfidf" else None,
+            "limit_items": args.limit_items, "text_batch_size": args.text_batch_size,
+            "embedding_dim": int(embeddings.shape[1]), "epochs": args.epochs,
+            "codebook_size": args.codebook_size, "latent_dim": args.latent_dim,
+            "hidden_dims": args.hidden_dims, "learning_rate": args.learning_rate,
+            "batch_size": args.batch_size, "device": args.device,
+            "paper_baseline": args.paper_baseline, "optimizer": optimizer_name,
+            "codebook_usage_ratio": [usage / args.codebook_size for usage in usages],
+            "git_revision": revision.stdout.strip() if revision.returncode == 0 else None,
+            "seed": args.seed, "collision_groups": collision_groups,
+            "largest_collision_group": largest_collision, "codebook_usage": usages,
+            "sid_length": 4, "collision_token_rule": "zero-based rank by asin within each 3-code group",
+        }
+        np.savez_compressed(run_dir / "embeddings.npz", asins=np.asarray(asins), embeddings=embeddings)
+        torch.save(model.state_dict(), run_dir / "rqvae.pt")
+        with (run_dir / "semantic_ids.jsonl").open("w", encoding="utf-8") as output:
+            for asin in asins:
+                output.write(json.dumps({"asin": asin, "sid": sids[asin]}) + "\n")
+        with (run_dir / "manifest.json").open("w", encoding="utf-8") as output:
+            json.dump(manifest, output, indent=2)
+            output.write("\n")
+        print(json.dumps({"run_dir": str(run_dir), "item_count": len(items),
+                          "collision_groups": collision_groups, "codebook_usage": usages}), flush=True)
+        logger.event("sid_completed", item_count=len(items))
 
 
 if __name__ == "__main__":

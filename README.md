@@ -79,7 +79,7 @@ python3 scripts/download_amazon_reviews_2023.py --category All_Beauty
 
 ## 程式目錄
 
-- `core/`：跨鏈路共用的介面；目前尚無實作
+- `core/`：跨鏈路共用元件，目前包含獨立於 Slurm 的 run logger
 - `utils/`：資料處理、評估等共用工具
 - `scripts/`：資料下載、準備與相容入口
 - [`Representations/`](Representations/README.md)：可供多個模型共用的商品表示；SID 生成器位於 [`Representations/SID/`](Representations/SID/README.md)
@@ -92,3 +92,30 @@ python3 scripts/download_amazon_reviews_2023.py --category All_Beauty
 根目錄的 `requirements.txt` 放共用建模依賴；SID 與 TIGER 各有自己的 `requirements.txt`。資料下載與準備只用 Python 標準函式庫；模型環境建議 Python 3.10 以上。各元件的 README 記錄資料指令與實作狀態；研究筆記見 [INSIGHT.md](INSIGHT.md)，待辦事項見 [TODO.md](TODO.md)。
 
 SoC Linux GPU 的安裝指令集中記錄於根目錄 `requirements.txt` 的註解，安裝時明確指定 `torch==2.7.1+cu126` 與 CUDA 12.6 套件來源，並引入 SID 與 TIGER 依賴；`scripts/run.sbatch` 自動套用相同指令，避免新環境安裝不支援 TITAN V 的 CUDA 13 build。本地 CPU／macOS 仍使用各元件 requirements。註解不會改變 pip 行為，手動安裝 SoC 環境時須使用註解中的完整指令。這是 GPU 相容性設定，尚非完整依賴 lockfile。
+
+
+## 模型家族、變體與測試
+
+相關模型變體集中在同一個家族，例如 `Recall/TIGER/`。跨模型可重用的召回元件放 `Recall/core/`；跨鏈路工具放 `core/`；商品 SID 放 `Representations/SID/`，供不同模型共用。
+
+只有超參數不同時，優先用具名設定；確實有不同實作時，再建立家族內的 `variants/<name>/`，放差異程式、說明及專有測試。名稱優先表達差異，例如 `baseline`、`constrained-decoding`，避免只用無法辨識內容的 `v1`、`v2`。共用的訓練、評估與 logging 不應每個版本複製一套。目前尚未新增 variants 目錄；TIGER baseline 仍由 `Recall/TIGER/scripts/train_paper_baseline.py` 執行，baseline 代表比較起點，不代表已重現論文。
+
+測試按責任分層：
+
+- `tests/`：資料準備、SID 共用元件、跨階段流程與 run logging。
+- `Recall/tests/`：共用 Transformer、padding、指標等行為契約。
+- `Recall/TIGER/tests/`：TIGER 的 SID 解碼、資料載入，以及 baseline 訓練／續訓／test 整合測試。
+
+修改或新增變體時，同時跑共用元件與模型專有測試；小型測試通過不等於完整資料上的指標已達標。從根目錄執行：
+
+```bash
+.venv/bin/python -m unittest discover -s . -v
+```
+
+## 獨立訓練紀錄
+
+TIGER paper baseline 和 SID 生成器使用 `core/run_logging.py`，不依賴 Slurm。各自輸出目錄內的 `train.jsonl` 記錄 TIGER 每個 step 或 RQ-VAE 每個 epoch 的 loss、learning rate、UTC 時間、session ID 與本次執行經過秒數；`events.log` 使用 JSON Lines 保存開始、完成及執行區段內的 Python 例外，TIGER 另外記錄續訓、validation、checkpoint 與 test 事件。
+
+TIGER 續訓會追加紀錄；從較早 checkpoint 重跑的 step 可透過 session ID 區分。強制終止、斷電或進入 logger 前的錯誤不保證有失敗事件，因此仍需搭配 Slurm 狀態與產物檢查。SID 失敗後可能留下只有 log 的部分目錄，仍不可當作完成產物，且目前無中途續訓功能。舊的 smoke trainer 尚未接入此 logger。
+
+Slurm `.out` 可提交 Git；`runs/`、SID 產物目錄與 checkpoint 仍被忽略，新增的 run logs 也不會自動同步。要分享結果，需另行匯出選定的小型紀錄。

@@ -208,3 +208,10 @@ SID 完成後有 `semantic_ids.jsonl`、`manifest.json`、`embeddings.npz`、`rq
 - [`Recall/core/`](../core/README.md)：共用 metrics、batching、實驗記錄及基礎 Transformer；測試位於 [`Recall/tests/`](../tests/)。
 - [`Representations/SID/`](../../Representations/SID/README.md)：商品向量與 RQ-VAE SID 生成。
 - 根目錄 [`INSIGHT.md`](../../INSIGHT.md)、[`TODO.md`](../../TODO.md)：研究事實、假設、限制與待辦事項。
+
+
+## 元件測試與訓練紀錄
+
+TIGER 專有測試放在 `tests/`，共用 Recall 測試放在 `../tests/`。從 repo 根目錄執行 `.venv/bin/python -m unittest discover -s . -v` 可涵蓋兩者。家族與變體組織原則見 [根目錄 README](../../README.md#模型家族變體與測試)；目前 baseline 入口不變，尚未建立 variants 目錄。
+
+paper baseline 的 run 內新增 `train.jsonl`（每 step loss、learning rate）與 `events.log`（JSON Lines 事件）；直接執行 Python 也會保存。續訓追加紀錄並以 session ID 區分，原有 config、validation/test JSON 與 checkpoint 繼續保留。run 仍被 Git 忽略；Slurm log 可提交不代表 run 內檔案也會同步。
