@@ -12,7 +12,7 @@ Kuriyo 這個 repository 主要用來存放**推薦模型**及其相關的資料
 - [TODO.md](TODO.md)：依優先順序追蹤工作；[INSIGHT.md](INSIGHT.md)：區分觀察、事實、限制與假設。
 - [AGENTS.md](AGENTS.md)：協作與修改規則；各元件 README：實際入口與操作方式。
 
-完整 run `tiger-paper-20261117-005232` 的最佳已記錄 validation 位於 step 200,000：Recall@10 **0.03420829**、NDCG@10 **0.01678776**。SID 三層各 256 個碼，實際使用 **6 / 26 / 25**；下一步先調查 SID 與實作設定，不能把 validation 當作論文 test 的直接對照。證據見 [Slurm log](slurm-kuriyo-tiger-1153307.out)。完整 GPU 產物仍在 SoC，Git 只同步程式與小型紀錄。
+完整 run `tiger-paper-20261117-005232` 的最佳已記錄 validation 位於 step 200,000：Recall@10 **0.03420829**、NDCG@10 **0.01678776**。SID 三層各 256 個碼，實際使用 **6 / 26 / 25**；下一步先調查 SID 與實作設定，不能把 validation 當作論文 test 的直接對照。證據為 job 1153307 的 Slurm log；該檔已於 `2ad21c7` 從 repo 移除，可用 `git show 2ad21c7^:slurm-kuriyo-tiger-1153307.out` 取回。完整 GPU 產物仍在 SoC，Git 只同步程式與小型紀錄。
 
 ## 資料目錄
 
@@ -137,4 +137,4 @@ TIGER paper baseline 和 SID 生成器使用 `core/run_logging.py`，不依賴 S
 
 TIGER 續訓會追加紀錄；從較早 checkpoint 重跑的 step 可透過 session ID 區分。強制終止、斷電或進入 logger 前的錯誤不保證有失敗事件，因此仍需搭配 Slurm 狀態與產物檢查。SID 失敗後可能留下只有 log 的部分目錄，仍不可當作完成產物，且目前無中途續訓功能。舊的 smoke trainer 尚未接入此 logger。
 
-Slurm `.out` 可提交 Git；`runs/`、SID 產物目錄與 checkpoint 仍被忽略，新增的 run logs 也不會自動同步。要分享結果，需另行匯出選定的小型紀錄。
+Slurm `.out` 不保留在 repo 中（job 1153307 的 log 只在 git 歷史）；`runs/`、SID 產物目錄與 checkpoint 被 Git 忽略，新增的 run logs 也不會自動同步。要分享結果，需另行匯出選定的小型紀錄。

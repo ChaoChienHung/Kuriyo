@@ -21,7 +21,7 @@
 - [x] TIGER 專有 tests 分離；驗證 causal mask、padding invariance、訓練／續訓／test。
 - [x] 分階段 run.sbatch、SoC skill、Torch cu126 明確安裝指令。
 - [x] 獨立 run logger 接入 TIGER paper trainer 與 SID；測試追加、session 與錯誤傳遞。
-- [x] 舊資料目錄 ignore、Slurm log 可提交，清除 tracked .DS_Store。
+- [x] 舊資料目錄 ignore、清除 tracked .DS_Store；Slurm log 曾提交，已於 `2ad21c7` 移除，保留在 git 歷史。
 - [x] README/AGENTS 記錄家族與變體原則，建立 HANDOFF。
 - [ ] SID 增加 checkpoint/resume（目前無中途恢復）。
 - [ ] 完整環境 lock／環境快照與 GPU preflight；既有 Torch pin 不是完整 lockfile。

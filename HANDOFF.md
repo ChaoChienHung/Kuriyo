@@ -30,7 +30,7 @@ Kuriyo 是推薦模型研究 repo，預計包含 Recall、Ranking、其他推薦
 
 ## 已完成的完整 run 與證據
 
-來源：[slurm-kuriyo-tiger-1153307.out](slurm-kuriyo-tiger-1153307.out)。job `1153307`；訓練程式 revision `5f99955`；SID_VERSION 與 RUN_NAME 都是 `tiger-paper-20261117-005232`。`STAGE=all` 完成 SID 20,000 epochs、split materialization、TIGER 200,000 steps，log 最後有 Saved 訊息；尚未取得獨立 sacct 成功狀態或實際 checkpoint 校驗。
+來源：`slurm-kuriyo-tiger-1153307.out`；已於 `2ad21c7` 從 repo 移除，可用 `git show 2ad21c7^:slurm-kuriyo-tiger-1153307.out` 取回。job `1153307`；訓練程式 revision `5f99955`；SID_VERSION 與 RUN_NAME 都是 `tiger-paper-20261117-005232`。`STAGE=all` 完成 SID 20,000 epochs、split materialization、TIGER 200,000 steps，log 最後有 Saved 訊息；尚未取得獨立 sacct 成功狀態或實際 checkpoint 校驗。
 
 | 項目 | Log 中觀察 |
 |---|---|
@@ -46,7 +46,7 @@ Kuriyo 是推薦模型研究 repo，預計包含 Recall、Ranking、其他推薦
 
 尚無此 run 的最終 test 結果。不能把 validation 與論文 test 直接比較，也不能宣稱低碼本使用率已被證明是差距原因。低使用率及第一 epoch 巨大 loss 是下一步的調查線索。
 
-baseline run 現在的標準位置是 `Recall/TIGER/baseline/runs/<RUN_NAME>/`。SoC 上的 `tiger-paper-20261117-005232` 仍在舊路徑 `Recall/TIGER/runs/`，續訓或 test 前需 `mkdir -p Recall/TIGER/baseline/runs && mv Recall/TIGER/runs/tiger-paper-20261117-005232 Recall/TIGER/baseline/runs/`（尚未執行；`run.sbatch` 遇到只在舊路徑的 run 會拒絕執行）。SID 產物路徑不變；本地只有舊 smoke 產物、已提交 Slurm log 及重建的匯入紀錄，不假設已同步完整 GPU checkpoints／manifest。
+baseline run 現在的標準位置是 `Recall/TIGER/baseline/runs/<RUN_NAME>/`。SoC 上的 `tiger-paper-20261117-005232` 仍在舊路徑 `Recall/TIGER/runs/`，續訓或 test 前需 `mkdir -p Recall/TIGER/baseline/runs && mv Recall/TIGER/runs/tiger-paper-20261117-005232 Recall/TIGER/baseline/runs/`（尚未執行；`run.sbatch` 遇到只在舊路徑的 run 會拒絕執行）。SID 產物路徑不變；本地只有舊 smoke 產物、git 歷史中的 Slurm log 及重建的匯入紀錄，不假設已同步完整 GPU checkpoints／manifest。
 
 ## Logging 與匯入狀態
 
@@ -59,7 +59,8 @@ baseline run 現在的標準位置是 `Recall/TIGER/baseline/runs/<RUN_NAME>/`�
 內含 tiger 的 2,001 training rows／14 events、sid 的 201 epoch rows／2 events，以及 import_manifest。來源 SHA、行號和 `origin=slurm_import` 可追溯；缺少的時間、SID learning rate 為 null。不可把匯入時間當訓練時間。此目錄被忽略，可重建：
 
 ```bash
-python3 -m scripts.import_slurm_training_log slurm-kuriyo-tiger-1153307.out \
+mkdir -p .tmp && git show 2ad21c7^:slurm-kuriyo-tiger-1153307.out > .tmp/slurm-kuriyo-tiger-1153307.out
+python3 -m scripts.import_slurm_training_log .tmp/slurm-kuriyo-tiger-1153307.out \
   --output-dir Recall/TIGER/baseline/runs/tiger-paper-20261117-005232/imports/slurm-1153307
 ```
 
