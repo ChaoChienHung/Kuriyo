@@ -48,3 +48,7 @@ The 2014 Beauty split is produced by `python3 -m scripts.prepare_amazon_reviews_
 - Prefer small, reviewable changes and follow the conventions of code already present.
 - Do not push, publish data, or submit remote training jobs unless the user requests it.
 - For NUS SoC jobs, read `skills/nus-soc-slurm/SKILL.md` before preparing or operating Slurm scripts. Treat partition, GPU, quota, and access details copied from other projects as historical until verified against the live cluster.
+
+## docs
+
+`docs/` is a wiki maintained by an LLM. Page format, which page to update, and the `/docs-sync` workflow all live in [`docs/CLAUDE.md`](docs/CLAUDE.md). Start at [`docs/index.md`](docs/index.md).
