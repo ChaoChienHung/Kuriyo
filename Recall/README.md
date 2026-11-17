@@ -23,6 +23,6 @@ python3 -m unittest discover -s . -v
 
 ## 模型
 
-- [TIGER](TIGER/README.md)：使用版本化商品 SID 訓練序列模型並計算 validation 指標；目前可做小規模 smoke test，尚未重現論文結果。
+- [TIGER](TIGER/README.md)：使用版本化商品 SID 訓練序列模型並計算 validation 指標；首輪完整 SoC 訓練已跑到 200,000 steps，尚無最終 test 結果，未重現論文結果。
 
 共用 Recall 訓練入口與候選集輸出格式尚未建立；新增模型時需記錄候選集、評估指標、資料與 SID 版本。模型內的 scripts/ 保存該模型的訓練入口，runs/ 保存 Git 忽略的訓練產物。

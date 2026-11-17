@@ -1,0 +1,94 @@
+> 內容限制：本文件不得超過 **0.1M tokens（100,000 tokens）**。更新時以精簡、可驗證的狀態與來源連結為主，不貼完整 log、資料集或 checkpoint；過時狀態應修正，不無限追加聊天紀錄。
+
+# Kuriyo 交接紀錄
+
+更新日期：2026-11-17。交接前程式版本：`b9e8c22`；本次為文件與目錄導覽整理。先讀 [AGENTS.md](AGENTS.md)、[README.md](README.md)，工作清單見 [TODO.md](TODO.md)，研究事實與假設見 [INSIGHT.md](INSIGHT.md)。
+
+## 背景與目標
+
+Kuriyo 是推薦模型研究 repo，預計包含 Recall、Ranking、其他推薦鏈路與端到端模型，也容納同一家族的實驗變體。近期目標是建立 Amazon Reviews 2014 Beauty 上的 TIGER baseline，逐項核對論文設定、盡可能重現數值；目前只是可執行的 PyTorch/Hugging Face 實作，不能稱為已完成論文重現。
+
+模型變體應共享元件、訓練與 logging；只有設定不同時使用具名設定，有實作差異時才加入家族內 `variants/<name>/`。目前沒有 variants registry 或 baseline 子目錄，不要把規劃當作已實作；現有入口仍是 `Recall/TIGER/scripts/train_paper_baseline.py`。
+
+## Repo 分工與保留原則
+
+- `core/`：跨鏈路工具，目前是 `RunLogger`；`Recall/core/`：召回模型共用 padding、metrics、Transformer、實驗工具。
+- `Representations/SID/`：獨立商品表示、Sentence-T5/RQ-VAE，不隸屬 TIGER。
+- `Recall/TIGER/`：SID tokenization、解碼、smoke trainer、paper-configured trainer、專有 tests。
+- `scripts/`：資料下載／準備／轉換、Slurm orchestration、舊 log 匯入；兩個 `train_tiger_*` 是保留的相容入口。
+- `tests/`：跨階段與資料元件；`Recall/tests/`：共用 Recall 行為；`Recall/TIGER/tests/`：模型專有與訓練／續訓／test 整合。
+- `Ranking/`、`pipelines/` 尚為規劃／說明，不是已完成模型。
+- 原始資料、SID、checkpoints、環境與 cache 不入 Git。不刪除前次實驗來「整理」目錄；小型 smoke 產物雖舊，仍有研究追溯價值。
+
+## 資料與切分
+
+標準路徑：`data/amazon_reviews/<year>/raw/<category>/`、`catalog/<category>/`、`<train|validation|test>/raw/<category>/`。
+
+2014 Beauty：22,363 users、12,101 items；131,413 train、22,363 validation、22,363 test。依 user 時間排序，來源行號打破同日 ties，最後一筆 test、倒數第二筆 validation，其餘 train prefix expansion；歷史最多 20 items。9,719 位 user 的 validation/test 同日，不能把來源順序當真實日內順序。
+
+完整固定商品目錄生成 SID（包括 validation/test 商品 metadata）；不等同 cold-start 協定。商品 SID 放 `2014/artifacts/sids/sentence-t5_rqvae/Beauty/<version>/`，三個 split 的轉換資料放各自 `sids/<method>/Beauty/<version>/`。2023 All_Beauty 只有下載流程，尚未建立獨立評估協定。
+
+## 已完成的完整 run 與證據
+
+來源：[slurm-kuriyo-tiger-1153307.out](slurm-kuriyo-tiger-1153307.out)。job `1153307`；訓練程式 revision `5f99955`；SID_VERSION 與 RUN_NAME 都是 `tiger-paper-20261117-005232`。`STAGE=all` 完成 SID 20,000 epochs、split materialization、TIGER 200,000 steps，log 最後有 Saved 訊息；尚未取得獨立 sacct 成功狀態或實際 checkpoint 校驗。
+
+| 項目 | Log 中觀察 |
+|---|---|
+| SID catalog | 12,101 商品 |
+| codebook 使用碼數 | 6 / 26 / 25，各層容量 256（約 2.34% / 10.16% / 9.77%） |
+| 碰撞群組 | 228；不是碰撞商品比例，不能直接當 collision rate |
+| RQ-VAE loss | epoch 1 約 8.744e9；epoch 20,000 為 0.178358 |
+| T5 參數量 | 5,587,968；取代舊文件「約 470 萬」估值 |
+| 最佳已記錄 validation step | 200,000（按 NDCG@10） |
+| Recall@5 / Recall@10 | 0.020569691 / 0.034208290 |
+| NDCG@5 / NDCG@10 | 0.012409267 / 0.016787758 |
+| invalid beam fraction | 十次 validation 都為 0 |
+
+尚無此 run 的最終 test 結果。不能把 validation 與論文 test 直接比較，也不能宣稱低碼本使用率已被證明是差距原因。低使用率及第一 epoch 巨大 loss 是下一步的調查線索。
+
+完整 SoC 產物預期在 `Recall/TIGER/runs/<RUN_NAME>/` 和上述 SID 路徑；本地只有舊 smoke 產物、已提交 Slurm log 及重建的匯入紀錄，不假設已同步完整 GPU checkpoints／manifest。
+
+## Logging 與匯入狀態
+
+新版 `core/run_logging.py` 已接入 paper trainer 和 SID generator：TIGER 每 step、SID 每 epoch 寫 `train.jsonl`，生命週期等事件寫 `events.log`（JSON Lines），含 UTC timestamp、session ID、elapsed_seconds。續訓追加，不抹掉歷史；重跑相同 step 用 session ID 區分。SIGKILL、斷電或 logger 啟動前的錯誤未必留下失敗事件。舊 smoke trainer 尚未接入。
+
+完整 run 使用的是新版 logger 之前的程式，因此不能回溯逐 step loss／時間。已用 `scripts/import_slurm_training_log.py` 在本地建立：
+
+`Recall/TIGER/runs/tiger-paper-20261117-005232/imports/slurm-1153307/`
+
+內含 tiger 的 2,001 training rows／14 events、sid 的 201 epoch rows／2 events，以及 import_manifest。來源 SHA、行號和 `origin=slurm_import` 可追溯；缺少的時間、SID learning rate 為 null。不可把匯入時間當訓練時間。此目錄被忽略，可重建：
+
+```bash
+python3 -m scripts.import_slurm_training_log slurm-kuriyo-tiger-1153307.out \
+  --output-dir Recall/TIGER/runs/tiger-paper-20261117-005232/imports/slurm-1153307
+```
+
+已有目錄時拒絕覆寫；不要為重跑命令直接刪除已有紀錄。SoC 是否已執行匯入未確認。
+
+## SoC 操作與 Git 注意事項
+
+`run.sbatch` 支援 prepare / sid / materialize / train / test / all；all 不含最終 test。SID 階段自動準備輸入，完整產物可重用，部分產物拒絕覆寫。TIGER 可從 latest.pt 續訓；RQ-VAE 尚無中途 checkpoint／resume。
+
+目前 script 預設 gpu-long、1 GPU、32G、2 天；每次提交仍需依 [SoC skill](skills/nus-soc-slurm/SKILL.md) 確認 live 資源。除非使用者要求，不提交遠端作業或 push。
+
+SoC 安裝指令在根 requirements.txt 註解與 run.sbatch，明確使用 torch 2.7.1+cu126。xgpd5 為 TITAN V/sm_70，曾因 CUDA 13 build 發生 no kernel image。login xlogin1 的 virtual-memory soft/hard limit 都曾是 1 GiB，import Torch mmap 失敗；在 compute allocation 內診斷，不把磁碟 quota 與記憶體限制混為一談。TMPDIR 使用 repo .tmp 處理安裝暫存空間。
+
+曾有 SoC 未推送 commit 把舊 `data/amazon_reviews/{raw,train,eval,test}/<year>/` 納入，GitHub 因 >100 MB 拒收。已由使用者保留 backup branch、重整未推送 main；遠端 `679d990` 只含 ignore 與 log。新版 ignore 同時排除舊路徑；不 push backup branch 或使用 --all。目前沒有大型資料/checkpoint 進入遠端 main 的證據。不要要求分享 PAT；憑證只在使用者端設定。
+
+## 下一步（依優先順序）
+
+1. 取得此 run 的 SID manifest、config、best-metrics、codebook 分布／collision suffix 最大值，確認實際產物及設定與 log 一致；只分享小型 metadata，不上傳資料與 checkpoint。
+2. 調查 RQ-VAE：embedding 尺度、初始化、reconstruction/codebook/commitment 分項 loss、梯度、碼本頻率與碰撞分布；先補有針對性的元件測試與小跑，再完整重訓。不要直接把「低使用率」當結論。
+3. 核對 paper/T5X 與 HF T5 的容量、商品文字、user hash、訓練樣本、optimizer、解碼與評估設定；將事實與猜測分開記錄。
+4. 保留本 run 作比較起點，新增實驗用新 SID_VERSION/RUN_NAME；固定 validation，先建立熱門商品基線。模型定案後才執行一次 held-out test。
+5. 增加 SID checkpoint/resume；有第二個實際模型變體時才實作 variants 目錄與載入介面。
+
+## 驗證與限制
+
+最近已執行：22 項核心／TIGER／logging 測試通過，SID 8-item TF-IDF 小跑驗證新 logger；之後新增的 2 項 Slurm importer 測試通過，真實 log 筆數、最後 step、10 次 validation 已核對。本次整理後已跑完整 unittest discovery：24 項測試全數通過；文件本地連結與 git diff --check 通過。
+
+```bash
+.venv/bin/python -m unittest discover -s . -v
+```
+
+測試使用 CPU／合成小資料，不等同 GPU 效能或論文重現。本次不改模型／切分／訓練參數、不重跑完整 GPU 訓練。

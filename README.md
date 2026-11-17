@@ -2,9 +2,17 @@
 
 Kuriyo 這個 repository 主要用來存放**推薦模型**及其相關的資料處理、訓練、評估與實驗紀錄。
 
-專案目前仍在建立初期。2014 Amazon Beauty 的資料準備流程已可執行；獨立的 [SID 元件](Representations/SID/README.md)與 [TIGER](Recall/TIGER/README.md) 序列模型已有可執行的試跑流程，尚未重現論文結果。
+專案目前仍在建立初期。2014 Amazon Beauty 的資料準備流程已可執行；獨立的 [SID 元件](Representations/SID/README.md)與 [TIGER](Recall/TIGER/README.md) 序列模型已在 SoC 完成首輪完整 Beauty SID 與 200,000-step 訓練；已取得 validation，尚無最終 test 結果，也尚未重現論文結果。
 
 要執行第一版 TIGER baseline，請從 [TIGER 使用指南](Recall/TIGER/README.md) 開始：包含論文與模型介紹、依賴安裝、SoC pull 後分階段執行、手動指令、續訓、評估及目前限制。
+
+## 文件導覽與目前狀態
+
+- [HANDOFF.md](HANDOFF.md)：背景、最新 run 證據、操作限制與接手步驟；內容上限 0.1M tokens。
+- [TODO.md](TODO.md)：依優先順序追蹤工作；[INSIGHT.md](INSIGHT.md)：區分觀察、事實、限制與假設。
+- [AGENTS.md](AGENTS.md)：協作與修改規則；各元件 README：實際入口與操作方式。
+
+完整 run `tiger-paper-20261117-005232` 的最佳已記錄 validation 位於 step 200,000：Recall@10 **0.03420829**、NDCG@10 **0.01678776**。SID 三層各 256 個碼，實際使用 **6 / 26 / 25**；下一步先調查 SID 與實作設定，不能把 validation 當作論文 test 的直接對照。證據見 [Slurm log](slurm-kuriyo-tiger-1153307.out)。完整 GPU 產物仍在 SoC，Git 只同步程式與小型紀錄。
 
 ## 資料目錄
 
@@ -55,7 +63,7 @@ python3 -m unittest discover -s . -v
 
 本次 Beauty 輸出為 **131,413 train**、**22,363 validation**、**22,363 test** 筆樣本。2014 年資料的時間戳可能相同：9,719 位使用者的 validation 和 test 事件同時間戳，當日內的實際先後無法由時間戳判定；來源行序使切分可重現，但不代表知道真實先後。
 
-商品 SID 的產生與三個 split 的轉換指令見 [SID README](Representations/SID/README.md)；TIGER 的訓練指令見 [TIGER README](Recall/TIGER/README.md)。`sentence-t5_rqvae` 的完整 Beauty SID 尚待在完整商品目錄上訓練產生；小樣本 smoke test 的 SID 不用作正式 split 資料。
+商品 SID 的產生與三個 split 的轉換指令見 [SID README](Representations/SID/README.md)；TIGER 的訓練指令見 [TIGER README](Recall/TIGER/README.md)。`sentence-t5_rqvae` 的完整 Beauty SID 已由 SoC job 1153307 產生，但碼本使用率偏低，仍需診斷；小樣本 smoke test 的 SID 不用作正式 split 資料。
 
 在 SoC 上的完整 Beauty 準備與 TIGER baseline 入口是 [`scripts/run.sbatch`](scripts/run.sbatch)；本地可先用 `python3 -m scripts.prepare_amazon_reviews_2014_beauty` 檢查或準備共用商品目錄與切分。`run.sbatch` 的預設是長時間 GPU 訓練，提交前須查當前叢集資源與儲存規則；細節見 [SoC skill](skills/nus-soc-slurm/SKILL.md)。
 
@@ -79,9 +87,9 @@ python3 scripts/download_amazon_reviews_2023.py --category All_Beauty
 
 ## 程式目錄
 
-- `core/`：跨鏈路共用元件，目前包含獨立於 Slurm 的 run logger
+- [`core/`](core/README.md)：跨鏈路共用元件，目前包含獨立於 Slurm 的 run logger
 - `utils/`：資料處理、評估等共用工具
-- `scripts/`：資料下載、準備與相容入口
+- [`scripts/`](scripts/README.md)：資料下載、準備、log 匯入與相容入口
 - [`Representations/`](Representations/README.md)：可供多個模型共用的商品表示；SID 生成器位於 [`Representations/SID/`](Representations/SID/README.md)
 - [`Recall/`](Recall/README.md)：候選商品召回模型及資料執行說明
 - [`Recall/TIGER/`](Recall/TIGER/README.md)：TIGER 序列模型、訓練與評估

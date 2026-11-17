@@ -2,7 +2,7 @@
 
 TIGER（Transformer Index for GEnerative Recommenders）是序列推薦的生成式召回模型：先把商品內容編碼成 Semantic ID（SID），再根據使用者的互動歷史，生成下一件商品的 SID 並查回商品。
 
-論文：Shashank Rajput et al., **[Recommender Systems with Generative Retrieval](https://arxiv.org/abs/2305.05065)**，NeurIPS 2023（[正式論文 PDF](https://proceedings.neurips.cc/paper_files/paper/2023/file/20dcab0f14046a5c6b02b61da9f13229-Paper-Conference.pdf)）。本目錄是 Kuriyo 的 PyTorch 實作；目前有可執行的資料、SID、訓練與評估流程，**尚未完成完整 GPU baseline，也尚未重現論文數值**。
+論文：Shashank Rajput et al., **[Recommender Systems with Generative Retrieval](https://arxiv.org/abs/2305.05065)**，NeurIPS 2023（[正式論文 PDF](https://proceedings.neurips.cc/paper_files/paper/2023/file/20dcab0f14046a5c6b02b61da9f13229-Paper-Conference.pdf)）。本目錄是 Kuriyo 的 PyTorch 實作；目前有可執行的資料、SID、訓練與評估流程，**已完成首輪完整 GPU 訓練與 validation，尚無最終 test 結果，也尚未重現論文數值**。
 
 下列指令一律從 **Kuriyo repository 根目錄**執行，不是在 `Recall/TIGER/` 裡執行。
 
@@ -66,7 +66,7 @@ STAGE=test sbatch --export=ALL scripts/run.sbatch
   -r Representations/SID/requirements.txt -r Recall/TIGER/requirements.txt
 ```
 
-此設定針對叢集 TITAN V（Volta / sm_70）；[CUDA 13 已移除 Volta 函式庫支援](https://developer.nvidia.com/blog/navigating-gpu-architecture-support-a-guide-for-nvidia-cuda-developers)，採用 [PyTorch 官方 CUDA 12.6 build](https://pytorch.org/get-started/previous-versions/)。目前只確認使用者已成功安裝，仍需在 GPU allocation 內驗證運算與完整訓練。本地 CPU／macOS 使用下方一般依賴，不套用此 CUDA 版本覆寫。註解本身不會讓 pip 自動判斷是否位於 SoC，手動安裝時請使用上述完整指令。
+此設定針對叢集 TITAN V（Volta / sm_70）；[CUDA 13 已移除 Volta 函式庫支援](https://developer.nvidia.com/blog/navigating-gpu-architecture-support-a-guide-for-nvidia-cuda-developers)，採用 [PyTorch 官方 CUDA 12.6 build](https://pytorch.org/get-started/previous-versions/)。後續 job 1153307 的 log 已顯示完整訓練執行至 200,000 steps；新 allocation 仍需確認環境與 GPU。本地 CPU／macOS 使用下方一般依賴，不套用此 CUDA 版本覆寫。註解本身不會讓 pip 自動判斷是否位於 SoC，手動安裝時請使用上述完整指令。
 
 若 login node 的 `ulimit -v` 為 `1048576`，代表虛擬記憶體上限 1 GiB，可能導致 `libtorch_cpu.so: failed to map segment`。請在 allocation 內檢查 `ulimit -a` 並測試 Torch，不要將 login node 的載入失敗直接判定為安裝損毀；batch 是否繼承限制亦須確認。
 
@@ -198,7 +198,7 @@ SID 完成後有 `semantic_ids.jsonl`、`manifest.json`、`embeddings.npz`、`rq
 - **SID split missing：** 完整 SID 生成後先跑 `STAGE=materialize`，確認後續沿用同一個 `SID_VERSION`。
 - **CUDA is unavailable：** 確認執行於 GPU allocation，並檢查該 `.venv` 的 PyTorch/CUDA 與節點驅動。CPU 小樣本可用 `--device cpu`，正式 batch 入口使用 CUDA。
 - **run 已存在：** 相同實驗以 `--resume` 接續；新實驗改 `RUN_NAME`。SID 目前沒有中途 checkpoint／續訓，完成前中斷可能需重跑，勿將部分 SID 目錄當成已完成。
-- **與論文差距：** 本實作使用 HF T5，並非作者的 T5X；目前約 470 萬參數，低於論文所述約 1,300 萬。user hash、樣本展開、訓練框架及選模協定尚未證實與原實驗完全一致。完整 GPU 結果與鎖定依賴環境仍待補齊。
+- **與論文差距：** 本實作使用 HF T5，並非作者的 T5X；job 1153307 實際記錄為 5,587,968 參數，低於論文所述約 1,300 萬。user hash、樣本展開、訓練框架及選模協定尚未證實與原實驗完全一致。完整 validation 已取得；最終 test 與鎖定依賴環境仍待補齊。
 - **其他 SID 方法：** `sentence-t5_kmeans`、`sentence-t5_lsh` 目前只有預留目錄，尚無生成器。
 
 ## 程式導覽
@@ -226,3 +226,8 @@ python3 -m scripts.import_slurm_training_log slurm-kuriyo-tiger-1153307.out \
 ```
 
 輸出分成 `tiger/` 與 `sid/`，各含 `train.jsonl`、`events.log`，另有 `import_manifest.json` 記錄來源 SHA-256、job、筆數與匯入時間。每筆記錄標明 `origin=slurm_import` 和來源行號。只保留實際印出的數值與精度：原事件時間、經過秒數及未印出的 SID learning rate 為 `null`；不補造缺少的 steps、checkpoint 或完成事件。匯入目錄必須不存在，重跑不會覆寫或重複追加。輸出仍被 Git 忽略，可由已提交的來源 log 與此指令重建。
+
+
+## 首輪完整訓練狀態
+
+SoC job 1153307（程式 `5f99955`）的 run 為 `tiger-paper-20261117-005232`，已完成 200,000 steps，最佳已記錄 validation NDCG@10 為 0.016787758（step 200,000）。這份 log 沒有最終 test。SID 使用碼數 6/26/25（每層 256），需先診斷再做對照實驗；完整設定、四個指標、產物位置與下一步見 [HANDOFF](../../HANDOFF.md)。
