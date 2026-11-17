@@ -15,7 +15,7 @@ sources:
   - code: tests/test_run_sbatch.py
   - code: AGENTS.md
   - code: .gitignore
-verified_at: 9cceaf7
+verified_at: 495076a
 ---
 
 # 模型家族與變體目錄結構
