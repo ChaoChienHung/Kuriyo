@@ -78,7 +78,7 @@ SoC 安裝指令在根 requirements.txt 註解與 run.sbatch，明確使用 torc
 
 ## 下一步（依優先順序）
 
-1. **修 SID（最優先）：**2026-11-18 本機診斷確認現行 `--paper-baseline` SID 訓練第一個 epoch 就發散（PyTorch Adagrad accumulator 預設 0，lr 0.4 的第一步等同每個權重移動 0.4），三層塌縮；即使改穩定 optimizer，第一層仍塌縮，重建只達「輸出平均 embedding」水準。目前最健康的是 AdamW + embedding 標準化 + 重設未使用碼（256/256/256、317 件碰撞），其次是 Adagrad accumulator 0.1 + 重設未使用碼。數據與指令見 INSIGHT Facts／TIGER；工具是 `python -m Representations.SID.scripts.diagnose_rqvae`。下一步把修正做成 `generate_sids` 選項並補測試，再用新 SID_VERSION 重訓。
+1. **修 SID（最優先）：**2026-11-18 本機診斷確認現行 `--paper-baseline` SID 訓練第一個 epoch 就發散（PyTorch Adagrad accumulator 預設 0，lr 0.4 的第一步等同每個權重移動 0.4），三層塌縮；即使改穩定 optimizer，第一層仍塌縮，重建只達「輸出平均 embedding」水準。目前最健康的是 AdamW + embedding 標準化 + 重設未使用碼（256/256/256、317 件碰撞），其次是 Adagrad accumulator 0.1 + 重設未使用碼。數據與指令見 INSIGHT Facts／TIGER；工具是 `python -m Representations.SID.scripts.diagnose_rqvae`。修正已實作為 `generate_sids --recipe`（`paper-pytorch` 重現舊行為、`paper-tf-adagrad`、`stable`），`run.sbatch` 以 `SID_RECIPE` 選擇、預設 `stable`，並拒絕重用配方不同的 SID 目錄。下一步在 SoC 以 `SID_RECIPE=stable SID_VERSION=stable-v1 STAGE=sid` 產生新 SID，確認 manifest 的碼本使用率與碰撞後再 materialize／train；尚未在 SoC 執行。
 2. 用新 SID、相同 T5 設定、新 RUN_NAME 在 SoC 訓練，比較相同 step 的 validation（現有 run：20k step Recall@10 0.0191、200k 0.0342；熱門基線 validation 0.0170），驗證 INSIGHT H3。同時取得現有 run 的 SID manifest／config／best-metrics，只分享小型 metadata。
 3. 核對 paper/T5X 與 HF T5 的容量、商品文字、user hash、訓練樣本、optimizer、解碼與評估設定；將事實與猜測分開記錄。
 4. 保留本 run 作比較起點，新增實驗用新 SID_VERSION/RUN_NAME；固定 validation，先建立熱門商品基線。模型定案後才執行一次 held-out test。

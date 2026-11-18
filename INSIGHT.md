@@ -68,6 +68,7 @@
   | F. AdamW + 標準化 + 重設未使用碼 | 60 | 0.54（標準化尺度，仍在下降） | 256/256/256 | 11,928 | 317 | 6 |
 
   A 在第 1 個 epoch latent 範數由 0.32 變成 5,260，loss 5.1e6，與 SoC log 第一 epoch 8.7e9 一致。B、C 的重建 MSE 收斂到約 2.2e-4，等於所有商品都輸出平均 embedding 的水準，代表 decoder 沒有用到碼本資訊。只有 F 的重建誤差明顯低於「輸出平均值」（標準化尺度下 0.54 < 1.0），同時保持全碼本使用。各設定只跑一個 seed，60／300 epochs 遠少於論文 20,000 epochs。
+- **SID 配方實作後的驗證（2026-11-18，本機，60 epochs，seed 42）：**`generate_sids` 新增 `--recipe paper-pytorch|paper-tf-adagrad|stable`，以 `diagnose_rqvae --recipe` 套用正式程式碼重跑，結果與上表一致：`paper-pytorch` 1/1/1、12,101 件碰撞；`paper-tf-adagrad` 256/256/256、346 件碰撞、最大群 5，重建 2.21e-4（仍只到平均值水準）；`stable` 256/256/256、313 件碰撞、最大群 6，標準化重建 0.551 且持續下降。尚未以 20,000 epochs 或 TIGER 訓練驗證。
 - 本地序列 smoke test 只取 128 筆 train、3 筆 validation、訓練 1 epoch；Recall@5/10 與 NDCG@5/10 均為 0。此數字僅驗證執行與指標流程，不能代表推薦品質；產物在 `Recall/TIGER/baseline/runs/smoke-sequence-from-final-sid/`。
 
 ## Limitations

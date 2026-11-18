@@ -31,6 +31,27 @@ from core.run_logging import RunLogger
 DEFAULT_ITEMS = ROOT / "data/amazon_reviews/2014/catalog/Beauty/items.jsonl"
 DEFAULT_RUNS = ROOT / "Representations/SID/runs"
 
+# Full-budget recipes share the paper's architecture and schedule (three
+# 256-code levels, 32-d latent, 512/256/128 MLP, batch 1024, 20k epochs,
+# k-means init from 1,024 items) and differ only in how training is stabilized.
+# Each produces a distinct SID artifact; record which one in SID_VERSION.
+RECIPES = {
+    # PyTorch Adagrad as-is (accumulator 0). Reproduces job 1153307; the first
+    # step moves every weight by ~lr and collapses the codebooks.
+    "paper-pytorch": {"optimizer": "adagrad", "learning_rate": 0.4,
+                      "adagrad_initial_accumulator": 0.0,
+                      "reset_dead_codes": False, "standardize_embeddings": False},
+    # Adagrad with the TF/Optax default accumulator plus dead-code resets.
+    "paper-tf-adagrad": {"optimizer": "adagrad", "learning_rate": 0.4,
+                         "adagrad_initial_accumulator": 0.1,
+                         "reset_dead_codes": True, "standardize_embeddings": False},
+    # AdamW on per-dimension standardized embeddings plus dead-code resets;
+    # the only local diagnostic setting whose decoder learned beyond the mean.
+    "stable": {"optimizer": "adamw", "learning_rate": 0.001,
+               "adagrad_initial_accumulator": None,
+               "reset_dead_codes": True, "standardize_embeddings": True},
+}
+
 
 def read_items(path, limit):
     items = []
@@ -89,6 +110,24 @@ def initialize_codebooks(model, embeddings, seed):
         residual = residual - centers[indices]
 
 
+def standardize(embeddings):
+    """Per-dimension z-score; Sentence-T5 vectors share a large common component."""
+    mean = embeddings.mean(0)
+    std = embeddings.std(0) + 1e-8
+    return ((embeddings - mean) / std).astype(np.float32), mean.astype(np.float32), std.astype(np.float32)
+
+
+def build_optimizer(name, parameters, learning_rate, adagrad_initial_accumulator):
+    if name == "adagrad":
+        return torch.optim.Adagrad(parameters, lr=learning_rate,
+                                   initial_accumulator_value=adagrad_initial_accumulator)
+    if name == "adamw":
+        return torch.optim.AdamW(parameters, lr=learning_rate)
+    if name == "adam":
+        return torch.optim.Adam(parameters, lr=learning_rate)
+    raise ValueError("unknown optimizer: {}".format(name))
+
+
 def unique_semantic_ids(asins, codes):
     groups = defaultdict(list)
     for asin, code in zip(asins, codes):
@@ -110,8 +149,17 @@ def main():
     parser.add_argument("--output-dir", type=Path,
                         help="write SID artifacts here instead of a named runs/ directory")
     parser.add_argument("--encoder", choices=("sentence-t5", "tfidf"), default="sentence-t5")
+    parser.add_argument("--recipe", choices=sorted(RECIPES),
+                        help="full-budget SID recipe (paper architecture, 20k epochs); see RECIPES")
     parser.add_argument("--paper-baseline", action="store_true",
-                        help="use TIGER paper RQ-VAE training defaults (20k epochs, Adagrad 0.4)")
+                        help="alias for --recipe paper-pytorch (kept for older commands)")
+    parser.add_argument("--optimizer", choices=("adam", "adamw", "adagrad"), default="adam",
+                        help="optimizer for non-recipe runs")
+    parser.add_argument("--adagrad-initial-accumulator", type=float, default=0.0)
+    parser.add_argument("--reset-dead-codes", action="store_true",
+                        help="after each epoch, re-seed codewords no item selects")
+    parser.add_argument("--standardize-embeddings", action="store_true",
+                        help="z-score each embedding dimension before training")
     parser.add_argument("--text-model", default="sentence-transformers/sentence-t5-base")
     parser.add_argument("--text-batch-size", type=int, default=32)
     parser.add_argument("--text-dim", type=int, default=64)
@@ -127,14 +175,23 @@ def main():
     parser.add_argument("--device", choices=("cpu", "cuda", "mps"), default="cpu")
     args = parser.parse_args()
     if args.paper_baseline:
+        if args.recipe not in (None, "paper-pytorch"):
+            parser.error("--paper-baseline is an alias for --recipe paper-pytorch")
+        args.recipe = "paper-pytorch"
+    if args.recipe is not None:
         if args.encoder != "sentence-t5" or args.limit_items is not None:
-            parser.error("--paper-baseline requires the full Sentence-T5 catalog")
+            parser.error("--recipe requires the full Sentence-T5 catalog")
         args.epochs = 20000
         args.batch_size = 1024
         args.codebook_size = 256
         args.hidden_dims = (512, 256, 128)
         args.latent_dim = 32
-        args.learning_rate = 0.4
+        for key, value in RECIPES[args.recipe].items():
+            setattr(args, key, value)
+    if args.optimizer == "adagrad" and args.adagrad_initial_accumulator < 0:
+        parser.error("--adagrad-initial-accumulator must be nonnegative")
+    if args.optimizer != "adagrad":
+        args.adagrad_initial_accumulator = None
     if args.output_dir is None and (not args.run_name
             or Path(args.run_name).name != args.run_name
             or args.run_name in (".", "..")):
@@ -173,20 +230,27 @@ def main():
         embeddings = embed_items(items, args)
         if not np.isfinite(embeddings).all():
             raise ValueError("non-finite item embedding")
-        model = RQVAE(embeddings.shape[1], hidden_dims=tuple(args.hidden_dims),
+        standardization = {}
+        inputs = embeddings
+        if args.standardize_embeddings:
+            inputs, mean, std = standardize(embeddings)
+            standardization = {"standardize_mean": mean, "standardize_std": std}
+        model = RQVAE(inputs.shape[1], hidden_dims=tuple(args.hidden_dims),
                       latent_dim=args.latent_dim, codebook_size=args.codebook_size)
-        if args.paper_baseline:
-            initial_indices = np.random.default_rng(args.seed).permutation(len(embeddings))[:1024]
-            initialize_codebooks(model, embeddings[initial_indices], args.seed)
+        if args.recipe is not None:
+            initial_indices = np.random.default_rng(args.seed).permutation(len(inputs))[:1024]
+            initialize_codebooks(model, inputs[initial_indices], args.seed)
         else:
-            initialize_codebooks(model, embeddings, args.seed)
+            initialize_codebooks(model, inputs, args.seed)
         model.to(args.device)
-        optimizer_name = "adagrad" if args.paper_baseline else "adam"
-        optimizer = (torch.optim.Adagrad(model.parameters(), lr=args.learning_rate)
-                     if args.paper_baseline else torch.optim.Adam(model.parameters(), lr=args.learning_rate))
-        dataset = TensorDataset(torch.from_numpy(embeddings))
+        optimizer = build_optimizer(args.optimizer, model.parameters(), args.learning_rate,
+                                    args.adagrad_initial_accumulator)
+        dataset = TensorDataset(torch.from_numpy(inputs))
+        all_inputs = torch.from_numpy(inputs).to(args.device)
         loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True,
                             generator=torch.Generator().manual_seed(args.seed))
+        reset_generator = torch.Generator().manual_seed(args.seed)
+        total_resets = [0] * len(model.codebooks)
         for epoch in range(args.epochs):
             model.train()
             total = 0.0
@@ -196,10 +260,20 @@ def main():
                 loss.backward()
                 optimizer.step()
                 total += loss.item() * len(batch)
-            logger.train(epoch=epoch + 1, loss=total / len(dataset), learning_rate=args.learning_rate)
-            if not args.paper_baseline or epoch == 0 or (epoch + 1) % 100 == 0 or epoch + 1 == args.epochs:
-                print("epoch {}/{} loss={:.6f}".format(epoch + 1, args.epochs,
-                                                       total / len(dataset)), flush=True)
+            record = {"epoch": epoch + 1, "loss": total / len(dataset),
+                      "learning_rate": args.learning_rate}
+            if args.reset_dead_codes:
+                resets = model.reset_dead_codes(all_inputs, reset_generator)
+                total_resets = [old + new for old, new in zip(total_resets, resets)]
+                record["dead_codes_reset"] = resets
+            if not np.isfinite(record["loss"]):
+                raise RuntimeError("non-finite RQ-VAE loss at epoch {}".format(epoch + 1))
+            logger.train(**record)
+            if args.recipe is None or epoch == 0 or (epoch + 1) % 100 == 0 or epoch + 1 == args.epochs:
+                print("epoch {}/{} loss={:.6f}{}".format(
+                    epoch + 1, args.epochs, record["loss"],
+                    " dead_codes_reset={}".format(record["dead_codes_reset"])
+                    if args.reset_dead_codes else ""), flush=True)
 
         model.eval()
         codes = []
@@ -223,14 +297,20 @@ def main():
             "codebook_size": args.codebook_size, "latent_dim": args.latent_dim,
             "hidden_dims": args.hidden_dims, "learning_rate": args.learning_rate,
             "batch_size": args.batch_size, "device": args.device,
-            "paper_baseline": args.paper_baseline, "optimizer": optimizer_name,
+            "recipe": args.recipe, "paper_baseline": args.recipe == "paper-pytorch",
+            "optimizer": args.optimizer,
+            "adagrad_initial_accumulator": args.adagrad_initial_accumulator,
+            "reset_dead_codes": args.reset_dead_codes,
+            "dead_codes_reset_total": total_resets if args.reset_dead_codes else None,
+            "standardize_embeddings": args.standardize_embeddings,
             "codebook_usage_ratio": [usage / args.codebook_size for usage in usages],
             "git_revision": revision.stdout.strip() if revision.returncode == 0 else None,
             "seed": args.seed, "collision_groups": collision_groups,
             "largest_collision_group": largest_collision, "codebook_usage": usages,
             "sid_length": 4, "collision_token_rule": "zero-based rank by asin within each 3-code group",
         }
-        np.savez_compressed(run_dir / "embeddings.npz", asins=np.asarray(asins), embeddings=embeddings)
+        np.savez_compressed(run_dir / "embeddings.npz", asins=np.asarray(asins),
+                            embeddings=embeddings, **standardization)
         torch.save(model.state_dict(), run_dir / "rqvae.pt")
         with (run_dir / "semantic_ids.jsonl").open("w", encoding="utf-8") as output:
             for asin in asins:

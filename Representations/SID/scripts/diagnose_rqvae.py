@@ -5,28 +5,32 @@ production RQVAE and k-means initialization, and prints one JSON line per
 report epoch: component losses, per-level code usage, collisions, latent norm.
 Nothing is written to disk. Run from the repository root, for example:
 
-  python -m Representations.SID.scripts.diagnose_rqvae --emb <run>/embeddings.npz       --opt adagrad --lr 0.4 --accum 0 --epochs 60 --report 20
+  python -m Representations.SID.scripts.diagnose_rqvae --emb <run>/embeddings.npz       --recipe stable --epochs 60 --report 20
 """
 import argparse, json, time
 from collections import Counter
 import numpy as np, torch
 from torch.utils.data import DataLoader, TensorDataset
 from Representations.SID.rqvae import RQVAE
-from Representations.SID.scripts.generate_sids import initialize_codebooks
+from Representations.SID.scripts.generate_sids import RECIPES, build_optimizer, initialize_codebooks, standardize
 
 p=argparse.ArgumentParser()
-p.add_argument("--emb",required=True); p.add_argument("--opt",choices=("adagrad","adamw"),required=True); p.add_argument("--lr",type=float,required=True)
+p.add_argument("--emb",required=True); p.add_argument("--recipe",choices=sorted(RECIPES),help="use a generate_sids recipe's optimizer and stabilization"); p.add_argument("--opt",choices=("adam","adagrad","adamw")); p.add_argument("--lr",type=float)
 p.add_argument("--accum",type=float,default=0.0); p.add_argument("--epochs",type=int,required=True)
 p.add_argument("--report",type=int,default=50); p.add_argument("--standardize",action="store_true"); p.add_argument("--reset-dead",action="store_true"); p.add_argument("--seed",type=int,default=42)
 a=p.parse_args()
+if a.recipe:
+    r=RECIPES[a.recipe]
+    a.opt, a.lr, a.accum = r["optimizer"], r["learning_rate"], r["adagrad_initial_accumulator"]
+    a.standardize, a.reset_dead = r["standardize_embeddings"], r["reset_dead_codes"]
+if a.opt is None or a.lr is None: p.error("give --recipe, or both --opt and --lr")
 torch.manual_seed(a.seed); np.random.seed(a.seed); torch.set_num_threads(4)
 emb=np.load(a.emb)["embeddings"]
-if a.standardize: emb=((emb-emb.mean(0))/(emb.std(0)+1e-8)).astype(np.float32)
+if a.standardize: emb=standardize(emb)[0]
 model=RQVAE(emb.shape[1])
 idx=np.random.default_rng(a.seed).permutation(len(emb))[:1024]
 initialize_codebooks(model, emb[idx], a.seed)
-if a.opt=="adagrad": opt=torch.optim.Adagrad(model.parameters(), lr=a.lr, initial_accumulator_value=a.accum)
-elif a.opt=="adamw": opt=torch.optim.AdamW(model.parameters(), lr=a.lr)
+opt=build_optimizer(a.opt, model.parameters(), a.lr, a.accum)
 X=torch.from_numpy(emb)
 loader=DataLoader(TensorDataset(X),batch_size=1024,shuffle=True,generator=torch.Generator().manual_seed(a.seed))
 def stats():
@@ -47,15 +51,7 @@ t=time.time()
 for ep in range(1,a.epochs+1):
     for (b,) in loader:
         opt.zero_grad(); loss,_,_=model(b); loss.backward(); opt.step()
-    if a.reset_dead:
-        with torch.no_grad():
-            r=model.encoder(X); g=torch.Generator().manual_seed(ep)
-            for cb in model.codebooks:
-                d=r.square().sum(-1,keepdim=True)+cb.square().sum(-1)-2*r@cb.T
-                i=d.argmin(-1); used=torch.bincount(i,minlength=cb.shape[0])>0
-                dead=(~used).nonzero().flatten()
-                if len(dead): cb.data[dead]=r[torch.randint(len(r),(len(dead),),generator=g)]
-                r=r-cb[d.argmin(-1)]
+    if a.reset_dead: model.reset_dead_codes(X, torch.Generator().manual_seed(ep))
     if ep==1 or ep%a.report==0 or ep==a.epochs:
         print(json.dumps({"epoch":ep, **stats(), "sec":round(time.time()-t)}), flush=True)
 print("zero-predictor reconstruction mse", float((X**2).mean()))

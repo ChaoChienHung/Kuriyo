@@ -17,9 +17,10 @@ TIGER（Transformer Index for GEnerative Recommenders）是序列推薦的生成
 ```bash
 git pull --ff-only
 
-# 同一組實驗的後續階段請沿用這兩個名稱。
-export SID_VERSION=tiger-paper-v1
-export RUN_NAME=tiger-paper-v1
+# 同一組實驗的後續階段請沿用這三個值。
+export SID_RECIPE=stable        # SID 訓練配方，見 Representations/SID/README.md
+export SID_VERSION=stable-v1
+export RUN_NAME=tiger-stable-v1
 
 # 自動建立 .venv、安裝依賴、準備 Beauty，再生成完整商品 SID。
 STAGE=sid sbatch --export=ALL scripts/run.sbatch
@@ -49,13 +50,13 @@ STAGE=test sbatch --export=ALL scripts/run.sbatch
 | STAGE | 行為與前置條件 |
 | --- | --- |
 | `prepare` | 下載或驗證 Beauty 原始資料，建立或驗證商品目錄與 ASIN splits |
-| `sid` | 先執行 prepare，再生成 SID；已完成的 SID 目錄會重用 |
+| `sid` | 先執行 prepare，再以 `SID_RECIPE` 生成 SID；已完成的 SID 目錄只在 manifest 記錄相同配方時重用，否則停止 |
 | `materialize` | 需要完整 SID 與 ASIN splits；轉換三個 split，完整既有輸出會重用 |
 | `train` | 需要 materialized splits；既有 run 有 `latest.pt` 時自動續訓 |
 | `test` | 需要 run 的 `best.pt`；寫出最終 test 指標，拒絕覆寫已存在的結果 |
 | `all`（預設） | 依序 prepare → sid → materialize → train |
 
-所有階段使用相同的 `SID_VERSION`；序列訓練與 test 使用相同的 `RUN_NAME`。新實驗使用新 run 名稱；更換 SID 設定時也使用新 SID 版本。重開 shell 後記得重新 export。若計算節點不能連外，需在允許的節點預先準備依賴、資料與 Hugging Face cache。
+所有階段使用相同的 `SID_VERSION`；序列訓練與 test 使用相同的 `RUN_NAME`。新實驗使用新 run 名稱；更換 SID 設定時也使用新 SID 版本。`SID_RECIPE` 預設 `stable`；要重現 job 1153307 的 SID 用 `paper-pytorch`（已知會塌縮，只作對照）。舊版 SID 目錄的 manifest 沒有 recipe 欄位，視為 `paper-pytorch`。重開 shell 後記得重新 export。若計算節點不能連外，需在允許的節點預先準備依賴、資料與 Hugging Face cache。
 
 ## 安裝依賴與手動執行
 
@@ -92,8 +93,9 @@ python3 -m venv .venv
 手動執行完整流程（首次執行使用新的輸出版本）：
 
 ```bash
-export SID_VERSION=tiger-paper-v1
-export RUN_NAME=tiger-paper-v1
+export SID_RECIPE=stable
+export SID_VERSION=stable-v1
+export RUN_NAME=tiger-stable-v1
 export SID_DIR="data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/$SID_VERSION"
 
 # 1. 準備原始資料、商品 catalog 與 ASIN splits。
@@ -101,7 +103,7 @@ export SID_DIR="data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty
 
 # 2. 對完整商品 catalog 生成 SID。
 .venv/bin/python -m Representations.SID.scripts.generate_sids \
-  --output-dir "$SID_DIR" --encoder sentence-t5 --paper-baseline --device cuda
+  --output-dir "$SID_DIR" --encoder sentence-t5 --recipe "$SID_RECIPE" --device cuda
 
 # 3. 使用同一份 SID 對照表轉換三個 split。
 .venv/bin/python -m scripts.materialize_amazon_sids \

@@ -5,6 +5,14 @@ from torch import nn
 from torch.nn import functional as F
 
 
+def nearest_code(residual, codebook):
+    """Index of the closest codeword (squared Euclidean) for each residual row."""
+    distances = (residual.square().sum(-1, keepdim=True)
+                 + codebook.square().sum(-1).unsqueeze(0)
+                 - 2 * residual @ codebook.T)
+    return distances.argmin(-1)
+
+
 class RQVAE(nn.Module):
     def __init__(self, input_dim, hidden_dims=(512, 256, 128), latent_dim=32,
                  levels=3, codebook_size=256, commitment_weight=0.25):
@@ -39,10 +47,7 @@ class RQVAE(nn.Module):
         codebook_loss = latent.new_zeros(())
         commitment_loss = latent.new_zeros(())
         for codebook in self.codebooks:
-            distances = (residual.square().sum(-1, keepdim=True)
-                         + codebook.square().sum(-1).unsqueeze(0)
-                         - 2 * residual @ codebook.T)
-            index = distances.argmin(-1)
+            index = nearest_code(residual, codebook)
             vector = F.embedding(index, codebook)
             codebook_loss = codebook_loss + F.mse_loss(vector, residual.detach())
             commitment_loss = commitment_loss + F.mse_loss(residual, vector.detach())
@@ -69,3 +74,27 @@ class RQVAE(nn.Module):
     @torch.no_grad()
     def encode_codes(self, inputs):
         return self.quantize(self.encoder(inputs))[1]
+
+    @torch.no_grad()
+    def reset_dead_codes(self, inputs, generator=None):
+        """Re-seed codewords that no input selects with random residuals of that level.
+
+        The codebook loss only moves selected codewords, so codes stranded by a
+        shifting latent distribution never recover on their own. Returns the
+        number of codewords reset per level.
+        """
+        residual = self.encoder(inputs)
+        resets = []
+        for codebook in self.codebooks:
+            index = nearest_code(residual, codebook)
+            used = torch.bincount(index, minlength=codebook.shape[0]) > 0
+            dead = (~used).nonzero().flatten()
+            if len(dead):
+                # Distinct source rows, so reseeded codewords do not duplicate each other.
+                order = torch.randperm(len(residual), generator=generator)
+                rows = order[torch.arange(len(dead)) % len(residual)]
+                codebook.data[dead] = residual[rows.to(residual.device)]
+                index = nearest_code(residual, codebook)
+            resets.append(int(len(dead)))
+            residual = residual - codebook[index]
+        return resets

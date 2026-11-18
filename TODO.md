@@ -9,7 +9,8 @@
 - [x] 舊 log 匯入獨立 train.jsonl/events.log，保留來源 SHA、行號、缺失資訊與採樣頻率。
 - [ ] 取得／核對該 run 的 config、SID manifest、best-metrics、實際 checkpoint 存在性與 job 最終狀態；不要提交大型產物。
 - [x] 檢查 RQ-VAE 首 epoch 巨大 loss 與低碼本使用率：PyTorch Adagrad accumulator 預設 0 造成第一步發散；穩定 optimizer 下第一層仍塌縮。診斷工具 `Representations/SID/scripts/diagnose_rqvae.py`，結果見 INSIGHT。
-- [ ] 在 `generate_sids` 加入修正選項（Adagrad `initial_accumulator_value`、未使用碼重設、embedding 標準化），補測試確認不發散且碼本使用率不塌縮；用新 SID_VERSION 產生 SID，保留舊版本。
+- [x] `generate_sids --recipe`：Adagrad accumulator、未使用碼重設、embedding 標準化；`run.sbatch` 的 `SID_RECIPE` 與配方不符時拒絕重用；補元件與 orchestration 測試。
+- [ ] 在 SoC 以 `SID_RECIPE=stable` 產生新 SID 版本，檢查 manifest 的 `codebook_usage_ratio` 與碰撞；可選再跑 `paper-tf-adagrad` 對照。
 - [ ] 以新 SID、同一 T5 設定、新 RUN_NAME 在 SoC 訓練，比較 20k／60k step validation 與現有 run（驗證 INSIGHT H3）。
 - [ ] 對 SoC 上現有 SID 統計碰撞商品比例與最大 collision suffix（本機診斷已含此統計，可直接套用 `embeddings.npz`）。
 - [ ] 核對 paper/T5X 與 HF 設定：實際參數量 5,587,968、metadata 文句、user hash、prefix expansion、optimizer、解碼與評估。

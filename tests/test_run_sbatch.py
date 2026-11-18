@@ -1,5 +1,6 @@
 """Exercise batch-stage orchestration without Slurm, downloads, or a GPU."""
 
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -45,6 +46,7 @@ case "$2" in
     ;;
   Representations.SID.scripts.generate_sids)
     test -s data/amazon_reviews/2014/catalog/Beauty/items.jsonl
+    echo "$*" > "$RUN_TRACE.sid"
     ;;
   Recall.TIGER.baseline.train)
     echo "$*" > "$RUN_TRACE.train"
@@ -71,13 +73,36 @@ esac
             "Representations.SID.scripts.generate_sids",
         ])
 
-    def test_sid_reuses_completed_catalog(self):
+    def write_sid(self, manifest):
         sid = self.root / (
             "data/amazon_reviews/2014/artifacts/sids/"
             "sentence-t5_rqvae/Beauty/test-v1")
         sid.mkdir(parents=True)
-        for name in ("semantic_ids.jsonl", "manifest.json"):
-            (sid / name).write_text("{}\n")
+        (sid / "semantic_ids.jsonl").write_text("{}\n")
+        (sid / "manifest.json").write_text(json.dumps(manifest) + "\n")
+
+    def test_sid_generates_with_requested_recipe(self):
+        self.env["SID_RECIPE"] = "paper-tf-adagrad"
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--recipe paper-tf-adagrad", Path(str(self.trace) + ".sid").read_text())
+
+    def test_sid_rejects_unknown_recipe_before_work(self):
+        self.env["SID_RECIPE"] = "adam"
+        result = self.run_job()
+        self.assertEqual(result.returncode, 2)
+        self.assertFalse(self.trace.exists())
+
+    def test_sid_refuses_to_reuse_catalog_from_another_recipe(self):
+        self.write_sid({"paper_baseline": True})  # manifest from before recipes existed
+        result = self.run_job()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("built with recipe paper-pytorch, not SID_RECIPE=stable", result.stderr)
+        self.env["SID_RECIPE"] = "paper-pytorch"
+        self.assertEqual(self.run_job().returncode, 0)
+
+    def test_sid_reuses_completed_catalog(self):
+        self.write_sid({"recipe": "stable"})
         result = self.run_job()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Reusing completed SID catalog", result.stdout)
