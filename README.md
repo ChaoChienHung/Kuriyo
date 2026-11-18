@@ -9,7 +9,7 @@ Kuriyo 這個 repository 主要用來存放**推薦模型**及其相關的資料
 ## 文件導覽與目前狀態
 
 - [HANDOFF.md](HANDOFF.md)：背景、最新 run 證據、操作限制與接手步驟；內容上限 0.1M tokens。
-- [TODO.md](TODO.md)：依優先順序追蹤工作；[INSIGHT.md](INSIGHT.md)：區分觀察、事實、限制與假設。
+- [TODO.md](TODO.md)：依優先順序追蹤工作；[INSIGHT.md](INSIGHT.md)：研究筆記總覽；各鏈路（Recall、Ranking、SID）與各模型家族有自己的 `INSIGHT.md`，根檔摘要並連結它們。
 - [AGENTS.md](AGENTS.md)：協作與修改規則；各元件 README：實際入口與操作方式。
 
 完整 run `tiger-paper-20261117-005232` 的最佳已記錄 validation 位於 step 200,000：Recall@10 **0.03420829**、NDCG@10 **0.01678776**。SID 三層各 256 個碼，實際使用 **6 / 26 / 25**；下一步先調查 SID 與實作設定，不能把 validation 當作論文 test 的直接對照。證據為 job 1153307 的 Slurm log；該檔已於 `2ad21c7` 從 repo 移除，可用 `git show 2ad21c7^:slurm-kuriyo-tiger-1153307.out` 取回。完整 GPU 產物仍在 SoC，Git 只同步程式與小型紀錄。
@@ -98,7 +98,7 @@ python3 scripts/download_amazon_reviews_2023.py --category All_Beauty
 - [`pipelines/`](pipelines/README.md)：預留跨鏈路與端到端推薦流程
 - [`skills/`](skills/README.md)：repo 內可版本化的操作技能，目前包含 NUS SoC Slurm
 
-根目錄的 `requirements.txt` 放共用建模依賴；SID 與 TIGER 各有自己的 `requirements.txt`。資料下載與準備只用 Python 標準函式庫；模型環境建議 Python 3.10 以上。各元件的 README 記錄資料指令與實作狀態；研究筆記見 [INSIGHT.md](INSIGHT.md)，待辦事項見 [TODO.md](TODO.md)。
+根目錄的 `requirements.txt` 放共用建模依賴；SID 與 TIGER 各有自己的 `requirements.txt`。資料下載與準備只用 Python 標準函式庫；模型環境建議 Python 3.10 以上。各元件的 README 記錄資料指令與實作狀態；研究筆記從 [INSIGHT.md](INSIGHT.md) 的各層連結開始，待辦事項見 [TODO.md](TODO.md)。
 
 SoC Linux GPU 的安裝指令集中記錄於根目錄 `requirements.txt` 的註解，安裝時明確指定 `torch==2.7.1+cu126` 與 CUDA 12.6 套件來源，並引入 SID 與 TIGER 依賴；`scripts/run.sbatch` 自動套用相同指令，避免新環境安裝不支援 TITAN V 的 CUDA 13 build。本地 CPU／macOS 仍使用各元件 requirements。註解不會改變 pip 行為，手動安裝 SoC 環境時須使用註解中的完整指令。這是 GPU 相容性設定，尚非完整依賴 lockfile。
 

@@ -2,7 +2,7 @@
 
 # Kuriyo 交接紀錄
 
-更新日期：2026-11-17。交接前程式版本：`b9e8c22`；本次為文件與目錄導覽整理。先讀 [AGENTS.md](AGENTS.md)、[README.md](README.md)，工作清單見 [TODO.md](TODO.md)，研究事實與假設見 [INSIGHT.md](INSIGHT.md)。
+更新日期：2026-11-17。交接前程式版本：`b9e8c22`；本次為文件與目錄導覽整理。先讀 [AGENTS.md](AGENTS.md)、[README.md](README.md)，工作清單見 [TODO.md](TODO.md)，研究事實與假設從 [INSIGHT.md](INSIGHT.md) 的各層連結開始（SID、Recall、TIGER、FMRec 各有一份）。
 
 ## 背景與目標
 
@@ -83,7 +83,7 @@ SoC 安裝指令在根 requirements.txt 註解與 run.sbatch，明確使用 torc
 ## 下一步（依優先順序）
 
 1. **新 SID 已產生，接著 materialize／train：**SoC job `1162430`（commit `728f052`，`STAGE=sid`，`SID_RECIPE=stable`，SID_VERSION 與 RUN_NAME 都是 `tiger-paper-v1`；名稱含 paper 但配方是 stable，以 manifest 的 `recipe` 為準）完成 20,000 epochs。Log 觀察：碼本使用 256/256/256、碰撞群組 279；epoch 1 重設未使用碼 [177, 28, 11]，之後每個 epoch 都是 0；總 loss 由 epoch 100 的 0.605 緩升到 0.829。本機以相同配方重跑 1,500 epochs 分項檢查：重建 MSE 持續下降（0.483→0.387，零預測為 1.0），上升的是碼本／commitment loss（0.085→0.249），原因是 latent 範數由 0.4 長到 6.35，量化誤差隨尺度變大；這不是發散。SoC 端的分項 loss 與 `largest_collision_group` 需看 SID 目錄的 manifest。log 檔 `slurm-kuriyo-tiger-1162430.out` 在 `38b9bcf` 進入 repo。下一步：`SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-paper-v1` 執行 `STAGE=materialize`，再 `STAGE=train`。
-2. 用新 SID、相同 T5 設定、新 RUN_NAME 在 SoC 訓練，比較相同 step 的 validation（現有 run：20k step Recall@10 0.0191、200k 0.0342；熱門基線 validation 0.0170），驗證 INSIGHT H3。同時取得現有 run 的 SID manifest／config／best-metrics，只分享小型 metadata。
+2. 用新 SID、相同 T5 設定、新 RUN_NAME 在 SoC 訓練，比較相同 step 的 validation（現有 run：20k step Recall@10 0.0191、200k 0.0342；熱門基線 validation 0.0170），驗證 `Recall/TIGER/INSIGHT.md` 的 H3。同時取得現有 run 的 SID manifest／config／best-metrics，只分享小型 metadata。
 3. 核對 paper/T5X 與 HF T5 的容量、商品文字、user hash、訓練樣本、optimizer、解碼與評估設定；將事實與猜測分開記錄。
 4. 保留本 run 作比較起點，新增實驗用新 SID_VERSION/RUN_NAME；固定 validation，先建立熱門商品基線。模型定案後才執行一次 held-out test。
 5. 在 SoC GPU 跑 FMRec baseline 完整訓練，與 TIGER validation 比較（見 TODO「FMRec 同切分比較」）。

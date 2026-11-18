@@ -16,7 +16,7 @@ sources:
   - code: AGENTS.md
   - code: Recall/FMRec/README.md
   - code: .gitignore
-verified_at: 08ce4f2
+verified_at: f2c3c28
 ---
 
 # 模型家族與變體目錄結構
@@ -25,7 +25,7 @@ Kuriyo 以「模型家族」組織同一類模型的不同實作，**每個變�
 
 ## 結構
 
-- **家族根層**只放 `Recall/TIGER/README.md`（家族說明與變體表）和套件用的初始化檔，不放程式、測試、依賴或 runs。
+- **家族根層**只放 `README.md`（家族說明與變體表）、`INSIGHT.md`（適用於所有變體的研究筆記）和套件用的初始化檔，不放程式、測試、依賴或 runs。研究筆記放在家族層而不是變體裡，因為像「SID 品質影響效果」這類發現對每個變體都成立。
 - **每個變體**是家族下的直接子目錄，擁有自己的 `README.md`、`requirements.txt`、模型與訓練程式、`tests/` 與 Git 忽略的 `runs/<RUN_NAME>/`。baseline 的內容：
   - 正式入口 `python -m Recall.TIGER.baseline.train`，預設輸出目錄在 `Recall/TIGER/baseline/train.py:113`。
   - `SIDTokenizer`（`Recall/TIGER/baseline/sequence.py:10`）與 constrained beam search（`Recall/TIGER/baseline/sequence.py:67`）。

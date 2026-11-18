@@ -7,10 +7,10 @@ sources:
   - code: Representations/SID/rqvae.py
   - code: Representations/SID/scripts/generate_sids.py
   - code: Representations/SID/scripts/diagnose_rqvae.py
-  - code: INSIGHT.md
+  - code: Representations/SID/INSIGHT.md
   - code: scripts/run.sbatch
   - code: tests/test_sid_components.py
-verified_at: 22c5d3e
+verified_at: f2c3c28
 ---
 
 # SID 的 RQ-VAE 訓練與已知失效模式
@@ -29,7 +29,7 @@ verified_at: 22c5d3e
 
 `scripts/run.sbatch` 以 `SID_RECIPE` 選擇配方。重用既有 SID 目錄前會比對 manifest 的配方（`scripts/run.sbatch:69`）；舊 manifest 沒有 recipe 欄位，視為 `paper-pytorch`。
 
-`Representations/SID/scripts/diagnose_rqvae.py` 讀取任一 SID run 的 `embeddings.npz`，用 `--recipe` 或個別選項重跑短訓練，逐段印出分項 loss、每層碼使用數與碰撞統計，不寫任何檔案。2026-11-18 的對照結果記在 `INSIGHT.md` 的 Facts／TIGER。
+`Representations/SID/scripts/diagnose_rqvae.py` 讀取任一 SID run 的 `embeddings.npz`，用 `--recipe` 或個別選項重跑短訓練，逐段印出分項 loss、每層碼使用數與碰撞統計，不寫任何檔案。2026-11-18 的對照結果記在 `Representations/SID/INSIGHT.md` 的 Facts。
 
 > ⚠️ PyTorch 的 `torch.optim.Adagrad` 預設 `initial_accumulator_value=0`，第一步的更新量約等於 `lr × sign(grad)`。lr 0.4 時，每個權重第一步就移動 0.4，latent 範數從 0.32 暴增到數千，三層碼本塌縮成同一個碼。論文的 lr 0.4 很可能來自 accumulator 預設 0.1 的框架（TF／Optax），照抄到 PyTorch 時必須明確設定 accumulator。SoC job 1153307 第一個 epoch 的 loss 8.7e9 和 6/26/25 的碼使用數，就是這個問題造成的。`build_optimizer` 一律明確傳入 accumulator；`tests/test_sid_components.py` 檢查 accumulator 0 會讓第一步 latent 範數暴增超過 10 倍，0.1 則不會。
 
@@ -37,7 +37,7 @@ verified_at: 22c5d3e
 
 > ⚠️ 碼本 loss 只會更新被選中的碼。latent 分布一旦移動，其他碼就再也選不到（dead code）。`reset_dead_codes` 每個 epoch 把未使用的碼重設為該層的 latent 殘差，才能維持 256/256/256 的使用率。重設時要從不同的商品取殘差（目前用 `randperm`）；若有放回抽樣，兩個碼可能被設成同一點，其中一個會立刻再次變成 dead code。修改量化流程時，要保留或替換這個機制。
 
-> ⚠️ `stable` 配方的總 loss 會在訓練中持續上升（SoC job 1162430：epoch 100 的 0.605 → epoch 20,000 的 0.829），這不是發散。`generate_sids` 的 log 與 `train.jsonl` 只記總 loss；用 `diagnose_rqvae` 拆開看，重建 MSE 持續下降，上升的是碼本／commitment loss，因為 latent 範數會從約 0.4 長到 6 以上，量化誤差跟著尺度變大。判斷 SID 好壞要看重建、各層碼使用數與碰撞，不要只看總 loss。數據記在 `INSIGHT.md` 的 Facts／TIGER。
+> ⚠️ `stable` 配方的總 loss 會在訓練中持續上升（SoC job 1162430：epoch 100 的 0.605 → epoch 20,000 的 0.829），這不是發散。`generate_sids` 的 log 與 `train.jsonl` 只記總 loss；用 `diagnose_rqvae` 拆開看，重建 MSE 持續下降，上升的是碼本／commitment loss，因為 latent 範數會從約 0.4 長到 6 以上，量化誤差跟著尺度變大。判斷 SID 好壞要看重建、各層碼使用數與碰撞，不要只看總 loss。數據記在 `Representations/SID/INSIGHT.md` 的 Facts。
 
 > ⚠️ SID 訓練目前沒有中途 checkpoint，20,000 epochs 中斷就得重跑。改動訓練設定前，先用 `diagnose_rqvae` 跑 60 epochs 左右確認不塌縮，再提交長時間的 SoC job。
 

@@ -24,3 +24,7 @@ Append-only. Newest entries at the bottom.
 ## [2026-11-18] add | FMRec baseline
 
 - 新增 [[fmrec]]：`Recall/FMRec/baseline/` 的結構、與作者程式 `1c39b17` 對照的事實，以及 attention mask、評估 RNG、padding 排名等坑。
+
+## [2026-11-18] update | INSIGHT 分層
+
+- 根 `INSIGHT.md` 拆成各層：`Representations/SID/`、`Recall/`、`Ranking/`、`Recall/TIGER/`（`Recall/FMRec/` 已有）。家族根層規則改為可放 `INSIGHT.md`；更新 [[model-family-layout]] 與 [[sid-rqvae-training]] 的來源。
