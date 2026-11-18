@@ -27,7 +27,7 @@
 
 | 項目 | 作者程式 | 本實作 | 原因 |
 | --- | --- | --- | --- |
-| 歷史長度 | 最多 50 | 最多 20（`--max-history`） | 沿用 Kuriyo 切分，和 TIGER 可比 |
+| 歷史長度 | 最多 50 | 最多 20（`--max-history`） | 沿用 Kuriyo 切分（20 件上限來自 TIGER 論文 Appendix C），和 TIGER 可比 |
 | 資料 | ICLRec／DuoRec 處理的 Beauty（22,361 users） | Kuriyo 2014 Beauty 切分（22,363 users、12,101 items） | 同一份切分才能比較 |
 | attention mask | 用廣播把 padding 的 **query** 列遮掉，真實位置仍會 attend padding key | 遮掉 padding **key**；每個位置可 attend 自己 | 作者寫法讓輸出隨 padding 長度改變；本實作 padding invariant |
 | 因果遮罩 | 無（雙向） | 預設雙向；`--attention causal` 可選 | 預設跟作者一致 |

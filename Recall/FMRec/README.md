@@ -4,11 +4,12 @@ FMRec（Flow Matching based Sequential Recommender）把下一件商品的預測
 
 和 TIGER 不同，FMRec 不使用 SID，直接學 item ID embedding，讀取 Kuriyo 已準備好的 2014 Beauty ASIN 切分，所以不需要 `Representations/SID/`。
 
-`Recall/FMRec/` 是一個模型家族。**每個變體自成一個完整空間**（程式、依賴、說明、測試、runs）；家族層只放這份說明。變體之間不互相 import，也不 import `Recall/TIGER/`；共用元件在 [`Recall/core/`](../core/README.md) 與 `core/`。
+`Recall/FMRec/` 是一個模型家族。**每個變體自成一個完整空間**（程式、依賴、說明、測試、runs）；家族層只放這份說明與研究筆記 [INSIGHT.md](INSIGHT.md)。變體之間不互相 import，也不 import `Recall/TIGER/`；共用元件在 [`Recall/core/`](../core/README.md) 與 `core/`。
 
 ```text
 Recall/FMRec/
 ├── README.md        # 本檔：家族說明與變體列表
+├── INSIGHT.md       # 家族研究筆記（事實、限制、假設分開）
 └── baseline/        # 依作者程式的重新實作（python -m Recall.FMRec.baseline.train）
     ├── README.md, requirements.txt, model.py, data.py, train.py, tests/
     └── runs/<RUN_NAME>/
