@@ -10,7 +10,7 @@ sources:
   - code: INSIGHT.md
   - code: scripts/run.sbatch
   - code: tests/test_sid_components.py
-verified_at: 6331c6d
+verified_at: 08ce4f2
 ---
 
 # SID 的 RQ-VAE 訓練與已知失效模式

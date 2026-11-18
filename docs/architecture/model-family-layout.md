@@ -2,7 +2,7 @@
 title: 模型家族與變體目錄結構
 type: architecture
 created: 2026-11-17
-updated: 2026-11-17
+updated: 2026-11-18
 sources:
   - code: Recall/TIGER/README.md
   - code: Recall/TIGER/baseline/train.py
@@ -15,7 +15,7 @@ sources:
   - code: tests/test_run_sbatch.py
   - code: AGENTS.md
   - code: .gitignore
-verified_at: 495076a
+verified_at: 08ce4f2
 ---
 
 # 模型家族與變體目錄結構
@@ -41,7 +41,7 @@ Kuriyo 以「模型家族」組織同一類模型的不同實作，**每個變�
 
 > ⚠️ 變體的程式在 repo 根目錄下第三層，所以 `Recall/TIGER/baseline/train.py:18` 用 `parents[3]` 取得 repo 根目錄；但變體的 `tests/` 多一層，要用 `parents[4]`（`Recall/TIGER/baseline/tests/test_train.py:13`）。同理，變體 `requirements.txt` 引用根目錄依賴要用 `../../../`。搬移或複製變體時若沒有一起調整，subprocess 會在錯誤的 cwd 下執行，pip 也會找不到根目錄 requirements。
 
-> ⚠️ 改變某個變體的 runs 位置時，`scripts/run.sbatch` 必須拒絕「舊路徑有 run、新路徑沒有」的情況（`scripts/run.sbatch:90` 起），否則 `STAGE=train` 會在新路徑從頭開一個同名 run，而不是續訓。對應測試在 `tests/test_run_sbatch.py`。SoC 上的舊 run 需手動執行 `mv Recall/TIGER/runs/<RUN_NAME> Recall/TIGER/baseline/runs/`。
+> ⚠️ 改變某個變體的 runs 位置時，`scripts/run.sbatch` 必須拒絕「舊路徑有 run、新路徑沒有」的情況（`scripts/run.sbatch:104` 起），否則 `STAGE=train` 會在新路徑從頭開一個同名 run，而不是續訓。對應測試在 `tests/test_run_sbatch.py`。SoC 上的舊 run 需手動執行 `mv Recall/TIGER/runs/<RUN_NAME> Recall/TIGER/baseline/runs/`。
 
 > ⚠️ 複製 `baseline/` 建立新變體時，要把新目錄裡所有 `Recall.TIGER.baseline.` 的 import 改成新變體自己的模組名稱。漏改的話新變體仍會執行 baseline 的程式，違反「變體不互相 import」，而且測試照樣會通過，不容易發現。
 
