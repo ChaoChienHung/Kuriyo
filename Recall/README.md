@@ -1,6 +1,6 @@
 # Recall
 
-`Recall/` 放候選商品召回模型。召回階段的目標是根據使用者歷史，從商品目錄找出少量候選商品，供後續評估或 Ranking 使用。[core/](core/README.md) 放不同 Recall 模型共用的指標與後續介面；[TIGER](TIGER/README.md) 是目前的序列生成模型。商品 SID 由獨立的 [Representations/SID](../Representations/SID/README.md) 元件提供。
+`Recall/` 放候選商品召回模型。召回階段的目標是根據使用者歷史，從商品目錄找出少量候選商品，供後續評估或 Ranking 使用。[core/](core/README.md) 放不同 Recall 模型共用的指標與後續介面；[TIGER](TIGER/README.md) 是以 SID 生成商品的序列模型，[FMRec](FMRec/README.md) 是以 flow matching 生成商品 embedding 的序列模型。商品 SID 由獨立的 [Representations/SID](../Representations/SID/README.md) 元件提供。
 
 ## 準備 Amazon Reviews 2014 Beauty
 
@@ -24,5 +24,6 @@ python3 -m unittest discover -s . -v
 ## 模型
 
 - [TIGER](TIGER/README.md)：使用版本化商品 SID 訓練序列模型並計算 validation 指標；首輪完整 SoC 訓練已跑到 200,000 steps，尚無最終 test 結果，未重現論文結果。
+- [FMRec](FMRec/README.md)：flow matching 序列推薦，直接使用 item ID embedding 與上方的 ASIN 切分（不需 SID），以共用指標做 full-ranking 評估，可與 TIGER 同切分比較；目前只有測試與 CPU smoke，尚未完整訓練。
 
 共用 Recall 訓練入口與候選集輸出格式尚未建立；新增模型時需記錄候選集、評估指標、資料與 SID 版本。每個模型家族的變體各自是一個完整子目錄（例如 `TIGER/baseline/`），包含程式、依賴、測試與 Git 忽略的 runs/；家族根層只放說明。

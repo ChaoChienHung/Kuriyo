@@ -14,13 +14,14 @@ sources:
   - code: scripts/train_tiger_sequence.py
   - code: tests/test_run_sbatch.py
   - code: AGENTS.md
+  - code: Recall/FMRec/README.md
   - code: .gitignore
 verified_at: 08ce4f2
 ---
 
 # 模型家族與變體目錄結構
 
-Kuriyo 以「模型家族」組織同一類模型的不同實作，**每個變體自成一個完整的空間**。目前唯一的家族是 `Recall/TIGER/`，唯一的變體是 `baseline/`。規範原文在 `AGENTS.md` 的 "Model families, variants, and tests" 一節；本頁說明實際怎麼運作，以及改動時容易踩到的地方。
+Kuriyo 以「模型家族」組織同一類模型的不同實作，**每個變體自成一個完整的空間**。目前有兩個家族：`Recall/TIGER/` 與 `Recall/FMRec/`（見 [[fmrec]]），各自只有 `baseline/` 變體。規範原文在 `AGENTS.md` 的 "Model families, variants, and tests" 一節；本頁說明實際怎麼運作，以及改動時容易踩到的地方。
 
 ## 結構
 

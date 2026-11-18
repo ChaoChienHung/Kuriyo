@@ -1,0 +1,3 @@
+-r ../../../requirements.txt
+
+# FMRec baseline needs only the shared PyTorch/NumPy stack; no extra packages.

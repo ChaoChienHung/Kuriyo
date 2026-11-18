@@ -24,6 +24,7 @@ repository. The rules are in [`CLAUDE.md`](CLAUDE.md).
 ## subsystems
 
 - [[sid-rqvae-training]] -- SID 的 RQ-VAE 訓練流程，以及 Adagrad 發散、碼本塌縮等已知失效模式
+- [[fmrec]] -- FMRec baseline：flow matching 序列推薦，與作者程式的差異與 padding／RNG 的坑
 
 ## decisions
 

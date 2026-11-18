@@ -76,13 +76,18 @@ SoC 安裝指令在根 requirements.txt 註解與 run.sbatch，明確使用 torc
 
 曾有 SoC 未推送 commit 把舊 `data/amazon_reviews/{raw,train,eval,test}/<year>/` 納入，GitHub 因 >100 MB 拒收。已由使用者保留 backup branch、重整未推送 main；遠端 `679d990` 只含 ignore 與 log。新版 ignore 同時排除舊路徑；不 push backup branch 或使用 --all。目前沒有大型資料/checkpoint 進入遠端 main 的證據。不要要求分享 PAT；憑證只在使用者端設定。
 
+## FMRec baseline（2026-11-18 新增）
+
+`Recall/FMRec/baseline/` 依作者程式（FengLiu-1/FMRec `1c39b17`）重新實作，直接讀 2014 Beauty ASIN 切分、20 件歷史上限，以 `Recall/core/metrics.py` 做 full-ranking Recall／NDCG@5/10，可與 TIGER 同切分比較。時間取樣 s 預設 1.0（作者程式預設；論文 B.2 另提 0.4，可用 `--mode-scale`）。與作者程式的差異（padding key 遮罩、排除 padding 商品、以 NDCG@10 選模型等）列在其 README。完整 unittest discovery 43 項通過；本機 CPU smoke `fmrec-smoke-cpu-20261118`（4,096 train／1,024 validation、2 epochs）loss 有限，指標接近 0，不代表品質。尚未在 GPU 完整訓練；`run.sbatch` 沒有 FMRec STAGE，指令見其 README。
+
 ## 下一步（依優先順序）
 
 1. **新 SID 已產生，接著 materialize／train：**SoC job `1162430`（commit `728f052`，`STAGE=sid`，`SID_RECIPE=stable`，SID_VERSION 與 RUN_NAME 都是 `tiger-paper-v1`；名稱含 paper 但配方是 stable，以 manifest 的 `recipe` 為準）完成 20,000 epochs。Log 觀察：碼本使用 256/256/256、碰撞群組 279；epoch 1 重設未使用碼 [177, 28, 11]，之後每個 epoch 都是 0；總 loss 由 epoch 100 的 0.605 緩升到 0.829。本機以相同配方重跑 1,500 epochs 分項檢查：重建 MSE 持續下降（0.483→0.387，零預測為 1.0），上升的是碼本／commitment loss（0.085→0.249），原因是 latent 範數由 0.4 長到 6.35，量化誤差隨尺度變大；這不是發散。SoC 端的分項 loss 與 `largest_collision_group` 需看 SID 目錄的 manifest。log 檔 `slurm-kuriyo-tiger-1162430.out` 在 `38b9bcf` 進入 repo。下一步：`SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-paper-v1` 執行 `STAGE=materialize`，再 `STAGE=train`。
 2. 用新 SID、相同 T5 設定、新 RUN_NAME 在 SoC 訓練，比較相同 step 的 validation（現有 run：20k step Recall@10 0.0191、200k 0.0342；熱門基線 validation 0.0170），驗證 INSIGHT H3。同時取得現有 run 的 SID manifest／config／best-metrics，只分享小型 metadata。
 3. 核對 paper/T5X 與 HF T5 的容量、商品文字、user hash、訓練樣本、optimizer、解碼與評估設定；將事實與猜測分開記錄。
 4. 保留本 run 作比較起點，新增實驗用新 SID_VERSION/RUN_NAME；固定 validation，先建立熱門商品基線。模型定案後才執行一次 held-out test。
-5. 增加 SID checkpoint/resume；有第二個實際模型變體時，於 `Recall/TIGER/<variant-name>/` 新增並視需要建立載入介面。
+5. 在 SoC GPU 跑 FMRec baseline 完整訓練，與 TIGER validation 比較（見 TODO「FMRec 同切分比較」）。
+6. 增加 SID checkpoint/resume；有第二個實際模型變體時，於 `Recall/TIGER/<variant-name>/` 新增並視需要建立載入介面。
 
 ## 驗證與限制
 

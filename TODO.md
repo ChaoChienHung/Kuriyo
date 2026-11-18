@@ -33,6 +33,13 @@
 - [x] TIGER 家族改為每個變體自成完整空間，現有實作全部放入 `baseline/`，記錄於 README/AGENTS。
 - [ ] 真正新增變體時實作具名設定或複製 `baseline/` 為 `Recall/TIGER/<variant-name>/`，補該變體的測試。
 
+## P1 — FMRec 同切分比較
+
+- [x] `Recall/FMRec/baseline/`：依作者程式 `1c39b17` 實作，讀 Kuriyo ASIN 切分（20 件歷史上限），共用指標 full ranking；測試與 CPU smoke 通過。
+- [ ] 在 SoC GPU 以作者預設跑完整訓練（新 RUN_NAME），記錄 validation，與 TIGER 及熱門基線的 validation 比較。
+- [ ] 視結果做單一因素對照：`--mode-scale 0.4`、`--max-history 50`（需另建 50 件歷史的切分）、`--attention causal`。
+- [ ] 若要多次跑 FMRec，再為 `scripts/run.sbatch` 加 FMRec 的 STAGE；目前只有手動指令。
+
 ## P2 — 後續模型與資料
 
 - [ ] 定義跨 Recall 模型的候選輸出、載入與評估契約。

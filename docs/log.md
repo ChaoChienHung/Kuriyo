@@ -20,3 +20,7 @@ Append-only. Newest entries at the bottom.
 ## [2026-11-18] add | SID RQ-VAE 診斷
 
 - 新增 [[sid-rqvae-training]]：Adagrad accumulator 發散、平均向量捷徑、dead code 三個坑。
+
+## [2026-11-18] add | FMRec baseline
+
+- 新增 [[fmrec]]：`Recall/FMRec/baseline/` 的結構、與作者程式 `1c39b17` 對照的事實，以及 attention mask、評估 RNG、padding 排名等坑。
