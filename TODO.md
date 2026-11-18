@@ -8,10 +8,13 @@
 - [x] 同步 Slurm log，確認最佳已記錄 validation 在 step 200,000；尚無最終 test 結果。
 - [x] 舊 log 匯入獨立 train.jsonl/events.log，保留來源 SHA、行號、缺失資訊與採樣頻率。
 - [ ] 取得／核對該 run 的 config、SID manifest、best-metrics、實際 checkpoint 存在性與 job 最終狀態；不要提交大型產物。
-- [ ] 檢查 RQ-VAE 首 epoch 約 8.744e9 loss，以及每層僅使用 6/26/25 個碼的原因；增加分項 loss、embedding 尺度與梯度診斷。
-- [ ] 統計碼本佔用分布、碰撞商品比例與最大 collision suffix；228 個碰撞群組不等於碰撞率。
+- [x] 檢查 RQ-VAE 首 epoch 巨大 loss 與低碼本使用率：PyTorch Adagrad accumulator 預設 0 造成第一步發散；穩定 optimizer 下第一層仍塌縮。診斷工具 `Representations/SID/scripts/diagnose_rqvae.py`，結果見 INSIGHT。
+- [ ] 在 `generate_sids` 加入修正選項（Adagrad `initial_accumulator_value`、未使用碼重設、embedding 標準化），補測試確認不發散且碼本使用率不塌縮；用新 SID_VERSION 產生 SID，保留舊版本。
+- [ ] 以新 SID、同一 T5 設定、新 RUN_NAME 在 SoC 訓練，比較 20k／60k step validation 與現有 run（驗證 INSIGHT H3）。
+- [ ] 對 SoC 上現有 SID 統計碰撞商品比例與最大 collision suffix（本機診斷已含此統計，可直接套用 `embeddings.npz`）。
 - [ ] 核對 paper/T5X 與 HF 設定：實際參數量 5,587,968、metadata 文句、user hash、prefix expansion、optimizer、解碼與評估。
-- [ ] 固定 split/SID 建立熱門商品 validation baseline；設計單一因素對照實驗，使用新 run 名稱保留現有結果。
+- [x] 熱門商品基線：validation Recall@10 0.01704、test 0.01203（見 INSIGHT）。
+- [ ] 設計單一因素對照實驗（SID 方法、模型容量），使用新 run 名稱保留現有結果。
 - [ ] 模型選定後執行一次 held-out test，再與論文 test 指標比較；不用 test 調參。
 
 ## P1 — 可重現訓練與維護

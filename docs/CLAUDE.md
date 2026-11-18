@@ -126,6 +126,7 @@ change this definition, fix the pathspec in
 | What changed | Page to update |
 |---|---|
 | 模型家族或變體目錄、runs 位置、`scripts/run.sbatch` 的 run 路徑 | [[model-family-layout]] |
+| `Representations/SID/` 的 RQ-VAE、optimizer、碼本初始化或診斷工具 | [[sid-rqvae-training]] |
 
 **Rhythm**: run `/docs-sync` right after a deploy or a release -- the moments when
 changes pile up. Do not wait to be asked.

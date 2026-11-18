@@ -8,7 +8,8 @@ repository. The rules are in [`CLAUDE.md`](CLAUDE.md).
 ## Start here
 
 1. 根目錄 `README.md` → `AGENTS.md` → `HANDOFF.md`
-2. [[model-family-layout]] -- 模型家族與變體的目錄規則：每個變體自成完整空間
+2. [[sid-rqvae-training]] -- 為什麼現有 SID 品質差、改 SID 前要先知道的坑
+3. [[model-family-layout]] -- 模型家族與變體的目錄規則：每個變體自成完整空間
 
 ---
 
@@ -22,7 +23,7 @@ repository. The rules are in [`CLAUDE.md`](CLAUDE.md).
 
 ## subsystems
 
-（尚無頁面，隨工作補上）
+- [[sid-rqvae-training]] -- SID 的 RQ-VAE 訓練流程，以及 Adagrad 發散、碼本塌縮等已知失效模式
 
 ## decisions
 

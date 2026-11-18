@@ -22,6 +22,7 @@
 ### TIGER
 
 - 完整 run 的十次 validation 中，最佳已記錄 NDCG@10 在 step 200,000（0.016787758）；不是嚴格單調上升，也尚無 test 結果。SID 三層使用碼數為 6/26/25，值得調查，但其與推薦效果的因果關係尚未驗證。
+- **2026-11-18 本機 RQ-VAE 診斷（只看 SID，未重訓 TIGER）：**目前 `--paper-baseline` 的 SID 訓練在第一個 epoch 就發散，且即使改用穩定的 optimizer，第一層 codebook 仍會塌縮。兩者都會讓 SID 幾乎不帶商品語意，是與論文差距的首要嫌疑；但「修好 SID 就能拉高 Recall」仍是假設（見 Hypothesis H3）。
 
 ## Facts
 
@@ -36,6 +37,7 @@
 ### Recall
 
 - `Recall/` 用於候選商品召回；2014 `Beauty` 的 `examples.jsonl` 已提供使用者歷史與下一件商品目標。現有資料準備指令見 [Recall README](Recall/README.md)。共用 Recall 訓練與評估入口尚未實作。
+- 熱門商品基線（2026-11-18，本機）：以每位使用者 train 段落中的所有互動（歷史 + train 目標）計數，固定推薦前 10 名。validation Recall@5/10 = 0.00984 / 0.01704、NDCG@5/10 = 0.00581 / 0.00811；test Recall@5/10 = 0.00729 / 0.01203、NDCG@5/10 = 0.00400 / 0.00552。validation 目標從未出現在該使用者的歷史中（重複率 0）。目前 TIGER validation Recall@10 0.0342 約為熱門基線的 2 倍。
 
 ### Ranking
 
@@ -53,6 +55,19 @@
 - step 200,000 的 validation（22,363 examples）：Recall@5=0.020569691、Recall@10=0.034208290、NDCG@5=0.012409267、NDCG@10=0.016787758；依已記錄 NDCG@10 為最佳，沒有最終 test。資料源為 job 1153307 log（見上一條取回方式），不是本機 smoke 指標。
 - 本機已下載 Sentence-T5 base 並用 64 件商品、1 epoch 完成 Sentence-T5 + RQ-VAE smoke test；三層 codebook 使用碼數為 3、1、1（容量 16），顯示此短跑發生 collapse。產物僅在忽略目錄 `Recall/TIGER/baseline/runs/sentence-t5-smoke-64/`，沒有把這個不完整 SID 目錄當作正式 split 資料。
 - 本地 TF-IDF/SVD smoke test 對完整 12,101 件 Beauty 商品訓練 RQ-VAE 1 epoch，三層 codebook 的使用碼數分別為 27、25、15（每層容量 32），546 組三碼 SID 發生碰撞；附加第四碼後每件商品的 SID 唯一。產物在本地忽略目錄 `Recall/TIGER/baseline/runs/smoke-beauty-final/`。
+- **RQ-VAE 診斷實驗（2026-11-18，本機 CPU）：**以 Sentence-T5 base 重新編碼完整 12,101 件商品（L2 normalize；每維均方 0.0013，即恆輸出 0 的重建 MSE），沿用 `Representations/SID/rqvae.py` 與 `generate_sids.initialize_codebooks`（隨機 1,024 件 k-means 初始化）、batch 1,024、seed 42。指令為 `python -m Representations.SID.scripts.diagnose_rqvae`；程式版本為 `495076a` 之後的工作樹（`Representations/SID/rqvae.py` 未改）。結果：
+
+  | 設定 | epochs | 重建 MSE | 三層使用碼數 | 不重複三碼 SID | 落入碰撞的商品 | 最大碰撞群 |
+  |---|---|---|---|---|---|---|
+  | 初始化後（未訓練） | 0 | 2.33e-3 | 256/256/256 | 11,957 | 278 | 5 |
+  | A. PyTorch Adagrad lr 0.4、accumulator 0（現行 `--paper-baseline`） | 300 | 4.1e-3 | **1/1/1** | 1 | 12,101 | 12,101 |
+  | B. Adagrad lr 0.4、accumulator 0.1 | 300 | 2.20e-4 | **1**/254/243 | 9,119 | 5,006 | 13 |
+  | C. AdamW lr 1e-3 | 300 | 2.20e-4 | **1/1/1** | 1 | 12,101 | 12,101 |
+  | D. B + embedding 逐維標準化 | 60 | 0.93（標準化尺度） | 55/200/228，持續下降 | 4,591 | 8,735 | 550 |
+  | E. B + 每 epoch 重設未使用碼 | 60 | 2.21e-4 | 256/256/256 | 11,879 | 428 | 6 |
+  | F. AdamW + 標準化 + 重設未使用碼 | 60 | 0.54（標準化尺度，仍在下降） | 256/256/256 | 11,928 | 317 | 6 |
+
+  A 在第 1 個 epoch latent 範數由 0.32 變成 5,260，loss 5.1e6，與 SoC log 第一 epoch 8.7e9 一致。B、C 的重建 MSE 收斂到約 2.2e-4，等於所有商品都輸出平均 embedding 的水準，代表 decoder 沒有用到碼本資訊。只有 F 的重建誤差明顯低於「輸出平均值」（標準化尺度下 0.54 < 1.0），同時保持全碼本使用。各設定只跑一個 seed，60／300 epochs 遠少於論文 20,000 epochs。
 - 本地序列 smoke test 只取 128 筆 train、3 筆 validation、訓練 1 epoch；Recall@5/10 與 NDCG@5/10 均為 0。此數字僅驗證執行與指標流程，不能代表推薦品質；產物在 `Recall/TIGER/baseline/runs/smoke-sequence-from-final-sid/`。
 
 ## Limitations
@@ -64,7 +79,7 @@
 
 ### Recall
 
-- 尚無熱門商品或其他完整資料集上的 Recall 基線；目前無法判斷 TIGER 或後續召回模型是否優於簡單方法。
+- 熱門商品基線已在本機算出（見 Facts／Recall），但尚無 SASRec 等序列基線，無法判斷 TIGER 差距有多少來自模型本身。
 
 ### Ranking
 
@@ -94,6 +109,8 @@
 ### TIGER
 
 - 可在固定切分與相同模型預算下，比較 RQ-VAE SID、隨機 ID 與其他內容編碼方式對召回品質的影響；尚未進行此比較。
+- **H3 — SID 品質是與論文差距的主因：**現行 SID 由發散後的 RQ-VAE 產生（PyTorch Adagrad accumulator 預設 0；論文框架的 Adagrad 通常預設 0.1），第一層只用 6 碼。用診斷中 E 或 F 設定重訓 SID、其他條件不變，預期 TIGER validation Recall@10 會明顯高於 0.0342。驗證方式：新 SID_VERSION、同一 T5 設定，先比較相同 step（如 20k／60k）的 validation，再決定是否跑滿 200k。
+- **H4 — 模型容量不足是次要因素：**HF T5 實測 5,587,968 參數，論文約 1,300 萬。差異可能來自 T5X 不共享輸入輸出 embedding 或詞表大小，尚未核實；在 H3 驗證前不先調整。
 
 ## Discussion
 
@@ -136,6 +153,6 @@
 
 ### TIGER
 
-1. 診斷完整 run 的低 codebook usage、第一 epoch 巨大 loss 與碰撞分布；驗證修改後再以新 SID 版本重訓。
+1. 修正 SID 訓練（Adagrad accumulator、未使用碼重設、embedding 標準化擇一或組合），以新 SID 版本重訓並驗證 H3；診斷結果見 Facts／TIGER。
 2. 保留已完成的完整 run，建立熱門商品基線與單因素對照；模型定案後再對 test 做一次最終評估。
 3. 對齊論文的模型容量、訓練預算與解碼協定，確認指標的可比性。
