@@ -13,7 +13,7 @@ sources:
   - code: Recall/FMRec/baseline/tests/test_train.py
   - ext: https://arxiv.org/abs/2505.16298
   - ext: https://github.com/FengLiu-1/FMRec
-verified_at: ea3fb5f
+verified_at: 1ab74dc
 ---
 
 # FMRec baseline
