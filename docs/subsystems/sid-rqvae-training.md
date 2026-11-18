@@ -10,7 +10,7 @@ sources:
   - code: Representations/SID/INSIGHT.md
   - code: scripts/run.sbatch
   - code: tests/test_sid_components.py
-verified_at: f2c3c28
+verified_at: 83f321a
 ---
 
 # SID 的 RQ-VAE 訓練與已知失效模式
@@ -27,7 +27,7 @@ verified_at: f2c3c28
 - 標準化由 `standardize` 處理（`Representations/SID/scripts/generate_sids.py:113`），平均值與標準差會存進 `embeddings.npz`。
 - 重設未使用碼在 `Representations/SID/rqvae.py:79`。
 
-`scripts/run.sbatch` 以 `SID_RECIPE` 選擇配方。重用既有 SID 目錄前會比對 manifest 的配方（`scripts/run.sbatch:69`）；舊 manifest 沒有 recipe 欄位，視為 `paper-pytorch`。
+`scripts/run.sbatch` 以 `SID_RECIPE` 選擇配方。重用既有 SID 目錄前會比對 manifest 的配方（`scripts/run.sbatch:73`）；舊 manifest 沒有 recipe 欄位，視為 `paper-pytorch`。
 
 `Representations/SID/scripts/diagnose_rqvae.py` 讀取任一 SID run 的 `embeddings.npz`，用 `--recipe` 或個別選項重跑短訓練，逐段印出分項 loss、每層碼使用數與碰撞統計，不寫任何檔案。2026-11-18 的對照結果記在 `Representations/SID/INSIGHT.md` 的 Facts。
 
