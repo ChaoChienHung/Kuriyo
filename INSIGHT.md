@@ -69,6 +69,7 @@
 
   A 在第 1 個 epoch latent 範數由 0.32 變成 5,260，loss 5.1e6，與 SoC log 第一 epoch 8.7e9 一致。B、C 的重建 MSE 收斂到約 2.2e-4，等於所有商品都輸出平均 embedding 的水準，代表 decoder 沒有用到碼本資訊。只有 F 的重建誤差明顯低於「輸出平均值」（標準化尺度下 0.54 < 1.0），同時保持全碼本使用。各設定只跑一個 seed，60／300 epochs 遠少於論文 20,000 epochs。
 - **SID 配方實作後的驗證（2026-11-18，本機，60 epochs，seed 42）：**`generate_sids` 新增 `--recipe paper-pytorch|paper-tf-adagrad|stable`，以 `diagnose_rqvae --recipe` 套用正式程式碼重跑，結果與上表一致：`paper-pytorch` 1/1/1、12,101 件碰撞；`paper-tf-adagrad` 256/256/256、346 件碰撞、最大群 5，重建 2.21e-4（仍只到平均值水準）；`stable` 256/256/256、313 件碰撞、最大群 6，標準化重建 0.551 且持續下降。尚未以 20,000 epochs 或 TIGER 訓練驗證。
+- **`stable` 配方的 SoC 完整 SID（2026-11-18，job 1162430，commit `728f052`，SID_VERSION `tiger-paper-v1`）：**Log 顯示 20,000 epochs 完成，碼本使用 256/256/256、碰撞群組 279（舊 run 1153307 為 6/26/25、228 群組；舊 run 碼組合最多 6×26×25=3,900 種，群組數不能直接比）。總 loss 由 0.605（epoch 100）升至 0.829（epoch 20,000）。本機同配方 1,500 epochs（seed 42）分項：重建 0.483→0.387 持續下降，碼本／commitment 0.085→0.249 上升，latent 範數 3.80→6.35，碰撞 345→554 件、最大群 4→11；總 loss 上升來自 latent 尺度擴大而非重建變差。尚未在 TIGER 上驗證新 SID 的效果。
 - 本地序列 smoke test 只取 128 筆 train、3 筆 validation、訓練 1 epoch；Recall@5/10 與 NDCG@5/10 均為 0。此數字僅驗證執行與指標流程，不能代表推薦品質；產物在 `Recall/TIGER/baseline/runs/smoke-sequence-from-final-sid/`。
 
 ## Limitations
