@@ -8,7 +8,7 @@ sources:
   - code: Representations/SID/scripts/generate_sids.py
   - code: Representations/SID/scripts/diagnose_rqvae.py
   - code: INSIGHT.md
-verified_at: ded581d
+verified_at: 6331c6d
 ---
 
 # SID 的 RQ-VAE 訓練與已知失效模式
