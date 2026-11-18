@@ -28,3 +28,7 @@ Append-only. Newest entries at the bottom.
 ## [2026-11-18] update | INSIGHT 分層
 
 - 根 `INSIGHT.md` 拆成各層：`Representations/SID/`、`Recall/`、`Ranking/`、`Recall/TIGER/`（`Recall/FMRec/` 已有）。家族根層規則改為可放 `INSIGHT.md`；更新 [[model-family-layout]] 與 [[sid-rqvae-training]] 的來源。
+
+## [2026-11-19] add | SASRec baseline
+
+- 新增 [[sasrec]]：`Recall/SASRec/baseline/` 作為檢查資料與評估的基準，記錄訓練序列重建、位置右對齊與 padding 遮罩的坑；[[model-family-layout]] 改為三個家族。

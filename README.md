@@ -94,6 +94,7 @@ python3 scripts/download_amazon_reviews_2023.py --category All_Beauty
 - [`Recall/`](Recall/README.md)：候選商品召回模型及資料執行說明
 - [`Recall/TIGER/`](Recall/TIGER/README.md)：TIGER 模型家族；每個變體自成完整空間，目前執行的實作在 [`baseline/`](Recall/TIGER/baseline/README.md)
 - [`Recall/FMRec/`](Recall/FMRec/README.md)：FMRec（flow matching）模型家族；[`baseline/`](Recall/FMRec/baseline/README.md) 讀 ASIN 切分、不需 SID，入口 `python -m Recall.FMRec.baseline.train`，尚未完整訓練
+- [`Recall/SASRec/`](Recall/SASRec/README.md)：SASRec 模型家族，作為檢查資料與評估的成熟基準；[`baseline/`](Recall/SASRec/baseline/README.md) 讀 ASIN 切分，入口 `python -m Recall.SASRec.baseline.train`
 - [`Ranking/`](Ranking/README.md)：候選商品排序模型及資料需求說明
 - [`pipelines/`](pipelines/README.md)：預留跨鏈路與端到端推薦流程
 - [`skills/`](skills/README.md)：repo 內可版本化的操作技能，目前包含 NUS SoC Slurm
@@ -124,7 +125,7 @@ Recall/TIGER/
 
 - `tests/`：資料準備、SID 共用元件、跨階段流程與 run logging。
 - `Recall/tests/`：共用 Transformer、padding、指標等行為契約。
-- `Recall/<family>/<variant>/tests/`：變體自己的測試，例如 `TIGER/baseline/tests/` 的 SID 解碼、資料載入與訓練／續訓／test 整合測試，`FMRec/baseline/tests/` 的遮罩、padding invariance、取樣與續訓。
+- `Recall/<family>/<variant>/tests/`：變體自己的測試，例如 `TIGER/baseline/tests/` 的 SID 解碼、資料載入與訓練／續訓／test 整合測試，`FMRec/baseline/tests/` 的遮罩、padding invariance、取樣與續訓，`SASRec/baseline/tests/` 的因果遮罩、訓練序列重建與續訓。
 
 修改或新增變體時，同時跑共用元件與該變體的測試；小型測試通過不等於完整資料上的指標已達標。從根目錄執行：
 
@@ -134,7 +135,7 @@ Recall/TIGER/
 
 ## 獨立訓練紀錄
 
-TIGER paper baseline、FMRec baseline 和 SID 生成器使用 `core/run_logging.py`，不依賴 Slurm。各自輸出目錄內的 `train.jsonl` 記錄 TIGER 每個 step 或 RQ-VAE 每個 epoch 的 loss、learning rate、UTC 時間、session ID 與本次執行經過秒數；`events.log` 使用 JSON Lines 保存開始、完成及執行區段內的 Python 例外，TIGER 另外記錄續訓、validation、checkpoint 與 test 事件。
+TIGER paper baseline、FMRec baseline、SASRec baseline 和 SID 生成器使用 `core/run_logging.py`，不依賴 Slurm。各自輸出目錄內的 `train.jsonl` 記錄 TIGER 每個 step 或 RQ-VAE 每個 epoch 的 loss、learning rate、UTC 時間、session ID 與本次執行經過秒數；`events.log` 使用 JSON Lines 保存開始、完成及執行區段內的 Python 例外，TIGER 另外記錄續訓、validation、checkpoint 與 test 事件。
 
 TIGER 續訓會追加紀錄；從較早 checkpoint 重跑的 step 可透過 session ID 區分。強制終止、斷電或進入 logger 前的錯誤不保證有失敗事件，因此仍需搭配 Slurm 狀態與產物檢查。SID 失敗後可能留下只有 log 的部分目錄，仍不可當作完成產物，且目前無中途續訓功能。舊的 smoke trainer 尚未接入此 logger。
 

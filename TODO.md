@@ -40,6 +40,13 @@
 - [ ] 視結果做單一因素對照：`--mode-scale 0.4`、`--max-history 50`（需另建 50 件歷史的切分）、`--attention causal`。
 - [ ] 若要多次跑 FMRec，再為 `scripts/run.sbatch` 加 FMRec 的 STAGE；目前只有手動指令。
 
+## P1 — SASRec 資料／評估檢查
+
+- [x] `Recall/SASRec/baseline/`：原論文架構、預設 full-softmax CE，讀 Kuriyo ASIN 切分（20 件歷史上限），共用指標 full ranking；測試通過。
+- [x] 完整訓練並記錄 validation：本機 `sasrec-beauty-v1` best Recall@10 0.0938（約 TIGER 的 3 倍），共用資料／評估正常，差距在 TIGER 流程。
+- [ ] 找出 TIGER 流程的問題（訓練樣本、T5 設定與 token 排列、解碼）；見 `Recall/TIGER/INSIGHT.md` Problems。
+- [ ] 視結果做單一因素對照：`--loss bce`（原論文 loss）、hidden 50／1 head。
+
 ## P2 — 後續模型與資料
 
 - [ ] 定義跨 Recall 模型的候選輸出、載入與評估契約。

@@ -2,7 +2,7 @@
 title: 模型家族與變體目錄結構
 type: architecture
 created: 2026-11-17
-updated: 2026-11-18
+updated: 2026-11-19
 sources:
   - code: Recall/TIGER/README.md
   - code: Recall/TIGER/baseline/train.py
@@ -15,13 +15,14 @@ sources:
   - code: tests/test_run_sbatch.py
   - code: AGENTS.md
   - code: Recall/FMRec/README.md
+  - code: Recall/SASRec/README.md
   - code: .gitignore
 verified_at: f2c3c28
 ---
 
 # 模型家族與變體目錄結構
 
-Kuriyo 以「模型家族」組織同一類模型的不同實作，**每個變體自成一個完整的空間**。目前有兩個家族：`Recall/TIGER/` 與 `Recall/FMRec/`（見 [[fmrec]]），各自只有 `baseline/` 變體。規範原文在 `AGENTS.md` 的 "Model families, variants, and tests" 一節；本頁說明實際怎麼運作，以及改動時容易踩到的地方。
+Kuriyo 以「模型家族」組織同一類模型的不同實作，**每個變體自成一個完整的空間**。目前有三個家族：`Recall/TIGER/`、`Recall/FMRec/`（見 [[fmrec]]）與 `Recall/SASRec/`（見 [[sasrec]]），各自只有 `baseline/` 變體。規範原文在 `AGENTS.md` 的 "Model families, variants, and tests" 一節；本頁說明實際怎麼運作，以及改動時容易踩到的地方。
 
 ## 結構
 
