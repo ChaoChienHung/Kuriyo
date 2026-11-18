@@ -82,12 +82,16 @@ SoC 安裝指令在根 requirements.txt 註解與 run.sbatch，明確使用 torc
 
 ## SASRec 基準與 TIGER 新 SID（2026-11-19）
 
-新 SID `tiger-paper-v1` 的 TIGER run（SoC，使用者貼出的 log 片段）在 step 100,000 的 validation Recall@10 0.0285，與舊 SID 同 step 的 0.0310 相當，新 SID 沒有改善。為檢查共用資料與評估，新增 `Recall/SASRec/baseline/`；本機 MPS 完整 run `sasrec-beauty-v1`（約 23 分鐘，epoch 75 early stop）best epoch 50 的 validation Recall@10 0.0938、NDCG@10 0.0461，約 TIGER 的 3 倍。結論：切分、歷史上限與指標正常，TIGER 的差距在它自己的流程。完整數字在 `Recall/SASRec/INSIGHT.md` 與 `Recall/INSIGHT.md`。
+新 SID `tiger-paper-v1` 的 TIGER run（SoC job 1163052，log 在 `00d4470`）跑滿 200k，validation Recall@10 0.0368，舊 SID 為 0.0342，新 SID 幾乎沒有改善。為檢查共用資料與評估，新增 `Recall/SASRec/baseline/`；本機 MPS 完整 run `sasrec-beauty-v1`（約 23 分鐘，epoch 75 early stop）best epoch 50 的 validation Recall@10 0.0938、NDCG@10 0.0461，約 TIGER 的 3 倍。結論：切分、歷史上限與指標正常，TIGER 的差距在它自己的流程。完整數字在 `Recall/SASRec/INSIGHT.md` 與 `Recall/INSIGHT.md`。
+
+程式碼檢查找到主要嫌疑：TIGER 的 HF Adafactor 用 `scale_parameter=False`，lr 0.01 成了絕對步長；T5X（論文框架）預設乘上參數 RMS。新增 `--adafactor-scale-parameter`（`run.sbatch` 的 `ADAFACTOR_SCALE_PARAMETER=1`），預設不變；續訓會拒絕改變此設定。證據與驗證方式見 `Recall/TIGER/INSIGHT.md` 的 Facts 與 H5。本機負載過高（load average 40–60），T5 overfit 測試未完成。
 
 ## 下一步（依優先順序）
 
-1. **（已在 SoC 訓練中，100k step 結果見上節）新 SID materialize／train：**SoC job `1162430`（commit `728f052`，`STAGE=sid`，`SID_RECIPE=stable`，SID_VERSION 與 RUN_NAME 都是 `tiger-paper-v1`；名稱含 paper 但配方是 stable，以 manifest 的 `recipe` 為準）完成 20,000 epochs。Log 觀察：碼本使用 256/256/256、碰撞群組 279；epoch 1 重設未使用碼 [177, 28, 11]，之後每個 epoch 都是 0；總 loss 由 epoch 100 的 0.605 緩升到 0.829。本機以相同配方重跑 1,500 epochs 分項檢查：重建 MSE 持續下降（0.483→0.387，零預測為 1.0），上升的是碼本／commitment loss（0.085→0.249），原因是 latent 範數由 0.4 長到 6.35，量化誤差隨尺度變大；這不是發散。SoC 端的分項 loss 與 `largest_collision_group` 需看 SID 目錄的 manifest。log 檔 `slurm-kuriyo-tiger-1162430.out` 在 `38b9bcf` 進入 repo。下一步：`SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-paper-v1` 執行 `STAGE=materialize`，再 `STAGE=train`。
-2. **優先：**找出 TIGER 與 SASRec 的差距原因（訓練樣本、T5 設定與 token 排列、解碼；見 `Recall/TIGER/INSIGHT.md` Problems 2）。原本此項：用新 SID、相同 T5 設定、新 RUN_NAME 在 SoC 訓練，比較相同 step 的 validation（現有 run：20k step Recall@10 0.0191、200k 0.0342；熱門基線 validation 0.0170），驗證 `Recall/TIGER/INSIGHT.md` 的 H3。同時取得現有 run 的 SID manifest／config／best-metrics，只分享小型 metadata。
+1. **驗證 Adafactor 假設（H5）：**在 SoC 執行
+   `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-v1 ADAFACTOR_SCALE_PARAMETER=1 STAGE=train sbatch --export=ALL scripts/run.sbatch`，
+   比較 20k／40k validation 與 `tiger-paper-v1`（Recall@10 0.0132／0.0174）。明顯較高就跑滿 200k；否則依 `Recall/TIGER/INSIGHT.md` Problems 2 繼續查。
+2. 新 SID 完整 run `tiger-paper-v1` 已完成（200k Recall@10 0.0368），SID 產生紀錄見 job 1162430（`38b9bcf`）與 `Representations/SID/INSIGHT.md`。
 3. 核對 paper/T5X 與 HF T5 的容量、商品文字、user hash、訓練樣本、optimizer、解碼與評估設定；將事實與猜測分開記錄。
 4. 保留本 run 作比較起點，新增實驗用新 SID_VERSION/RUN_NAME；固定 validation，先建立熱門商品基線。模型定案後才執行一次 held-out test。
 5. 在 SoC GPU 跑 FMRec baseline 完整訓練，與 TIGER validation 比較（見 TODO「FMRec 同切分比較」）。

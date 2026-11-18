@@ -129,6 +129,7 @@ change this definition, fix the pathspec in
 | `Representations/SID/` 的 RQ-VAE、optimizer、碼本初始化或診斷工具 | [[sid-rqvae-training]] |
 | `Recall/FMRec/` 的模型、訓練、評估或預設值 | [[fmrec]] |
 | `Recall/SASRec/` 的模型、訓練資料、評估或預設值 | [[sasrec]] |
+| `Recall/TIGER/baseline/train.py` 的 T5 設定、optimizer 或學習率 | [[tiger-training]] |
 
 **Rhythm**: run `/docs-sync` right after a deploy or a release -- the moments when
 changes pile up. Do not wait to be asked.

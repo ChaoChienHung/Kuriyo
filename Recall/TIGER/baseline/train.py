@@ -122,6 +122,10 @@ def main():
     parser.add_argument("--max-validation-examples", type=int)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--device", choices=("cpu", "cuda", "mps"), default="cpu")
+    parser.add_argument("--adafactor-scale-parameter", action="store_true",
+                        help="scale each Adafactor step by the parameter RMS, as T5X does by default "
+                             "(multiply_by_parameter_scale); without it every step is about lr in "
+                             "absolute size, which is the behaviour of runs before this option")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--eval-test-only", action="store_true",
                         help="evaluate the selected best checkpoint on held-out test once")
@@ -178,7 +182,7 @@ def main():
     if args.device == "cpu":
         torch.set_num_threads(min(4, os.cpu_count() or 1))
     model = build_model(tokenizer).to(args.device)
-    optimizer = Adafactor(model.parameters(), lr=0.01, scale_parameter=False,
+    optimizer = Adafactor(model.parameters(), lr=0.01, scale_parameter=args.adafactor_scale_parameter,
                           relative_step=False, warmup_init=False)
     run_dir = args.runs_dir / args.run_name
     config = {"implementation": "Hugging Face T5 PyTorch; paper-configured, not T5X",
@@ -194,6 +198,7 @@ def main():
               "max_history": args.max_history, "max_train_examples": args.max_train_examples,
               "max_validation_examples": args.max_validation_examples,
               "optimizer": "Adafactor", "learning_rate": "0.01 through 10k steps; then inverse sqrt",
+              "adafactor_scale_parameter": args.adafactor_scale_parameter,
               "user_hash_buckets": 2000, "seed": args.seed, "device": args.device,
               "model_config": model.config.to_dict()}
     if args.eval_test_only:
@@ -225,6 +230,9 @@ def main():
         for key in ("sid_sha256", "train_sha256", "validation_sha256", "seed", "batch_size"):
             if previous[key] != config[key]:
                 parser.error("resume config mismatch: {}".format(key))
+        # Runs written before the option existed used scale_parameter=False.
+        if previous.get("adafactor_scale_parameter", False) != args.adafactor_scale_parameter:
+            parser.error("resume config mismatch: adafactor_scale_parameter")
         state = torch.load(run_dir / "latest.pt", map_location="cpu", weights_only=False)
         model.load_state_dict(state["model"])
         optimizer.load_state_dict(state["optimizer"])

@@ -133,6 +133,22 @@ esac
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("--resume", Path(str(self.trace) + ".train").read_text())
 
+    def test_train_passes_adafactor_scaling_only_when_requested(self):
+        self.prepare_train_stage()
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("--adafactor-scale-parameter", Path(str(self.trace) + ".train").read_text())
+        self.env["ADAFACTOR_SCALE_PARAMETER"] = "1"
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--adafactor-scale-parameter", Path(str(self.trace) + ".train").read_text())
+
+    def test_invalid_adafactor_scaling_stops_before_work(self):
+        self.env["ADAFACTOR_SCALE_PARAMETER"] = "yes"
+        result = self.run_job()
+        self.assertEqual(result.returncode, 2)
+        self.assertFalse(self.trace.exists())
+
     def test_train_refuses_run_left_at_legacy_family_path(self):
         self.prepare_train_stage()
         legacy = self.root / "Recall/TIGER/runs/test-v1"

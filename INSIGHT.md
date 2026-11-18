@@ -12,7 +12,7 @@ Kuriyo 研究筆記的總覽。INSIGHT 分層存放：每一層只記自己範�
 |---|---|---|
 | [Representations/SID/INSIGHT.md](Representations/SID/INSIGHT.md) | 與模型無關的商品 SID 產生 | 舊 SID 訓練因 PyTorch Adagrad 第一步發散而塌縮；`stable` 配方在 SoC 20,000 epochs 達 256/256/256，對 TIGER 的效果未驗證 |
 | [Recall/INSIGHT.md](Recall/INSIGHT.md) | 召回階段、跨家族比較 | 同切分 SASRec validation Recall@10 0.0938，約 TIGER 的 3 倍：共用資料與評估正常，差距在 TIGER 流程 |
-| [Recall/TIGER/INSIGHT.md](Recall/TIGER/INSIGHT.md) | TIGER 家族 | 舊 SID 200k Recall@10 0.0342；新 SID 100k 0.0285，沒有改善，H3 目前不被支持 |
+| [Recall/TIGER/INSIGHT.md](Recall/TIGER/INSIGHT.md) | TIGER 家族 | 200k Recall@10：舊 SID 0.0342、新 SID 0.0368，H3 不被支持；主要嫌疑改為 Adafactor 步長（H5） |
 | [Recall/FMRec/INSIGHT.md](Recall/FMRec/INSIGHT.md) | FMRec 家族 | baseline 已實作並通過 CPU smoke，尚無完整訓練結果 |
 | [Recall/SASRec/INSIGHT.md](Recall/SASRec/INSIGHT.md) | SASRec 家族 | 資料與評估的檢查基準；本機完整 run best epoch 50 |
 | [Ranking/INSIGHT.md](Ranking/INSIGHT.md) | 排序階段 | 尚無候選集、標籤或模型 |

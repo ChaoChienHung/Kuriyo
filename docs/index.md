@@ -25,6 +25,7 @@ repository. The rules are in [`CLAUDE.md`](CLAUDE.md).
 
 - [[sid-rqvae-training]] -- SID 的 RQ-VAE 訓練流程，以及 Adagrad 發散、碼本塌縮等已知失效模式
 - [[fmrec]] -- FMRec baseline：flow matching 序列推薦，與作者程式的差異與 padding／RNG 的坑
+- [[tiger-training]] -- TIGER baseline 的 T5 設定與 HF Adafactor 步長的坑
 - [[sasrec]] -- SASRec baseline：檢查資料與評估的基準，訓練序列重建、位置對齊與 padding 遮罩的坑
 
 ## decisions

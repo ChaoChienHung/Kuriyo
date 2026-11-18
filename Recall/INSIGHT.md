@@ -8,7 +8,7 @@
 
 ## Insights
 
-- **共用資料與評估沒有問題，TIGER 的差距在 TIGER 自己的流程：**同一切分、同一個指標函式下，SASRec validation Recall@10 0.0938，TIGER 不論舊 SID（塌縮）或新 SID（256/256/256）都在 0.03 左右（見下表）。換掉 SID 沒有改善，成熟的 item-ID 模型卻正常，因此下一步應查 TIGER 的訓練樣本、T5 設定、token 排列與解碼，而不是資料切分或指標。
+- **共用資料與評估沒有問題，TIGER 的差距在 TIGER 自己的流程：**同一切分、同一個指標函式下，SASRec validation Recall@10 0.0938，TIGER 不論舊 SID（塌縮）或新 SID（256/256/256）在 200k 都只有 0.034–0.037（見下表）。換掉 SID 沒有改善，成熟的 item-ID 模型卻正常，因此下一步應查 TIGER 自己的訓練，而不是資料切分或指標；目前主要嫌疑是 Adafactor 步長（`Recall/TIGER/INSIGHT.md` H5）。
 
 ## Facts
 
@@ -20,7 +20,7 @@
   |---|---|---|---|---|---|---|
   | 熱門商品 | train 段落計數前 10 | 0.00984 | 0.01704 | 0.00581 | 0.00811 | 本機，2026-11-18 |
   | TIGER baseline | 舊 SID（6/26/25）、200k steps | 0.02057 | 0.03421 | 0.01241 | 0.01679 | SoC job 1153307；見 [TIGER INSIGHT](TIGER/INSIGHT.md) |
-  | TIGER baseline | 新 SID `tiger-paper-v1`（stable，256/256/256）、100k steps（訓練中） | 0.01596 | 0.02848 | 0.01005 | 0.01414 | SoC，使用者貼的 log；見 [TIGER INSIGHT](TIGER/INSIGHT.md) |
+  | TIGER baseline | 新 SID `tiger-paper-v1`（stable，256/256/256）、200k steps | 0.02182 | 0.03680 | 0.01349 | 0.01835 | SoC job 1163052；見 [TIGER INSIGHT](TIGER/INSIGHT.md) |
   | SASRec baseline | CE、hidden 64、2 層，best epoch 50 | 0.06394 | 0.09382 | 0.03647 | 0.04609 | 本機 run `sasrec-beauty-v1`，2026-11-19；見 [SASRec INSIGHT](SASRec/INSIGHT.md) |
   | FMRec baseline | — | — | — | — | — | 尚未完整訓練；見 [FMRec INSIGHT](FMRec/INSIGHT.md) |
 

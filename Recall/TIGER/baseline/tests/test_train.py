@@ -58,9 +58,16 @@ class PaperBaselineTests(unittest.TestCase):
                             "--save-every", "1", "--eval-batch-size", "1",
                             "--max-validation-examples", "1", "--device", "cpu")
             run(*base_command, "--steps", "1")
+            mismatch = subprocess.run([sys.executable, "-m", *base_command, "--steps", "2", "--resume",
+                                       "--adafactor-scale-parameter"],
+                                      cwd=ROOT, capture_output=True, text=True, timeout=120)
+            self.assertNotEqual(mismatch.returncode, 0, "resume must keep the Adafactor scaling")
+            self.assertIn("adafactor_scale_parameter", mismatch.stderr)
             run(*base_command, "--steps", "2", "--resume")
             run(*base_command, "--eval-test-only")
             run_dir = base / "runs/smoke"
+            self.assertIs(json.loads((run_dir / "config.json").read_text())
+                          ["adafactor_scale_parameter"], False)
             self.assertEqual(json.loads((run_dir / "test-metrics.json").read_text())
                              ["test_examples"], 1)
             self.assertTrue((run_dir / "best.pt").is_file())

@@ -14,7 +14,9 @@
 # Individual stages can be submitted separately when the full paper-budget run
 # exceeds one allocation. SID_RECIPE (default stable) selects the RQ-VAE recipe
 # in Representations/SID/scripts/generate_sids.py; an existing SID_VERSION is
-# reused only when its manifest records the same recipe.
+# reused only when its manifest records the same recipe. ADAFACTOR_SCALE_PARAMETER=1
+# trains TIGER with T5X-style Adafactor (steps scaled by parameter RMS); the
+# default 0 keeps the behaviour of earlier runs. Resume refuses a changed value.
 
 set -euo pipefail
 cd "${SLURM_SUBMIT_DIR:?submit from the Kuriyo repository root}"
@@ -28,6 +30,8 @@ esac
 sid_version="${SID_VERSION:-tiger-paper-v1}"
 run_name="${RUN_NAME:-tiger-paper-v1}"
 sid_recipe="${SID_RECIPE:-stable}"
+adafactor_scale="${ADAFACTOR_SCALE_PARAMETER:-0}"
+[[ "$adafactor_scale" == 0 || "$adafactor_scale" == 1 ]] || { echo "ADAFACTOR_SCALE_PARAMETER must be 0 or 1" >&2; exit 2; }
 case "$sid_recipe" in
   paper-pytorch|paper-tf-adagrad|stable) ;;
   *) echo "SID_RECIPE must be paper-pytorch, paper-tf-adagrad, or stable" >&2; exit 2 ;;
@@ -49,7 +53,7 @@ fi
   "torch==2.7.1+cu126" \
   -r Representations/SID/requirements.txt -r Recall/TIGER/baseline/requirements.txt
 
-echo "job=${SLURM_JOB_ID:-local} commit=$(git rev-parse HEAD) stage=$stage sid_version=$sid_version sid_recipe=$sid_recipe run=$run_name"
+echo "job=${SLURM_JOB_ID:-local} commit=$(git rev-parse HEAD) stage=$stage sid_version=$sid_version sid_recipe=$sid_recipe adafactor_scale_parameter=$adafactor_scale run=$run_name"
 sid_dir="data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/$sid_version"
 split_dir="data/amazon_reviews/2014/train/sids/sentence-t5_rqvae/Beauty/$sid_version"
 
@@ -101,6 +105,7 @@ if [[ "$stage" == all || "$stage" == train ]]; then
   }
   args=(--sid-run "$sid_dir" --sid-method sentence-t5_rqvae
         --run-name "$run_name" --device cuda)
+  [[ "$adafactor_scale" == 1 ]] && args+=(--adafactor-scale-parameter)
   run_dir="Recall/TIGER/baseline/runs/$run_name"
   if [[ ! -e "$run_dir" && -e "Recall/TIGER/runs/$run_name" ]]; then
     echo "Run $run_name is at the legacy path Recall/TIGER/runs/; move it to $run_dir first" >&2

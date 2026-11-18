@@ -32,3 +32,7 @@ Append-only. Newest entries at the bottom.
 ## [2026-11-19] add | SASRec baseline
 
 - 新增 [[sasrec]]：`Recall/SASRec/baseline/` 作為檢查資料與評估的基準，記錄訓練序列重建、位置右對齊與 padding 遮罩的坑；[[model-family-layout]] 改為三個家族。
+
+## [2026-11-19] add | TIGER 訓練與 Adafactor 步長
+
+- 新增 [[tiger-training]]：HF Adafactor `scale_parameter=False` 讓 lr 成為絕對步長，與 T5X 預設不同；新增 `--adafactor-scale-parameter` 與續訓檢查。

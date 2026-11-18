@@ -56,7 +56,7 @@ STAGE=test sbatch --export=ALL scripts/run.sbatch
 | `test` | 需要 run 的 `best.pt`；寫出最終 test 指標，拒絕覆寫已存在的結果 |
 | `all`（預設） | 依序 prepare → sid → materialize → train |
 
-所有階段使用相同的 `SID_VERSION`；序列訓練與 test 使用相同的 `RUN_NAME`。新實驗使用新 run 名稱；更換 SID 設定時也使用新 SID 版本。`SID_RECIPE` 預設 `stable`；要重現 job 1153307 的 SID 用 `paper-pytorch`（已知會塌縮，只作對照）。舊版 SID 目錄的 manifest 沒有 recipe 欄位，視為 `paper-pytorch`。重開 shell 後記得重新 export。若計算節點不能連外，需在允許的節點預先準備依賴、資料與 Hugging Face cache。
+所有階段使用相同的 `SID_VERSION`；序列訓練與 test 使用相同的 `RUN_NAME`。新實驗使用新 run 名稱；更換 SID 設定時也使用新 SID 版本。`SID_RECIPE` 預設 `stable`；要重現 job 1153307 的 SID 用 `paper-pytorch`（已知會塌縮，只作對照）。`ADAFACTOR_SCALE_PARAMETER=1`（`train.py --adafactor-scale-parameter`）讓 Adafactor 依參數 RMS 縮放步長，與 T5X 預設相同；預設 0 維持 2026-11-19 以前所有 run 的行為（lr 是絕對步長）。續訓時必須與原 run 相同，否則拒絕執行。舊版 SID 目錄的 manifest 沒有 recipe 欄位，視為 `paper-pytorch`。重開 shell 後記得重新 export。若計算節點不能連外，需在允許的節點預先準備依賴、資料與 Hugging Face cache。
 
 ## 安裝依賴與手動執行
 
