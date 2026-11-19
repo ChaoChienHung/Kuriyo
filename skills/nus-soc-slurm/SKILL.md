@@ -1,69 +1,85 @@
 ---
 name: nus-soc-slurm
-description: Prepare, review, submit, monitor, and troubleshoot NUS School of Computing Slurm CPU or GPU jobs for Kuriyo. Use whenever work mentions the SoC cluster, xlogin, sbatch, srun, sinfo, GPU training, batch logs, allocations, quotas, or moving Kuriyo experiments from a local machine to SoC.
+description: Prepare, review, submit, monitor, and troubleshoot NUS School of Computing Slurm CPU or GPU jobs for Kuriyo. Use whenever work mentions the SoC cluster, xlogin, sbatch, srun, sinfo, sacct, GPU training, batch logs, allocations, quotas, node failures, or moving Kuriyo experiments from a local machine to SoC.
 ---
 
 # NUS SoC Slurm for Kuriyo
 
-Use this skill for cluster work; read the repository `AGENTS.md`, the relevant component README, and the job script before acting. This skill combines the existing `nus-soc-slurm` workflow with cluster practices observed in the local `rl-test` project. The latter's partition limits, GPU names, account paths, and resource requests are historical examples, **not** current SoC policy.
+Use this skill for cluster work; read the repository `AGENTS.md`, the relevant component README, and `scripts/run.sbatch` before acting. Partition names, GPU types, node health, and limits below are **observations with dates**, not current SoC policy: re-check them on the live cluster before relying on them.
 
 ## Access and live checks
 
 1. If outside the NUS network, follow the current NUS VPN instructions. Connect to a SoC **login node** such as `xlogin.comp.nus.edu.sg` using the user's configured account; do not put an account name, password, token, or SSH key in a repository file.
-2. Read the current [SoC Slurm guide](https://dochub.comp.nus.edu.sg/cf/guides/compute-cluster/slurm) and [Slurm Info](https://dochub.comp.nus.edu.sg/cf/guides/compute-cluster/slurm-info). If they are inaccessible, inspect the live cluster through the login node and state what could not be verified. Check `sinfo -o '%P %l %a %G'`, `squeue -u "$USER"`, and, when relevant, `scontrol show partition` or `sbatch --help` before selecting a partition, GPU type, wall time, CPUs, or memory.
-3. Use the SoC login node for `sbatch`; use an allocated compute node for sustained CPU/GPU work. Do not run training on the login node. Prefer a short local or allocated smoke test before a full training run.
+2. Read the current [SoC Slurm guide](https://dochub.comp.nus.edu.sg/cf/guides/compute-cluster/slurm) and [Slurm Info](https://dochub.comp.nus.edu.sg/cf/guides/compute-cluster/slurm-info). If they are inaccessible, inspect the live cluster and state what could not be verified:
+   - `sinfo -o '%P %l %a %G'` — partitions, time limits, GPU types.
+   - `sinfo -N -o '%N %P %G %T' | sort -u` — every node with its partition, GPU type, and state.
+   - `squeue -u "$USER"`, and when relevant `scontrol show partition <name>` or `scontrol show job <id>`.
+3. Use the login node for `git`, `sbatch`, `squeue`, and `sacct` only. Do not import Torch or train there: in 2026-11 the login node's virtual-memory limit was 1 GiB and `import torch` failed while mapping libraries. Diagnose GPU code inside an allocation (`salloc` or `srun`).
 
-## Prepare a reproducible run
+## How code and logs move between the laptop and SoC
 
-- Prepare the code and batch script locally. Inspect the Git diff, test the Python entry point, and record the intended Git revision. Sync code to SoC through the project's approved workflow; pushing or pulling is a separate action governed by `AGENTS.md` and the user's instructions. A job already running keeps the code and environment it started with.
-- On SoC, enter the Kuriyo repository root, verify `README.md`, the expected Git revision, `.venv/bin/python`, input files, and output parent directory. Install `Representations/SID/requirements.txt` for SID generation and `Recall/TIGER/baseline/requirements.txt` for TIGER sequence training. Verify imports and `torch.cuda.is_available()` inside the intended environment.
-- Keep Amazon source data, SID artifacts, checkpoints, caches, and logs on a permitted persistent filesystem. Confirm storage quota and free space. If a pip or Git install fails with `/tmp` quota errors, set `TMPDIR` to a writable project or home directory **before** retrying; `--no-cache-dir` alone does not relocate temporary checkouts. Do not assume a generic node-local scratch path persists after the job.
-- Use a new SID version and model run name. For the current Beauty fixed-catalog workflow, SID generation covers all 12,101 catalog items at `data/amazon_reviews/2014/catalog/Beauty/items.jsonl`; the resulting SID catalog belongs under `data/amazon_reviews/2014/artifacts/sids/<method>/Beauty/<version>/`. Materialize split examples before TIGER training. Do not treat a limited-item smoke run as a full catalog.
-- Keep validation for model selection and test for the final report. Record source file SHA, split manifest, SID catalog/version/SHA, config, seed, Git revision, metrics, and output path for each run.
+Kuriyo uses Git as the only channel; the agent never reads SoC directly.
 
-## Batch script pattern
+- **Code to SoC:** commit and push to `main` locally (only when the user asks), then on SoC run `git pull --ff-only`. A job that is already running keeps the code it started with; the first log line records `commit=`.
+- **Logs to the agent:** the user commits `slurm-*.out` on SoC and pushes; the agent runs `git fetch && git merge --ff-only origin/main` and reads the file. Old logs whose numbers are already recorded in an `INSIGHT.md` can be removed with `git rm`; record the retrieval command (`git show <commit>:<file>`) in `HANDOFF.md`.
+- **Push rejected on SoC (`fetch first`) or `git pull` reports divergent branches:** inspect `git log --oneline origin/main..HEAD`, then `git pull --rebase` and `git push`. Never force-push.
+- When giving the user a command, never leave placeholders such as `<JOBID>`: bash reads `<JOBID>` as an input redirection and fails with `JOBID: No such file or directory`. Give a command that finds the value itself, for example `f=$(ls -t slurm-kuriyo-sasrec-*.out | head -1)`.
 
-Put `#SBATCH` directives immediately after the shebang, before shell commands. Slurm reads their values literally; shell variables in these directives are not expanded. Choose resource values only after the live checks above. Create the log directory **before** `sbatch`, because Slurm opens the log before the script body runs.
+## Kuriyo's batch entry point: `scripts/run.sbatch`
 
-```bash
-#!/usr/bin/env bash
-#SBATCH --job-name=kuriyo-sid
-#SBATCH --partition=<verified-partition>
-#SBATCH --time=<verified-wall-time>
-#SBATCH --cpus-per-task=<cpu-count>
-#SBATCH --mem=<memory>
-#SBATCH --gpus=1
-#SBATCH --output=logs/%x-%j.out
+One stage-selectable script covers every Recall family. Submit from the repository root with `sbatch --export=ALL scripts/run.sbatch` and settings as environment variables:
 
-set -euo pipefail
-cd "${SLURM_SUBMIT_DIR:?submit from the Kuriyo repository root}"
-test -f README.md
-test -x .venv/bin/python
-test -f data/amazon_reviews/2014/catalog/Beauty/items.jsonl
-echo "job=${SLURM_JOB_ID:?} commit=$(git rev-parse HEAD)"
-.venv/bin/python -c 'import torch; assert torch.cuda.is_available()'
-srun .venv/bin/python -m Representations.SID.scripts.generate_sids \
-  --output-dir data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/<new-version> \
-  --encoder sentence-t5 --device cuda
-```
+| Setting | Values | Notes |
+| --- | --- | --- |
+| `MODEL` | `tiger` (default), `sasrec`, `fmrec` | SASRec/FMRec read the raw ASIN split and accept only `STAGE=prepare\|train\|test\|all` |
+| `STAGE` | `prepare`, `sid`, `materialize`, `train`, `test`, `all` | `all` excludes the held-out `test` |
+| `RUN_NAME` | new name per experiment | existing run with `latest.pt` resumes; a run directory without it is refused |
+| `SID_RECIPE`, `SID_VERSION` | TIGER only | an existing SID version is reused only if its manifest records the same recipe |
+| `ADAFACTOR_SCALE_PARAMETER` | `0` (default) or `1` | TIGER only; resume refuses a changed value |
 
-Adapt the command for TIGER using `python -m Recall.TIGER.baseline.train_sequence` and its documented `--sid-run`, `--sid-method`, and `--run-name`. Do not copy the `rl-test` project paths or model-specific environment variables into Kuriyo. Do not pin a specific node unless the workload requires it. A single-process job gains no speed from requesting extra GPUs without multi-GPU code.
+Use `--job-name=kuriyo-<model>` so the log is `slurm-kuriyo-<model>-<jobid>.out`. The script's `#SBATCH` defaults (partition `gpu-long`, 2 days, 1 GPU, 8 CPUs, 32 GB) were chosen for TIGER; override with `sbatch` flags when the live cluster differs.
 
-## Submission and monitoring
+- **Several jobs at once:** submit each `MODEL` as its own job with `STAGE=train` after the Beauty split exists. `STAGE=all` or `prepare` makes every job rewrite the same split concurrently. Each job requests its own GPU; check the user's GPU quota first.
+- The first log line echoes `job=`, `commit=`, `model=`, `stage=`, and `run=`. Check it before reading any metric.
+- `pip install` runs at the start of every job and should print only "Requirement already satisfied"; filter it with `grep -v "Requirement already"` when reading logs.
 
-- Preparing or reviewing a script does not authorize a live job. Submit, cancel, or change a job only when the user has requested that action. Do not push code or publish data merely to make a submission possible without authorization.
-- Before submission, verify the script, new output path, environment, inputs, current resources, and `logs/` directory. Submit from the repository root with `sbatch --parsable <script>`, record the returned job ID, and inspect `squeue -j <job-id>`.
-- Read the configured `logs/<job-name>-<job-id>.out` after the job starts; its location is relative to the submission directory unless an absolute output path was given. After it leaves the queue, use `sacct -j <job-id> --format=JobID,JobName,State,ExitCode,Elapsed,MaxRSS` and inspect the log and expected artifacts. A missing queue entry alone does not prove success.
-- For dependent stages, use `--dependency=afterok:<job-id>` only after confirming the producer's output contract. For independent runs, an array job can be appropriate; set an explicit concurrency limit if needed. Do not schedule duplicate runs to compensate for a slow queue.
-- Use `salloc` for interactive debugging or `srun` for a single allocated command. Exit idle allocations promptly. Use `scancel` only when stopping the job is intended.
+## Monitoring and reading results
+
+- `squeue -u "$USER"` while queued or running.
+- `sacct -u "$USER" -S today --format=JobID%12,JobName%15,State,ExitCode,Elapsed,NodeList%10` after it leaves the queue. `NodeList` shows which node each job used; compare failing and working jobs this way.
+- A finished queue entry does not prove success. Read the log, distinguish `TIMEOUT` from `COMPLETED`, and verify the expected artifacts (`latest.pt`, `best-metrics.json`, validation files) before reporting results.
+- Separate validation (model selection) from held-out test, and record job ID, commit, and run name for every number in `INSIGHT.md`/`HANDOFF.md`.
 
 ## Troubleshooting
 
-- **Pending:** inspect `squeue`, `scontrol show job <job-id>`, requested resources, and current partition availability before changing requests.
-- **Failed or OOM:** use `sacct` state/exit code, `MaxRSS`, and the job log; distinguish memory failure from Python exceptions, missing data, time limits, and package errors.
-- **No log:** confirm whether the job has started and where `--output` resolves. Create log directories before resubmission.
-- **Wrong code or data:** compare recorded Git revision, dataset SHA, SID version, and split manifest with the intended run before interpreting metrics.
+### `CUDA unknown error` → `CUDA is unavailable`, job exits in seconds
+
+Symptom in the log: a Torch warning `CUDA initialization: CUDA unknown error`, then `train.py: error: CUDA is unavailable` and `srun: error: <node>: task 0: Exited with exit code 2`. The training scripts check CUDA before creating the run directory, so the same `RUN_NAME` can be resubmitted.
+
+- This is a node problem, not Kuriyo code. On 2026-11-19 it happened on `xgpe2`, `xgpe4`, and `xgpe6` (all `gpu:nv:1`), while jobs on `xgpf11` trained normally.
+- **Trap:** broken nodes look `idle` in `sinfo` because every job on them dies at once, so Slurm keeps sending new jobs there. Excluding one node at a time just moves the job to the next broken sibling. Exclude the whole group.
+- **Trap:** `--exclude` must name only existing nodes. `--exclude='xgpe[0-6]'` failed with `Invalid node name specified` because `xgpe5` does not exist. Build the list from `sinfo -N`, e.g. `--exclude='xgpe[0-4,6]'`.
+- Alternatively request a GPU type from the `GRES` column, e.g. `--gpus=a100-40:1`, after checking that the partition offers it.
+
+### `no kernel image is available` on older GPUs
+
+`xgpd5` has a TITAN V (sm_70); other `gpu:nv` nodes may be similar (unverified). A Torch build for CUDA 13 dropped sm_70; `run.sbatch` therefore installs `torch==2.7.1+cu126` from the PyTorch cu126 index. Keep that pin aligned with the comment in the root `requirements.txt`.
+
+### Other failures
+
+- **Pending:** inspect `squeue`, `scontrol show job <id>`, requested resources, and partition availability before changing requests.
+- **Failed or OOM:** use `sacct` state, exit code, and `MaxRSS` together with the log; distinguish memory failure from Python exceptions, missing data, time limits, and package errors.
+- **`/tmp` quota during pip or Git:** set `TMPDIR` to a writable project directory before retrying (`run.sbatch` uses `.tmp/`); `--no-cache-dir` alone does not move temporary checkouts.
+- **No log:** confirm the job started and where `--output` resolves; Slurm opens the log before the script runs, so its directory must already exist.
+- **Wrong code or data:** compare the recorded commit, dataset SHA, SID version, and split manifest with the intended run before interpreting metrics.
+
+## Rules
+
+- Preparing or reviewing a script does not authorize a live job. Submit, cancel, or change jobs only when the user asks; the agent normally gives the user the exact command to run.
+- Do not push code or publish data merely to make a submission possible without authorization.
+- Keep source data, SID artifacts, checkpoints, and caches on a permitted persistent filesystem and out of Git; only small Slurm logs are committed.
+- A single-process job gains nothing from extra GPUs. Do not pin a specific node unless the workload requires it; prefer excluding known-bad nodes.
 
 ## Provenance
 
-This repository skill was synthesized from the pre-existing `nus-soc-slurm` skill; `rl-test/README.md` (its “Running on NUS SoC Cluster” section); and its `verifier/train.sbatch`, `agent/eval.sbatch`, and `retrieval/build_fever_index.sbatch` examples. Verify live SoC rules at run time. Refer to the [official Slurm `sbatch` manual](https://slurm.schedmd.com/sbatch.html) for command semantics.
+Synthesized from the earlier `nus-soc-slurm` skill, the `rl-test` project's SoC notes, and Kuriyo's own SoC runs in 2026-11 (jobs 1153307–1165548; see `HANDOFF.md`). Refer to the [official Slurm `sbatch` manual](https://slurm.schedmd.com/sbatch.html) for command semantics.
