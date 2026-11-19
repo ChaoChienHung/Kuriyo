@@ -10,7 +10,7 @@ sources:
   - code: scripts/run.sbatch
   - code: tests/test_run_sbatch.py
   - ext: https://raw.githubusercontent.com/google-research/t5x/main/t5x/adafactor.py
-verified_at: 83f321a
+verified_at: 2c946fe
 ---
 
 # TIGER baseline 訓練與 Adafactor 步長

@@ -17,7 +17,7 @@ sources:
   - code: Recall/FMRec/README.md
   - code: Recall/SASRec/README.md
   - code: .gitignore
-verified_at: b595511
+verified_at: 2c946fe
 ---
 
 # 模型家族與變體目錄結構

@@ -13,7 +13,7 @@ sources:
   - code: Recall/SASRec/baseline/tests/test_train.py
   - code: utils/amazon_reviews_2014.py
   - ext: https://arxiv.org/abs/1808.09781
-verified_at: 17727c0
+verified_at: 2c946fe
 ---
 
 # SASRec baseline（資料與評估的檢查基準）
