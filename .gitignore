@@ -37,3 +37,7 @@ data/amazon_reviews/test/
 
 # Auto-converted agent skill copies; rules live in AGENTS.md files.
 .agents/
+
+# Slurm stdout (scripts/run.sbatch --output=slurm-%x-%j.out). Records live in the run directory
+# and Experiment-log; force-add a log only to share it, and remove it once recorded.
+/slurm-*.out

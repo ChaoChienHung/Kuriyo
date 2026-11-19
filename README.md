@@ -1,10 +1,53 @@
 # Kuriyo
 
-Kuriyo 這個 repository 主要用來存放**推薦模型**及其相關的資料處理、訓練、評估與實驗紀錄。
+Kuriyo reproduces sequential recommendation models (generative retrieval with semantic IDs, and item-ID baselines) on Amazon Reviews 2014, under one shared split, one evaluation protocol, and a fixed statistics policy, so that models are compared on equal terms rather than against numbers copied from papers.
 
-專案目前仍在建立初期。2014 Amazon Beauty 的資料準備流程已可執行；獨立的 [SID 元件](Representations/SID/README.md)與 [TIGER](Recall/TIGER/README.md) 序列模型已在 SoC 完成首輪完整 Beauty SID 與 200,000-step 訓練；已取得 validation，尚無最終 test 結果，也尚未重現論文結果。
+## Results (Amazon 2014 Beauty)
 
-要執行第一版 TIGER baseline，請從 [TIGER baseline 使用指南](Recall/TIGER/baseline/README.md) 開始：包含論文與模型介紹、依賴安裝、SoC pull 後分階段執行、手動指令、續訓、評估及目前限制。
+Recall@10 / NDCG@10. Kuriyo uses the TIGER protocol: per-user chronological leave-one-out, histories capped at 20 items, ranking over the full catalogue of 12,101 items (no sampled negatives). Validation selects the checkpoint; each test was run once.
+
+| Model | Paper (test) | Kuriyo validation | Kuriyo test | Status |
+|---|---|---|---|---|
+| [FMRec](Recall/FMRec/README.md) (author defaults) | 0.0827 / 0.0495 | 0.1031 / 0.0604 | **0.0804 / 0.0474** | Within 0.0025 of the paper on all four reported metrics (1 seed). The paper used 50-item histories and different preprocessing, so the match is indicative. |
+| [SASRec](Recall/SASRec/README.md), paper setting (BCE loss) | 0.0605 / 0.0318¹ | 0.0602 ± 0.0015 / 0.0259 ± 0.0006 (3 seeds) | — | Validation matches the paper; test not run yet. |
+| SASRec, cross-entropy loss (hidden 64, 2 heads) | — | 0.1023 / 0.0508 | 0.0851 / 0.0413 | Changing only the loss to full-softmax cross-entropy raises validation Recall@10 from 0.060 to 0.102 (3 seeds each, Welch p = 6e-5). |
+| [TIGER](Recall/TIGER/README.md) (T5X-style Adafactor, best at 20k steps) | 0.0648 / 0.0384 | 0.0800 / 0.0434 | 0.0556 / 0.0294 | 14% below the paper on test, and 31% below its own validation; validation declines after 20k steps as training loss keeps falling (overfitting, 1 seed). Under investigation. |
+| Most popular items | — | 0.0170 / 0.0081 | 0.0120 / 0.0055 | Floor. |
+
+¹ SASRec as reported in Table 3 of the TIGER paper. Single seed unless stated. Full records: [Recall/INSIGHT.md](Recall/INSIGHT.md) and each family's `Experiment-log.md`.
+
+## Reproduce FMRec
+
+From the repository root, with a CUDA GPU (tested with Python 3.12 and 3.13):
+
+```bash
+python -m pip install -r Recall/FMRec/baseline/requirements.txt
+python3 -m scripts.ensure_amazon_reviews_2014 --category Beauty   # download, split, checksum
+python -m Recall.FMRec.baseline.train --run-name fmrec-repro --device cuda
+python -m Recall.FMRec.baseline.train --run-name fmrec-repro --device cuda --eval-test-only
+```
+
+On a Slurm cluster the same pipeline is `MODEL=fmrec RUN_NAME=fmrec-repro STAGE=all sbatch --export=ALL scripts/run.sbatch`, then `STAGE=test`. Runs write to `Recall/FMRec/baseline/runs/fmrec-repro/` (layout in [core/README.md](core/README.md)).
+
+## Layout
+
+- `Recall/`: retrieval models, one directory per model family (`TIGER/`, `SASRec/`, `FMRec/`), each with a self-contained `baseline/` variant; shared data loading, full-catalogue evaluation and metrics are in `Recall/core/`.
+- `Representations/SID/`: semantic ID generation (Sentence-T5 + RQ-VAE) for generative retrieval.
+- `core/`: run-directory lifecycle, provenance, and the statistics used to compare runs (`python -m core.compare`).
+- `scripts/`: data download and preparation; `scripts/run.sbatch` runs any stage on Slurm.
+- `Ranking/`, `pipelines/`: reserved. The project currently focuses on Recall.
+
+Experiment design, seed counts, and significance tests are fixed in [實驗設計與統計檢定](#實驗設計與統計檢定) below (Chinese). The rest of this README and the research notes are in Traditional Chinese.
+
+Code is released under the [MIT License](LICENSE). The Amazon Reviews data are not redistributed; download them from the [McAuley Lab page](https://cseweb.ucsd.edu/~jmcauley/datasets/amazon/links.html) under its terms.
+
+---
+
+## 簡介（中文）
+
+Kuriyo 這個 repository 主要用來存放**推薦模型**及其相關的資料處理、訓練、評估與實驗紀錄。上方英文結果表是目前的狀態：FMRec 的 test 與論文相當；SASRec 論文設定的 validation 與論文相當；TIGER 的 test 仍比論文低約 14%，正在調查。目前專注在 Recall；`Ranking/` 與 `pipelines/` 保留給之後的重排序與端到端流程。
+
+要執行 TIGER，從 [TIGER baseline 使用指南](Recall/TIGER/baseline/README.md) 開始：包含論文與模型介紹、依賴安裝、SoC pull 後分階段執行、手動指令、續訓、評估及目前限制。
 
 ## 文件導覽與目前狀態
 
@@ -12,8 +55,6 @@ Kuriyo 這個 repository 主要用來存放**推薦模型**及其相關的資料
 - [TODO.md](TODO.md)：未完成的工作（Agent-ready、Owner-led、Ideas）；[REVIEW.md](REVIEW.md)：已完成、等人審查的工作。
 - [INSIGHT.md](INSIGHT.md)：研究筆記總覽；各鏈路（Recall、Ranking、SID）與各模型家族有自己的 `INSIGHT.md`，根檔摘要並連結它們。每個模型家族（例如 `Recall/TIGER/`，家族所有變體共用）與 SID 元件各有一份 `Experiment-log.md`，依日期記錄跑了什麼與結果。
 - [AGENTS.md](AGENTS.md)：協作與修改規則；各元件 README：實際入口與操作方式。
-
-完整 run `tiger-paper-20261117-005232` 的最佳已記錄 validation 位於 step 200,000：Recall@10 **0.03420829**、NDCG@10 **0.01678776**。SID 三層各 256 個碼，實際使用 **6 / 26 / 25**；下一步先調查 SID 與實作設定，不能把 validation 當作論文 test 的直接對照。證據為 job 1153307 的 Slurm log；該檔已於 `2ad21c7` 從 repo 移除，可用 `git show 2ad21c7^:slurm-kuriyo-tiger-1153307.out` 取回。完整 GPU 產物仍在 SoC，Git 只同步程式與小型紀錄。
 
 ## 資料目錄
 
@@ -162,4 +203,4 @@ TIGER paper baseline、FMRec baseline、SASRec baseline 和 SID 生成器使用 
 
 TIGER 續訓會追加紀錄；從較早 checkpoint 重跑的 step 可透過 session ID 區分。強制終止、斷電或進入 logger 前的錯誤不保證有失敗事件，因此仍需搭配 Slurm 狀態與產物檢查。SID 失敗後可能留下只有 log 的部分目錄，仍不可當作完成產物，且目前無中途續訓功能。舊的 smoke trainer 尚未接入此 logger。
 
-Slurm `.out` 不保留在 repo 中（job 1153307 的 log 只在 git 歷史）。Recall 的 run 目錄只有 `settings.json`、`events.log`、`validation/`、`test/` 會被 Git 追蹤（`.gitignore` 以白名單列出）；`checkpoints/`、`train/`（每 step 的紀錄，TIGER 可達數十 MB）、2026-11-19 以前平版面的檔案與快取都忽略。在 SoC 上把有 Experiment-log 條目的 run 紀錄 `git add` 後推上來，結果就能在 Git 裡核對；smoke test 的 run 目錄檢查完就刪，不提交。SID 產物目錄仍整個被忽略。
+Slurm `.out` 被 `.gitignore` 忽略（`/slurm-*.out`）。需要拿 log 補紀錄時（例如 train loss）才 `git add -f` 暫時推上，整理進 Experiment-log、以 `git show <commit>:<檔名>` 連結後就 `git rm`。Recall 的 run 目錄只有 `settings.json`、`events.log`、`validation/`、`test/` 會被 Git 追蹤（`.gitignore` 以白名單列出）；`checkpoints/`、`train/`（每 step 的紀錄，TIGER 可達數十 MB）、2026-11-19 以前平版面的檔案與快取都忽略。在 SoC 上把有 Experiment-log 條目的 run 紀錄 `git add` 後推上來，結果就能在 Git 裡核對；smoke test 的 run 目錄檢查完就刪，不提交。SID 產物目錄仍整個被忽略。

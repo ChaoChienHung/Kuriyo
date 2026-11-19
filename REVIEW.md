@@ -4,6 +4,11 @@
 
 ## Awaiting review
 
+- [ ] README 對外包裝：英文開頭、結果表、LICENSE
+  - **Delivered:** README 開頭改成英文：一句話介紹、Beauty 結果表（論文 test／Kuriyo validation／Kuriyo test／狀態）、重現 FMRec 的指令、目錄說明；原本過時的「TIGER 0.034、尚無 test」段落移除，中文簡介接在後面。新增 MIT `LICENSE`（程式碼；資料依原站條款，不重新散布）。`/slurm-*.out` 加進 `.gitignore`，根目錄的 job 1167955 log 移除；SoC skill 與 README 改成需要時 `git add -f`。`Ranking/README.md` 開頭註明目前專注 Recall。依使用者決定，AGENTS.md、HANDOFF／TODO／REVIEW、`skills/` 留在根目錄。
+  - **Evidence:** 結果表每個數字對照 `Recall/INSIGHT.md` 與 run 的 `metrics.json`；`run.sbatch` 確認 `MODEL=fmrec STAGE=all` 為 prepare → train；README 相對連結全部存在；docs lint 通過。
+  - **Review focus:** FMRec「與論文相當」附了資料處理與歷史長度不同的但書；SASRec 論文數字取自 TIGER 論文表 3；著作權人寫 Git 作者名 Chao Chien Hung；重現指令用新 run 名稱 `fmrec-repro`，因為 `fmrec-beauty-v1` 的紀錄已在 Git，同名會被拒絕。
+
 - [ ] 逐使用者排名輸出與 `python -m core.compare`
   - **Delivered:** `Recall/core/metrics.py` 的 `target_ranks`／`per_user`；`rank_full_catalog` 與 TIGER `evaluate` 回傳每位使用者的目標排名（前 10 名內的名次，否則 0）。`core/runs.py` 把它從指標取出另存 `validation/<set>/best-ranks.json`（best 更新時）與 `test/<set>/ranks.json`；`--eval-groups` 改成補齊缺的分組檔與排名檔（已有的不覆寫，全有才拒絕），讓既有 run 也能補排名。新增 `core/stats.py`（t 分佈、Welch、paired t、paired bootstrap、Holm，只用標準函式庫與 NumPy）與 `core/compare.py`（每個設定的平均 ± 標準差與 t 95% CI；對第一個設定做使用者配對檢定與 seed 層級 Welch，Holm 校正，依 README 規則給判定）。README 統計一節、`core/README.md`、docs [[run-directory]] 更新；TODO 移除此項，分組評估項目加上用排名做 SASRec H1 的配對檢定。
   - **Evidence:** 改動前後以固定 seed 跑 SASRec、FMRec（真實資料子集，含續訓與 test）與 TIGER（合成資料）：loss、validation、test 整體指標逐位相同；三個模型的排名檔以 Recall@10 重算與記錄值差 0。新增 `tests/test_compare.py`（t 分佈對照表值、Welch／paired t 公式、bootstrap、Holm、判定、拒絕不同使用者）；SASRec 整合測試檢查排名檔、指標 JSON 不含 `per_user`、刪掉排名檔後 `--eval-groups` 補回且分組檔不變；完整 unittest discovery 80 項通過；docs lint 通過。

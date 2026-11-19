@@ -21,7 +21,7 @@ Use this skill for cluster work; read the repository `AGENTS.md`, the relevant c
 Kuriyo uses Git as the only channel; the agent never reads SoC directly.
 
 - **Code to SoC:** commit and push to `main` locally (only when the user asks), then on SoC run `git pull --ff-only`. A job that is already running keeps the code it started with; the first log line records `commit=`.
-- **Logs to the agent:** the user commits `slurm-*.out` on SoC and pushes; the agent runs `git fetch && git merge --ff-only origin/main` and reads the file. Old logs whose numbers are already recorded in an `INSIGHT.md` can be removed with `git rm`; record the retrieval command (`git show <commit>:<file>`) in `HANDOFF.md`.
+- **Logs to the agent:** `/slurm-*.out` is Git-ignored. When the agent needs a log (for example train loss that is not in the tracked run records), the user runs `git add -f` on that log on SoC and pushes; the agent runs `git fetch && git merge --ff-only origin/main` and reads it. Once its numbers are in the Experiment-log, which links `git show <commit>:<file>`, remove it with `git rm`, but only after the job has finished: deleting a log that a running job is still writing makes the next `git pull` on SoC fail.
 - **Push rejected on SoC (`fetch first`) or `git pull` reports divergent branches:** inspect `git log --oneline origin/main..HEAD`, then `git pull --rebase` and `git push`. Never force-push.
 - When giving the user a command, never leave placeholders such as `<JOBID>`: bash reads `<JOBID>` as an input redirection and fails with `JOBID: No such file or directory`. Give a command that finds the value itself, for example `f=$(ls -t slurm-kuriyo-sasrec-*.out | head -1)`.
 

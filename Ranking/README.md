@@ -1,5 +1,7 @@
 # Ranking
 
+*Reserved for reranking models; nothing is implemented yet. Kuriyo currently focuses on Recall ([results](../README.md#results-amazon-2014-beauty)).*
+
 `Ranking/` 預留給候選商品排序模型。Ranking 接收使用者歷史及 Recall 產生的候選商品，對候選商品重新排序。目前尚未實作 Ranking 模型、候選集產生流程或 Ranking 專用的訓練資料。研究筆記見 [INSIGHT.md](INSIGHT.md)。
 
 ## 準備可共用的互動資料
