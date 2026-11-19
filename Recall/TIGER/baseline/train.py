@@ -2,6 +2,7 @@
 
 This PyTorch/Hugging Face implementation follows reported TIGER dimensions and
 schedule; it is not the authors' T5X code. Run --help from the repository root.
+Run directory layout: core/runs.py.
 """
 
 import argparse
@@ -21,10 +22,21 @@ if __package__ in (None, ""):
 
 from Recall.TIGER.baseline.train_sequence import read_examples
 from Recall.TIGER.baseline.sequence import SIDTokenizer
-from Recall.core.data import pad_token_sequences
-from Recall.core.experiment import file_sha256, git_revision, seed_everything, write_json
+from Recall.core.data import pad_token_sequences, preprocessing_summary
 from Recall.core.metrics import ranking_metrics
-from core.run_logging import RunLogger
+from core.experiment import file_sha256, seed_everything
+from core.runs import (RunError, RunLayout, Selection, add_run_arguments, check_run_arguments,
+                       configure_threads, display_path, eval_set_name, evaluate_test_once,
+                       load_checkpoint, open_run, run_section, save_checkpoint)
+
+# Must match to resume; keys are the flat config.json names of runs before 2026-11-19, which
+# all used scale_parameter=False before the option was recorded.
+RESUME_KEYS = {"sid_sha256": "data.sid.sha256", "train_sha256": "data.splits.train.sha256",
+               "validation_sha256": "data.splits.validation.sha256", "seed": "run.seed",
+               "batch_size": "training.batch_size",
+               "adafactor_scale_parameter": ("training.adafactor_scale_parameter", False)}
+TEST_KEYS = {"sid_sha256": "data.sid.sha256", "train_sha256": "data.splits.train.sha256",
+             "validation_sha256": "data.splits.validation.sha256", "sid_version": "data.sid.version"}
 
 
 def user_token(user_id, offset, buckets=2000):
@@ -90,18 +102,6 @@ def evaluate(model, tokenizer, examples, max_history, device, batch_size, beam_s
             "decoding": "unconstrained beam search; invalid IDs count as misses"}
 
 
-def save_checkpoint(path, model, optimizer, step, sampler, permutation, cursor, best):
-    state = {"model": model.state_dict(), "optimizer": optimizer.state_dict(),
-             "step": step, "sampler_state": sampler.get_state(),
-             "permutation": permutation, "cursor": cursor, "best_ndcg10": best,
-             "torch_rng_state": torch.get_rng_state()}
-    if torch.cuda.is_available():
-        state["cuda_rng_state"] = torch.cuda.get_rng_state_all()
-    temporary = path.with_suffix(path.suffix + ".part")
-    torch.save(state, temporary)
-    os.replace(temporary, path)
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sid-run", type=Path, required=True)
@@ -109,8 +109,7 @@ def main():
     parser.add_argument("--sid-version")
     parser.add_argument("--data-root", type=Path, default=ROOT / "data/amazon_reviews")
     parser.add_argument("--category", default="Beauty")
-    parser.add_argument("--run-name", required=True)
-    parser.add_argument("--runs-dir", type=Path, default=ROOT / "Recall/TIGER/baseline/runs")
+    add_run_arguments(parser, ROOT / "Recall/TIGER/baseline/runs")
     parser.add_argument("--steps", type=int, default=200000)
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--eval-batch-size", type=int, default=16)
@@ -120,18 +119,16 @@ def main():
     parser.add_argument("--max-history", type=int, default=20)
     parser.add_argument("--max-train-examples", type=int)
     parser.add_argument("--max-validation-examples", type=int)
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--device", choices=("cpu", "cuda", "mps"), default="cpu")
-    parser.add_argument("--adafactor-scale-parameter", action="store_true",
+    parser.add_argument("--adafactor-scale-parameter", action=argparse.BooleanOptionalAction,
+                        default=True,
                         help="scale each Adafactor step by the parameter RMS, as T5X does by default "
-                             "(multiply_by_parameter_scale); without it every step is about lr in "
-                             "absolute size, which is the behaviour of runs before this option")
-    parser.add_argument("--resume", action="store_true")
-    parser.add_argument("--eval-test-only", action="store_true",
-                        help="evaluate the selected best checkpoint on held-out test once")
+                             "(multiply_by_parameter_scale; default). --no-adafactor-scale-parameter "
+                             "makes every step about lr in absolute size, the behaviour of runs "
+                             "before 2026-11-19; use it to resume those runs")
     args = parser.parse_args()
-    if Path(args.run_name).name != args.run_name or args.run_name in ("", ".", ".."):
-        parser.error("--run-name must be one directory name")
+    error = check_run_arguments(args)
+    if error:
+        parser.error(error)
     sid_version = args.sid_version or args.sid_run.name
     if Path(sid_version).name != sid_version or sid_version in ("", ".", ".."):
         parser.error("--sid-version must be one directory name")
@@ -140,13 +137,6 @@ def main():
         parser.error("counts must be positive")
     if args.beam_size < 10:
         parser.error("--beam-size must be at least 10")
-    for limit in (args.max_train_examples, args.max_validation_examples):
-        if limit is not None and limit < 1:
-            parser.error("example limits must be positive")
-    if args.device == "cuda" and not torch.cuda.is_available():
-        parser.error("CUDA is unavailable")
-    if args.device == "mps" and not torch.backends.mps.is_available():
-        parser.error("MPS is unavailable")
     sid_path = args.sid_run / "semantic_ids.jsonl"
     sid_manifest_path = args.sid_run / "manifest.json"
     if not sid_path.is_file() or not sid_manifest_path.is_file():
@@ -174,91 +164,93 @@ def main():
             or split_manifest["sid_version"] != sid_version
             or split_manifest["method"] != args.sid_method):
         parser.error("materialized split differs from SID run")
-    train_path = split_root / "examples.jsonl"
-    validation_path = year / "validation/sids" / args.sid_method / args.category / sid_version / "examples.jsonl"
-    train = read_examples(train_path, args.max_train_examples, tokenizer)
-    validation = read_examples(validation_path, args.max_validation_examples, tokenizer)
+    paths = {split: year / split / "sids" / args.sid_method / args.category / sid_version / "examples.jsonl"
+             for split in ("train", "validation", "test")}
+    train = read_examples(paths["train"], args.max_train_examples, tokenizer)
+    validation = read_examples(paths["validation"], args.max_validation_examples, tokenizer)
     seed_everything(args.seed)
-    if args.device == "cpu":
-        torch.set_num_threads(min(4, os.cpu_count() or 1))
+    configure_threads(args.device)
     model = build_model(tokenizer).to(args.device)
     optimizer = Adafactor(model.parameters(), lr=0.01, scale_parameter=args.adafactor_scale_parameter,
                           relative_step=False, warmup_init=False)
-    run_dir = args.runs_dir / args.run_name
-    config = {"implementation": "Hugging Face T5 PyTorch; paper-configured, not T5X",
-              "sid_run": str(args.sid_run.resolve()), "sid_sha256": file_sha256(sid_path),
-              "sid_method": args.sid_method, "sid_version": sid_version,
-              "train_sha256": file_sha256(train_path),
-              "validation_sha256": file_sha256(validation_path),
-              "split_manifest_sha256": file_sha256(split_manifest_path),
-              "git_revision": git_revision(ROOT), "category": args.category,
-              "steps": args.steps, "batch_size": args.batch_size,
-              "eval_batch_size": args.eval_batch_size, "eval_every": args.eval_every,
-              "save_every": args.save_every, "beam_size": args.beam_size,
-              "max_history": args.max_history, "max_train_examples": args.max_train_examples,
-              "max_validation_examples": args.max_validation_examples,
-              "optimizer": "Adafactor", "learning_rate": "0.01 through 10k steps; then inverse sqrt",
-              "adafactor_scale_parameter": args.adafactor_scale_parameter,
-              "user_hash_buckets": 2000, "seed": args.seed, "device": args.device,
-              "model_config": model.config.to_dict()}
+    eval_set = eval_set_name("2014", args.category)
+    layout = RunLayout(args.runs_dir / args.run_name, eval_set)
+    settings = {
+        "run": run_section(args.run_name, "TIGER", "baseline",
+                           "Hugging Face T5 PyTorch; paper-configured, not T5X", ROOT,
+                           args.device, args.seed),
+        "data": {"year": "2014", "category": args.category,
+                 "catalog": {"path": display_path(item_path, ROOT), "sha256": file_sha256(item_path)},
+                 "sid": {"run": display_path(args.sid_run, ROOT), "method": args.sid_method,
+                         "version": sid_version, "sha256": file_sha256(sid_path),
+                         "recipe": sid_manifest.get("recipe"),
+                         "codebook_size": sid_manifest["codebook_size"],
+                         "item_count": sid_manifest["item_count"]},
+                 "splits": {split: {"path": display_path(path, ROOT),
+                                    "sha256": file_sha256(path) if path.is_file() else None}
+                            for split, path in paths.items()},
+                 "sid_split_manifest": {"path": display_path(split_manifest_path, ROOT),
+                                        "sha256": file_sha256(split_manifest_path)},
+                 "preprocessing": preprocessing_summary(
+                     year / "train/raw" / args.category / "split_manifest.json", ROOT),
+                 "max_history": args.max_history, "max_train_examples": args.max_train_examples,
+                 "max_validation_examples": args.max_validation_examples,
+                 "training_examples": "one example per train prefix; a hashed user token, then 4 "
+                                      "tokens per history item (3 SID levels + collision suffix)"},
+        "model": {"config": model.config.to_dict(), "user_hash_buckets": 2000,
+                  "parameters": sum(parameter.numel() for parameter in model.parameters())},
+        "training": {"optimizer": "Adafactor", "adafactor_scale_parameter": args.adafactor_scale_parameter,
+                     "learning_rate": "0.01 through 10k steps; then 0.01 * sqrt(10000 / step)",
+                     "gradient_clip_norm": 1.0, "steps": args.steps, "batch_size": args.batch_size,
+                     "save_every": args.save_every},
+        "evaluation": {"set": eval_set, "every_steps": args.eval_every,
+                       "batch_size": args.eval_batch_size, "beam_size": args.beam_size,
+                       "selection": "best validation NDCG@10", "ks": [5, 10],
+                       "decoding": "unconstrained beam search; invalid IDs count as misses"}}
     if args.eval_test_only:
-        best_path = run_dir / "best.pt"
-        test_metrics_path = run_dir / "test-metrics.json"
-        if not best_path.is_file() or test_metrics_path.exists():
-            parser.error("best checkpoint missing or test already evaluated")
-        previous = json.loads((run_dir / "config.json").read_text())
-        for key in ("sid_sha256", "train_sha256", "validation_sha256", "sid_version"):
-            if previous[key] != config[key]:
-                parser.error("test dataset differs from selected run: {}".format(key))
-        test_path = year / "test/sids" / args.sid_method / args.category / sid_version / "examples.jsonl"
-        test = read_examples(test_path, None, tokenizer)
-        model.load_state_dict(torch.load(best_path, map_location="cpu", weights_only=True))
-        with RunLogger(run_dir) as logger:
+        test = read_examples(paths["test"], None, tokenizer)
+
+        def evaluate_test():
             metrics = evaluate(model, tokenizer, test, args.max_history, args.device,
                                args.eval_batch_size, args.beam_size)
             metrics["test_examples"] = metrics.pop("validation_examples")
-            metrics["selected_validation_ndcg@10"] = json.loads(
-                (run_dir / "best-metrics.json").read_text())["ndcg@10"]
-            write_json(test_metrics_path, metrics)
-            print(json.dumps(metrics), flush=True)
-            logger.event("test_completed", metrics=metrics)
+            return metrics
+
+        try:
+            evaluate_test_once(layout, settings, TEST_KEYS, RESUME_KEYS, model, evaluate_test,
+                               settings["data"]["splits"]["test"]["sha256"])
+        except RunError as error:
+            parser.error(str(error))
         return
+    try:
+        open_run(layout, settings, RESUME_KEYS, args.resume)
+    except RunError as error:
+        message = str(error)
+        if "adafactor_scale_parameter" in message:
+            message += "; pass {}".format("--no-adafactor-scale-parameter" if args.adafactor_scale_parameter
+                                          else "--adafactor-scale-parameter")
+        parser.error(message)
     if args.resume:
-        if not (run_dir / "latest.pt").is_file():
-            parser.error("--resume requires latest.pt")
-        previous = json.loads((run_dir / "config.json").read_text())
-        for key in ("sid_sha256", "train_sha256", "validation_sha256", "seed", "batch_size"):
-            if previous[key] != config[key]:
-                parser.error("resume config mismatch: {}".format(key))
-        # Runs written before the option existed used scale_parameter=False.
-        if previous.get("adafactor_scale_parameter", False) != args.adafactor_scale_parameter:
-            parser.error("resume config mismatch: adafactor_scale_parameter")
-        state = torch.load(run_dir / "latest.pt", map_location="cpu", weights_only=False)
+        state = load_checkpoint(layout.latest, args.device)
         model.load_state_dict(state["model"])
         optimizer.load_state_dict(state["optimizer"])
         start_step = state["step"]
         sampler = torch.Generator()
         sampler.set_state(state["sampler_state"])
         permutation, cursor = state["permutation"], state["cursor"]
-        best = state["best_ndcg10"]
-        torch.set_rng_state(state["torch_rng_state"])
-        if args.device == "cuda" and "cuda_rng_state" in state:
-            torch.cuda.set_rng_state_all(state["cuda_rng_state"])
+        selection = Selection.from_checkpoint(state)
     else:
-        if run_dir.exists():
-            parser.error("run directory already exists: {}".format(run_dir))
-        run_dir.mkdir(parents=True)
-        write_json(run_dir / "config.json", config)
         start_step = 0
         sampler = torch.Generator().manual_seed(args.seed)
         permutation = torch.randperm(len(train), generator=sampler)
         cursor = 0
-        best = -1.0
-    with RunLogger(run_dir) as logger:
-        logger.event("resume" if args.resume else "training_started", starting_step=start_step, target_steps=args.steps)
+        selection = Selection()
+    with layout.logger() as logger:
+        logger.event("resume" if args.resume else "training_started", starting_step=start_step,
+                     target_steps=args.steps, git_revision=settings["run"]["git_revision"],
+                     slurm_job_id=os.environ.get("SLURM_JOB_ID"))
         print("T5 parameters={} train={} validation={} starting_step={}".format(
-            sum(parameter.numel() for parameter in model.parameters()), len(train),
-            len(validation), start_step), flush=True)
+            settings["model"]["parameters"], len(train), len(validation), start_step), flush=True)
         for step in range(start_step + 1, args.steps + 1):
             if cursor + args.batch_size > len(train):
                 permutation = torch.randperm(len(train), generator=sampler)
@@ -286,19 +278,16 @@ def main():
             if step % args.eval_every == 0 or step == args.steps:
                 metrics = evaluate(model, tokenizer, validation, args.max_history,
                                    args.device, args.eval_batch_size, args.beam_size)
-                metrics["step"] = step
-                write_json(run_dir / "validation-step-{}.json".format(step), metrics)
-                logger.event("validation", metrics=metrics)
-                print(json.dumps(metrics), flush=True)
-                if metrics["ndcg@10"] > best:
-                    best = metrics["ndcg@10"]
-                    torch.save(model.state_dict(), run_dir / "best.pt")
-                    write_json(run_dir / "best-metrics.json", metrics)
+                metrics.update(split="validation", set=eval_set, step=step)
+                selection.record(layout, logger, model, metrics, "step", step)
             if step % args.save_every == 0 or step == args.steps:
-                save_checkpoint(run_dir / "latest.pt", model, optimizer, step,
-                                sampler, permutation, cursor, best)
-                logger.event("checkpoint_saved", step=step, path="latest.pt")
-        print("Saved {}".format(run_dir), flush=True)
+                save_checkpoint(layout.latest, {"model": model.state_dict(),
+                                                "optimizer": optimizer.state_dict(), "step": step,
+                                                "sampler_state": sampler.get_state(),
+                                                "permutation": permutation, "cursor": cursor,
+                                                **selection.state()})
+                logger.event("checkpoint_saved", step=step, path="checkpoints/latest.pt")
+        print("Saved {}".format(layout.root), flush=True)
 
 
 if __name__ == "__main__":

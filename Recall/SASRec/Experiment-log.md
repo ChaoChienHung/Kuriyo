@@ -1,6 +1,6 @@
-# SASRec baseline — Experiment Log
+# SASRec — Experiment Log
 
-`Recall/SASRec/baseline/` 的實驗日誌，最新的日期在最上面。超出單一 run 的結論整理到家族的 [INSIGHT.md](../INSIGHT.md)；跨家族比較在 [Recall INSIGHT](../../INSIGHT.md)。
+`Recall/SASRec/` 家族所有變體的實驗日誌，最新的日期在最上面；每個條目的 Details 以 **Variant** 標明變體，放在一起方便跨變體比較。超出單一 run 的結論整理到家族的 [INSIGHT.md](INSIGHT.md)；跨家族比較在 [Recall INSIGHT](../INSIGHT.md)。
 
 所有 run 都用 2014 Beauty ASIN 切分（131,413 train／22,363 validation，歷史上限 20），validation 對全 catalog 12,101 件排名、不過濾歷史，以 NDCG@10 選最佳。
 
@@ -14,6 +14,7 @@
 
 #### Details
 
+- **Variant:** `baseline`
 - **Baseline:** 本機 run `sasrec-beauty-v1`（同日下方條目）。
 - **Change:** 只換執行環境（本機 MPS → SoC CUDA）；設定與 seed 相同。
 - **Data:** 2014 Beauty ASIN 切分。
@@ -23,6 +24,7 @@
 
 #### Settings
 
+- **資料／前處理：**Amazon Reviews 2014 Beauty 5-core（22,363 users、12,101 items）；每位使用者依 `unixReviewTime` 排序、同時間保留原始列序，最後一筆是 test、倒數第二筆是 validation，其餘每個前綴一筆 train 樣本（131,413 筆）；歷史截到最近 20 件，重複互動保留（`scripts.prepare_amazon_reviews_2014`）。商品 ID embedding 隨機初始化，不使用商品文字。
 - **模型：**hidden 64、2 層、2 heads、dropout 0.5，可學的位置 embedding，歷史上限 20；826,368 參數。
 - **訓練：**full-softmax CE，Adam（betas 0.9、0.98）lr 1e-3、weight decay 0，batch 128 個視窗，最多 200 epochs，seed 42。
 - **評估：**每 5 epochs 做一次 validation，以 NDCG@10 選 `best.pt`，patience 5。
@@ -48,7 +50,7 @@ GPU 與 MPS 的數值不會逐位相同，但 best validation Recall@10 應落�
 | SoC Recall@10 | 0.03421 | 0.06332 | 0.09230 | 0.09842 | 0.10236 | 0.10227 | 0.10231 |
 
 - **Observations:** 前兩次提交落在壞節點；排除整組 xgpe 後的 job 1165570 跑完並存檔。SoC 的 best Recall@10 比本機高 0.0085、NDCG@10 高 0.0047，超出預期的範圍。SoC 在 epoch 35 之後停在 0.101–0.103，比本機的平台（0.092–0.094）高，訓練也多走了 35 個 epoch 才早停。
-- **Hypotheses:** 差異可能來自 MPS 與 CUDA 的數值與隨機數不同；兩邊各只有一個 seed，無法分辨環境差異和 seed 變異。未驗證。
+- **Hypotheses:** 差異可能來自 MPS 與 CUDA 的數值與隨機數不同；兩邊各只有一個 seed，無法分辨環境差異和 seed 變異。未驗證。 冷啟動限制：商品 embedding 隨機初始化、只從互動學習，沒在 train 出現過或很少出現的商品學不好；這個平均指標由熱門商品主導，看不出這點。本 run 沒有依目標商品的 train 出現次數分組評估（`Recall/INSIGHT.md` H2）。
 
 #### Conclusion
 
@@ -62,6 +64,7 @@ TIGER 換了健康的新 SID 後 validation 仍只有 0.0368。用成熟的 item
 
 #### Details
 
+- **Variant:** `baseline`
 - **Baseline:** TIGER 論文表 3 的 SASRec（Recall@10 0.0605，test，不同前處理）；同切分 TIGER `tiger-paper-v1`（0.0368）。
 - **Change:** —
 - **Data:** 2014 Beauty ASIN 切分；131,413 個 train 前綴還原成 23,607 個視窗。
@@ -71,6 +74,7 @@ TIGER 換了健康的新 SID 後 validation 仍只有 0.0368。用成熟的 item
 
 #### Settings
 
+- **資料／前處理：**Amazon Reviews 2014 Beauty 5-core（22,363 users、12,101 items）；每位使用者依 `unixReviewTime` 排序、同時間保留原始列序，最後一筆是 test、倒數第二筆是 validation，其餘每個前綴一筆 train 樣本（131,413 筆）；歷史截到最近 20 件，重複互動保留（`scripts.prepare_amazon_reviews_2014`）。商品 ID embedding 隨機初始化，不使用商品文字。
 - **模型：**hidden 64、2 層、2 heads、dropout 0.5，可學的位置 embedding，歷史上限 20；826,368 參數。
 - **訓練：**full-softmax CE，Adam（betas 0.9、0.98）lr 1e-3、weight decay 0，batch 128 個視窗，最多 200 epochs，seed 42。
 - **評估：**每 5 epochs 做一次 validation，以 NDCG@10 選 `best.pt`，patience 5。
@@ -96,8 +100,8 @@ TIGER 換了健康的新 SID 後 validation 仍只有 0.0368。用成熟的 item
 | 75（early stop） | 0.06202 | 0.09189 | 0.03610 | 0.04573 |
 
 - **Observations:** epoch 30 之後在 Recall@10 0.092–0.094 之間波動，epoch 75 early stop。結果比論文的 0.0605 還高，約為同切分 TIGER 的 3 倍。
-- **Hypotheses:** 高於論文主要來自 full-softmax CE（論文引用的 SASRec 多為 BCE）；未驗證，記為 [SASRec INSIGHT](../INSIGHT.md) H1。
+- **Hypotheses:** 高於論文主要來自 full-softmax CE。論文引用的 SASRec 多為 BCE，每個正例只配一個隨機負例；隨機負例大多很容易分開，學到的界線只區分目標與無關商品。CE 每步都和全部商品比較，分數高的難負例梯度最大，直接對應全商品排名。未驗證，記為 [SASRec INSIGHT](INSIGHT.md) H1（`--loss bce` 對照）。
 
 #### Conclusion
 
-支持「共用資料與評估正常」：TIGER 的差距在它自己的流程。已整理到 [Recall INSIGHT](../../INSIGHT.md) Insights。模型未定案，沒有跑 test。
+支持「共用資料與評估正常」：TIGER 的差距在它自己的流程。已整理到 [Recall INSIGHT](../INSIGHT.md) Insights。模型未定案，沒有跑 test。

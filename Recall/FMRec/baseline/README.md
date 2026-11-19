@@ -72,15 +72,15 @@ python -m Recall.FMRec.baseline.train --run-name fmrec-beauty-v1 --device cuda
 MODEL=fmrec RUN_NAME=fmrec-beauty-v1 STAGE=train sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch
 ```
 
-續訓（從 `latest.pt`，每個 epoch 結束時保存）：
+續訓（從 `checkpoints/latest.pt`，每個 epoch 結束時保存）：
 
 ```bash
 python -m Recall.FMRec.baseline.train --run-name fmrec-beauty-v1 --device cuda --resume
 ```
 
-續訓時資料校驗值、seed、batch size、歷史長度與模型設定必須和 `config.json` 相同，否則拒絕執行。可加大 `--epochs` 延長；已 early stop 的 run 不會再訓練。
+續訓時資料校驗值、seed、batch size、歷史長度與模型設定必須和 `settings.json` 相同，否則拒絕執行。可加大 `--epochs` 延長；已 early stop 的 run 不會再訓練。
 
-模型定案後，只執行一次 held-out test（拒絕覆寫既有的 `test-metrics.json`）：
+模型定案後，只執行一次 held-out test（拒絕覆寫既有的 `test/<set>/metrics.json`）：
 
 ```bash
 python -m Recall.FMRec.baseline.train --run-name fmrec-beauty-v1 --device cuda --eval-test-only
@@ -88,12 +88,7 @@ python -m Recall.FMRec.baseline.train --run-name fmrec-beauty-v1 --device cuda -
 
 ## 輸出
 
-`Recall/FMRec/baseline/runs/<RUN_NAME>/`（Git 忽略）：
-
-- `config.json`：資料與 catalog 的 SHA-256、git revision、模型與訓練設定、參數量、上游 commit。
-- `train.jsonl`：每 step 的 loss、loss_fm、loss_ce、loss_mse、learning rate、epoch、session ID（`core/run_logging.py`）。
-- `events.log`：開始、續訓（含起始 epoch／step、`SLURM_JOB_ID`）、validation、checkpoint、early stop、test、例外。
-- `validation-epoch-<N>.json`、`best-metrics.json`、`best.pt`、`latest.pt`；test 後有 `test-metrics.json`。
+`Recall/FMRec/baseline/runs/<RUN_NAME>/`（Git 忽略）；run 目錄的版面與 `settings.json` 見 [`core/README.md`](../../../core/README.md#run-目錄)。`train/train.jsonl` 每 step 記 loss、loss_fm、loss_ce、loss_mse、learning rate 與 epoch；`settings.json` 的 `run.implementation` 記上游 commit。
 
 模型約 2,840 萬參數，其中約 2,480 萬在歷史重建 MLP 的最後一層（2048×12,102）。
 

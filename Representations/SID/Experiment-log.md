@@ -1,6 +1,6 @@
 # SID — Experiment Log
 
-與模型無關的商品 SID 產生（`Representations/SID/`）的實驗日誌，最新的日期在最上面。超出單一 run 的結論整理到 [INSIGHT.md](INSIGHT.md)；SID 對 TIGER 指標的影響記在 [TIGER baseline Experiment-log](../../Recall/TIGER/baseline/Experiment-log.md)。
+與模型無關的商品 SID 產生（`Representations/SID/`）的實驗日誌，最新的日期在最上面。超出單一 run 的結論整理到 [INSIGHT.md](INSIGHT.md)；SID 對 TIGER 指標的影響記在 [TIGER Experiment-log](../../Recall/TIGER/Experiment-log.md)。
 
 所有實驗都用 2014 Beauty 的完整商品目錄（12,101 件，`catalog/Beauty/items.jsonl`），三層 RQ-VAE、每層 256 碼。2026-11-18 以前的條目是事後依 log 補記；Expectation 依當時的動機補寫，不參考後來的結果。
 
@@ -46,7 +46,7 @@
 
 #### Conclusion
 
-採用 `tiger-paper-v1` 作為 TIGER 的新 SID。它對 TIGER 的效果見 TIGER baseline Experiment-log 2026-11-18（H3 不被支持）。
+採用 `tiger-paper-v1` 作為 TIGER 的新 SID。它對 TIGER 的效果見 TIGER Experiment-log 2026-11-18（H3 不被支持）。
 
 ### SID 配方實作後的驗證
 
@@ -152,7 +152,7 @@ A 應重現 SoC 的第一 epoch 發散與塌縮。若主因是 Adagrad accumulat
 - **Change:** —
 - **Data:** 2014 Beauty 完整商品目錄。
 - **Environment:** SoC job 1153307，程式 `5f99955`（`STAGE=all` 的 SID 階段）。
-- **Command:** 見 [TIGER baseline Experiment-log](../../Recall/TIGER/baseline/Experiment-log.md) 2026-11-17。
+- **Command:** 見 [TIGER Experiment-log](../../Recall/TIGER/Experiment-log.md) 2026-11-17。
 - **Artifacts:** SoC 的 `data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/tiger-paper-20261117-005232/`；log 用 `git show 2ad21c7^:slurm-kuriyo-tiger-1153307.out` 取回。
 
 #### Settings

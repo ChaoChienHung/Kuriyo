@@ -10,8 +10,9 @@ FMRec（Flow Matching based Sequential Recommender）把下一件商品的預測
 Recall/FMRec/
 ├── README.md        # 本檔：家族說明與變體列表
 ├── INSIGHT.md       # 家族研究筆記（事實、限制、假設分開）
+├── Experiment-log.md # 所有變體的實驗日誌（條目標明變體）
 └── baseline/        # 依作者程式的重新實作（python -m Recall.FMRec.baseline.train）
-    ├── README.md, Experiment-log.md, requirements.txt, model.py, data.py, train.py, tests/
+    ├── README.md, requirements.txt, model.py, data.py, train.py, tests/
     └── runs/<RUN_NAME>/
 ```
 

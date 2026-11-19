@@ -14,9 +14,10 @@
 # Individual stages can be submitted separately when the full paper-budget run
 # exceeds one allocation. SID_RECIPE (default stable) selects the RQ-VAE recipe
 # in Representations/SID/scripts/generate_sids.py; an existing SID_VERSION is
-# reused only when its manifest records the same recipe. ADAFACTOR_SCALE_PARAMETER=1
-# trains TIGER with T5X-style Adafactor (steps scaled by parameter RMS); the
-# default 0 keeps the behaviour of earlier runs. Resume refuses a changed value.
+# reused only when its manifest records the same recipe. ADAFACTOR_SCALE_PARAMETER
+# (TIGER only, default 1) trains with T5X-style Adafactor (steps scaled by
+# parameter RMS); 0 restores the absolute-step behaviour of runs before
+# 2026-11-19 and is needed to resume them. Resume refuses a changed value.
 # MODEL (default tiger) selects the Recall family. MODEL=sasrec|fmrec trains on
 # the raw ASIN split and accepts STAGE=prepare|train|test|all only (all runs
 # prepare -> train); SID settings do not apply. Submit several MODEL jobs at once
@@ -43,8 +44,8 @@ case "$model" in
   fmrec) run_name="${RUN_NAME:-fmrec-beauty-v1}" ;;
 esac
 sid_recipe="${SID_RECIPE:-stable}"
-adafactor_scale="${ADAFACTOR_SCALE_PARAMETER:-0}"
-[[ "$adafactor_scale" == 0 || "$adafactor_scale" == 1 ]] || { echo "ADAFACTOR_SCALE_PARAMETER must be 0 or 1" >&2; exit 2; }
+adafactor_scale="${ADAFACTOR_SCALE_PARAMETER:-}"
+[[ -z "$adafactor_scale" || "$adafactor_scale" == 0 || "$adafactor_scale" == 1 ]] || { echo "ADAFACTOR_SCALE_PARAMETER must be 0 or 1" >&2; exit 2; }
 case "$sid_recipe" in
   paper-pytorch|paper-tf-adagrad|stable) ;;
   *) echo "SID_RECIPE must be paper-pytorch, paper-tf-adagrad, or stable" >&2; exit 2 ;;
@@ -54,7 +55,10 @@ if [[ "$model" != tiger ]]; then
   [[ "$stage" == all || "$stage" == prepare || "$stage" == train || "$stage" == test ]] || {
     echo "MODEL=$model supports STAGE=all, prepare, train, or test" >&2; exit 2;
   }
-  [[ "$adafactor_scale" == 0 ]] || { echo "ADAFACTOR_SCALE_PARAMETER applies only to MODEL=tiger" >&2; exit 2; }
+  [[ "$adafactor_scale" != 1 ]] || { echo "ADAFACTOR_SCALE_PARAMETER applies only to MODEL=tiger" >&2; exit 2; }
+fi
+if [[ -z "$adafactor_scale" ]]; then
+  if [[ "$model" == tiger ]]; then adafactor_scale=1; else adafactor_scale=0; fi
 fi
 [[ "$run_name" =~ ^[A-Za-z0-9][A-Za-z0-9_-]*$ ]] || { echo "Invalid RUN_NAME" >&2; exit 2; }
 
@@ -91,7 +95,9 @@ if [[ "$model" != tiger ]]; then
     done
     args=(--run-name "$run_name" --device cuda)
     if [[ -e "$run_dir" ]]; then
-      test -f "$run_dir/latest.pt" || {
+      # checkpoints/latest.pt; runs before 2026-11-19 keep latest.pt at the top and are
+      # moved into the current layout by the trainer (core/runs.py).
+      test -f "$run_dir/checkpoints/latest.pt" || test -f "$run_dir/latest.pt" || {
         echo "Incomplete run without checkpoint: $run_name" >&2; exit 2;
       }
       args+=(--resume)
@@ -155,14 +161,16 @@ if [[ "$stage" == all || "$stage" == train ]]; then
   }
   args=(--sid-run "$sid_dir" --sid-method sentence-t5_rqvae
         --run-name "$run_name" --device cuda)
-  [[ "$adafactor_scale" == 1 ]] && args+=(--adafactor-scale-parameter)
+  if [[ "$adafactor_scale" == 1 ]]; then args+=(--adafactor-scale-parameter); else args+=(--no-adafactor-scale-parameter); fi
   run_dir="Recall/TIGER/baseline/runs/$run_name"
   if [[ ! -e "$run_dir" && -e "Recall/TIGER/runs/$run_name" ]]; then
     echo "Run $run_name is at the legacy path Recall/TIGER/runs/; move it to $run_dir first" >&2
     exit 2
   fi
   if [[ -e "$run_dir" ]]; then
-    test -f "$run_dir/latest.pt" || {
+    # checkpoints/latest.pt; runs before 2026-11-19 keep latest.pt at the top and are
+    # moved into the current layout by the trainer (core/runs.py).
+    test -f "$run_dir/checkpoints/latest.pt" || test -f "$run_dir/latest.pt" || {
       echo "Incomplete run without checkpoint: $run_name" >&2; exit 2;
     }
     args+=(--resume)

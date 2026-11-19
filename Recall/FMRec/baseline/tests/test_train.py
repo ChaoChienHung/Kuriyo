@@ -91,14 +91,14 @@ class FMRecTrainTests(unittest.TestCase):
             self.assertNotEqual(run("--eval-test-only").returncode, 0, "test must run once")
 
             run_dir = base / "runs/smoke"
-            history = [json.loads(line) for line in (run_dir / "train.jsonl").read_text().splitlines()]
+            history = [json.loads(line) for line in (run_dir / "train/train.jsonl").read_text().splitlines()]
             self.assertEqual([row["step"] for row in history], [1, 2, 3, 4, 5, 6])
             self.assertEqual([row["epoch"] for row in history], [1, 1, 1, 2, 2, 2])
             self.assertNotEqual(history[0]["session_id"], history[-1]["session_id"])
             straight = run("--epochs", "2", name="straight")
             self.assertEqual(straight.returncode, 0, straight.stderr[-2000:])
             uninterrupted = [json.loads(line)["loss"] for line in
-                             (base / "runs/straight/train.jsonl").read_text().splitlines()]
+                             (base / "runs/straight/train/train.jsonl").read_text().splitlines()]
             for resumed_loss, straight_loss in zip([row["loss"] for row in history], uninterrupted):
                 self.assertAlmostEqual(resumed_loss, straight_loss, places=5,
                                        msg="resume must continue the same sample/RNG stream")
@@ -106,12 +106,13 @@ class FMRecTrainTests(unittest.TestCase):
             events = [json.loads(line)["event"] for line in (run_dir / "events.log").read_text().splitlines()]
             for name in ("training_started", "resume", "validation", "checkpoint_saved", "test_completed"):
                 self.assertIn(name, events)
-            self.assertTrue((run_dir / "validation-epoch-2.json").is_file())
-            test_metrics = json.loads((run_dir / "test-metrics.json").read_text())
+            self.assertTrue((run_dir / "validation/amazon2014-beauty/epoch-000002.json").is_file())
+            self.assertTrue((run_dir / "checkpoints/best.pt").is_file())
+            test_metrics = json.loads((run_dir / "test/amazon2014-beauty/metrics.json").read_text())
             self.assertEqual((test_metrics["split"], test_metrics["examples"]), ("test", 4))
-            config = json.loads((run_dir / "config.json").read_text())
-            self.assertEqual(config["model"]["mode_scale"], 1.0)
-            self.assertEqual(config["seed"], 42)
+            settings = json.loads((run_dir / "settings.json").read_text())
+            self.assertEqual(settings["model"]["config"]["mode_scale"], 1.0)
+            self.assertEqual(settings["run"]["seed"], 42)
 
 
 if __name__ == "__main__":

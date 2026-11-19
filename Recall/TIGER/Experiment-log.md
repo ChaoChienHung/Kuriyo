@@ -1,6 +1,6 @@
-# TIGER baseline — Experiment Log
+# TIGER — Experiment Log
 
-`Recall/TIGER/baseline/` 的實驗日誌，最新的日期在最上面。超出單一 run 的結論整理到家族的 [INSIGHT.md](../INSIGHT.md)；SID 本身的實驗記在 [SID Experiment-log](../../../Representations/SID/Experiment-log.md)。
+`Recall/TIGER/` 家族所有變體的實驗日誌，最新的日期在最上面；每個條目的 Details 以 **Variant** 標明變體，放在一起方便跨變體比較。超出單一 run 的結論整理到家族的 [INSIGHT.md](INSIGHT.md)；SID 本身的實驗記在 [SID Experiment-log](../../Representations/SID/Experiment-log.md)。
 
 所有 run 都用 2014 Beauty 切分（131,413 train／22,363 validation，歷史上限 20）、seed 42（`train.py` 預設），validation 以全 catalog 的 unconstrained beam search（beam 10）評估。2026-11-19 以前的條目是事後依 log 補記；Expectation 依當時的動機補寫，不參考後來的結果。
 
@@ -10,10 +10,11 @@
 
 #### Motivation
 
-同切分的 SASRec validation Recall@10 0.0938，TIGER 不論新舊 SID 都只有 0.034–0.037。程式碼檢查發現 Adafactor 以 `scale_parameter=False` 把 lr 0.01 當成絕對步長，與論文框架 T5X 不同。檢驗 [TIGER INSIGHT](../INSIGHT.md) H5。
+同切分的 SASRec validation Recall@10 0.0938，TIGER 不論新舊 SID 都只有 0.034–0.037。程式碼檢查發現 Adafactor 以 `scale_parameter=False` 把 lr 0.01 當成絕對步長，與論文框架 T5X 不同。檢驗 [TIGER INSIGHT](INSIGHT.md) H5。
 
 #### Details
 
+- **Variant:** `baseline`
 - **Baseline:** `tiger-paper-v1`（SoC job 1163052，程式 `ea3fb5f`），見下方 2026-11-18 條目。
 - **Change:** 只改 `ADAFACTOR_SCALE_PARAMETER=1`（`--adafactor-scale-parameter`，lr 乘上參數 RMS）；SID、模型、資料、seed 都相同。
 - **Data:** 2014 Beauty，SID `tiger-paper-v1`（`stable` 配方，256/256/256）。
@@ -23,6 +24,7 @@
 
 #### Settings
 
+- **資料／前處理：**Amazon Reviews 2014 Beauty 5-core（22,363 users、12,101 items）；每位使用者依 `unixReviewTime` 排序、同時間保留原始列序，最後一筆是 test、倒數第二筆是 validation，其餘每個前綴一筆 train 樣本（131,413 筆）；歷史截到最近 20 件，重複互動保留（`scripts.prepare_amazon_reviews_2014`）。樣本轉成 SID `tiger-paper-v1`（`stable` 配方，三層各用 256 碼；SID 由商品文字的 Sentence-T5 向量產生）。
 - **模型：**HF T5，encoder／decoder 各 4 層，d_model 128、d_kv 64、d_ff 1024、6 heads、dropout 0.1、ReLU；詞表為 SID token 加 2,000 個 hashed user token。
 - **訓練：**Adafactor，lr 0.01 到 10k steps，之後 0.01·√(10000/step)；batch 256，200,000 steps，歷史上限 20，seed 42。
 - **評估：**每 20k steps 在 validation 做 unconstrained beam search（beam 10，eval batch 16），以 NDCG@10 選最佳。
@@ -64,12 +66,13 @@
 
 #### Motivation
 
-舊 SID 在第一個 epoch 發散，三層只用到 6/26/25 個碼。檢驗 [TIGER INSIGHT](../INSIGHT.md) H3：SID 品質是與論文差距的主因。
+舊 SID 在第一個 epoch 發散，三層只用到 6/26/25 個碼。檢驗 [TIGER INSIGHT](INSIGHT.md) H3：SID 品質是與論文差距的主因。
 
 #### Details
 
+- **Variant:** `baseline`
 - **Baseline:** `tiger-paper-20261117-005232`（job 1153307，舊 SID），見 2026-11-17 條目。
-- **Change:** 改用 `stable` 配方的新 SID `tiger-paper-v1`（[SID Experiment-log](../../../Representations/SID/Experiment-log.md) 2026-11-18，job 1162430）；T5 設定不變。新 SID 的碰撞 token 較少，詞表較小，T5 參數由 5,587,968 變成 4,815,488。
+- **Change:** 改用 `stable` 配方的新 SID `tiger-paper-v1`（[SID Experiment-log](../../Representations/SID/Experiment-log.md) 2026-11-18，job 1162430）；T5 設定不變。新 SID 的碰撞 token 較少，詞表較小，T5 參數由 5,587,968 變成 4,815,488。
 - **Data:** 2014 Beauty，SID `tiger-paper-v1`。
 - **Environment:** SoC job 1163050（`STAGE=materialize`）與 job 1163052（`STAGE=train`），程式 `ea3fb5f`，seed 42。
 - **Command:** `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-paper-v1 STAGE=train sbatch --export=ALL scripts/run.sbatch`
@@ -77,6 +80,7 @@
 
 #### Settings
 
+- **資料／前處理：**Amazon Reviews 2014 Beauty 5-core（22,363 users、12,101 items）；每位使用者依 `unixReviewTime` 排序、同時間保留原始列序，最後一筆是 test、倒數第二筆是 validation，其餘每個前綴一筆 train 樣本（131,413 筆）；歷史截到最近 20 件，重複互動保留（`scripts.prepare_amazon_reviews_2014`）。樣本轉成 SID `tiger-paper-v1`（`stable` 配方，三層各用 256 碼；SID 由商品文字的 Sentence-T5 向量產生）。
 - **模型：**HF T5，encoder／decoder 各 4 層，d_model 128、d_kv 64、d_ff 1024、6 heads、dropout 0.1、ReLU；詞表為 SID token 加 2,000 個 hashed user token。
 - **訓練：**Adafactor，lr 0.01 到 10k steps，之後 0.01·√(10000/step)；batch 256，200,000 steps，歷史上限 20，seed 42。
 - **評估：**每 20k steps 在 validation 做 unconstrained beam search（beam 10，eval batch 16），以 NDCG@10 選最佳。
@@ -125,15 +129,17 @@
 
 #### Details
 
+- **Variant:** `baseline`
 - **Baseline:** 無（首次完整 run）；比較目標是 TIGER 論文的 Beauty test 數字（Recall@10 0.0648）。
 - **Change:** —
 - **Data:** 2014 Beauty，SID 與 RUN_NAME 都是 `tiger-paper-20261117-005232`（`paper-pytorch` 行為，舊 SID）。
 - **Environment:** SoC job 1153307，程式 `5f99955`，seed 42，T5 5,587,968 參數。
 - **Command:** `SID_VERSION=tiger-paper-20261117-005232 RUN_NAME=tiger-paper-20261117-005232 STAGE=all sbatch --export=ALL scripts/run.sbatch`（依 log 記錄的設定重建；SID 20,000 epochs → materialize → TIGER 200,000 steps）
-- **Artifacts:** SoC 舊路徑 `Recall/TIGER/runs/tiger-paper-20261117-005232/`（續訓或 test 前需搬到 `baseline/runs/`）；log 用 `git show 2ad21c7^:slurm-kuriyo-tiger-1153307.out` 取回；本機匯入紀錄在 `runs/tiger-paper-20261117-005232/imports/slurm-1153307/`（重建指令見 [HANDOFF](../../../HANDOFF.md)）。
+- **Artifacts:** SoC 舊路徑 `Recall/TIGER/runs/tiger-paper-20261117-005232/`（續訓或 test 前需搬到 `baseline/runs/`）；log 用 `git show 2ad21c7^:slurm-kuriyo-tiger-1153307.out` 取回；本機匯入紀錄在 `runs/tiger-paper-20261117-005232/imports/slurm-1153307/`（重建指令見 [HANDOFF](../../HANDOFF.md)）。
 
 #### Settings
 
+- **資料／前處理：**Amazon Reviews 2014 Beauty 5-core（22,363 users、12,101 items）；每位使用者依 `unixReviewTime` 排序、同時間保留原始列序，最後一筆是 test、倒數第二筆是 validation，其餘每個前綴一筆 train 樣本（131,413 筆）；歷史截到最近 20 件，重複互動保留（`scripts.prepare_amazon_reviews_2014`）。樣本轉成 job 1153307 的舊 SID（論文設定的 PyTorch 實作，三層只用 6/26/25 碼）。
 - **模型：**HF T5，encoder／decoder 各 4 層，d_model 128、d_kv 64、d_ff 1024、6 heads、dropout 0.1、ReLU；詞表為 SID token 加 2,000 個 hashed user token。
 - **訓練：**Adafactor，lr 0.01 到 10k steps，之後 0.01·√(10000/step)；batch 256，200,000 steps，歷史上限 20，seed 42。
 - **評估：**每 20k steps 在 validation 做 unconstrained beam search（beam 10，eval batch 16），以 NDCG@10 選最佳。

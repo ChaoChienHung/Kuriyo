@@ -27,7 +27,7 @@ class RecallCoreTests(unittest.TestCase):
 
     def test_padding_and_provenance(self):
         from Recall.core.data import pad_token_sequences
-        from Recall.core.experiment import file_sha256, write_json
+        from core.experiment import file_sha256, write_json
 
         padded = pad_token_sequences([[1, 2], [3]])
         self.assertEqual(padded.tolist(), [[1, 2], [3, 0]])

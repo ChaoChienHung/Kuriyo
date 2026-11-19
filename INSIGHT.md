@@ -3,7 +3,7 @@
 Kuriyo 研究筆記的總覽。事實與假設分開，每個結果都註明資料版本、切分、模型設定、指標，以及來自哪一條 Experiment-log 或哪個 run。
 
 筆記分三種檔案：
-- **`Experiment-log.md`**：放在每個模型變體裡（`Recall/<family>/<variant>/Experiment-log.md`）或元件旁（`Representations/SID/Experiment-log.md`），依日期記錄跑了什麼、預期、結果與結論。完整數字與 run 證據只寫在這裡。
+- **`Experiment-log.md`**：每個模型家族一份、家族所有變體共用（`Recall/<family>/Experiment-log.md`，條目標明變體）或元件旁（`Representations/SID/Experiment-log.md`），依日期記錄跑了什麼、預期、結果與結論。完整數字與 run 證據只寫在這裡。
 - **`INSIGHT.md`**：分層存放超出單一 run 的結論。每一層只記自己範圍內的發現並連結 Experiment-log；本檔記跨鏈路的資料與方向，摘要各層結論，最多引用一個關鍵數字。
 - 假設編號只在所屬檔案內有效，跨檔引用寫檔名加編號（例如 `Recall/TIGER/INSIGHT.md` H5）。實驗確認或否定假設時，更新該條的狀態並連到實驗，不刪除。
 

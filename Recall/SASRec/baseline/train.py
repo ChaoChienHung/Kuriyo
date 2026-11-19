@@ -3,10 +3,10 @@
 A sanity baseline: full-catalog ranking on the same leave-one-out split and the
 same shared metrics as TIGER and FMRec. Validation selects the checkpoint;
 held-out test runs only with --eval-test-only. Run --help from the repo root.
+Run directory layout: core/runs.py.
 """
 
 import argparse
-import json
 import os
 from pathlib import Path
 import sys
@@ -17,52 +17,45 @@ ROOT = Path(__file__).resolve().parents[3]
 if __package__ in (None, ""):
     sys.path.insert(0, str(ROOT))
 
-from Recall.SASRec.baseline.data import (collate_histories, collate_windows, load_catalog,
-                                         read_examples, user_sequences, windows)
+from Recall.SASRec.baseline.data import collate_histories, collate_windows, user_sequences, windows
 from Recall.SASRec.baseline.model import LOSSES, SASRec
-from Recall.core.experiment import file_sha256, git_revision, seed_everything, write_json
-from Recall.core.metrics import ranking_metrics
-from core.run_logging import RunLogger
+from Recall.core.data import AsinSplit
+from Recall.core.evaluation import rank_full_catalog
+from core.experiment import seed_everything
+from core.runs import (RunError, RunLayout, Selection, add_run_arguments, check_run_arguments,
+                       configure_threads, evaluate_test_once, load_checkpoint, open_run,
+                       run_section, save_checkpoint)
 
 MODEL_KEYS = ("max_history", "hidden", "heads", "layers", "dropout")
-RESUME_KEYS = ("train_sha256", "validation_sha256", "catalog_sha256", "seed", "batch_size",
-               "max_train_examples", "model", "loss", "lr", "weight_decay")
+# Must match to resume; keys are the flat config.json names of runs before 2026-11-19.
+RESUME_KEYS = {"train_sha256": "data.splits.train.sha256",
+               "validation_sha256": "data.splits.validation.sha256",
+               "catalog_sha256": "data.catalog.sha256", "seed": "run.seed",
+               "batch_size": "training.batch_size",
+               "max_train_examples": "data.max_train_examples", "model": "model.config",
+               "loss": "training.loss", "lr": "training.lr",
+               "weight_decay": "training.weight_decay"}
+TEST_KEYS = {key: RESUME_KEYS[key] for key in
+             ("catalog_sha256", "train_sha256", "validation_sha256", "model")}
 
 
-@torch.no_grad()
 def evaluate(model, rows, asins, max_history, device, batch_size, ks=(5, 10)):
     """Full ranking over every catalog item from the newest position."""
     model.eval()
-    requests = []
-    for start in range(0, len(rows), batch_size):
-        batch = rows[start:start + batch_size]
+
+    def score(batch):
         sequence, _ = collate_histories(batch, max_history)
-        hidden = model(sequence.to(device))[:, -1]
-        top = model.scores(hidden).topk(min(max(ks), model.num_items), dim=-1).indices.cpu().tolist()
-        requests.extend(([asins[index] for index in indices], asins[row["target"] - 1])
-                        for indices, row in zip(top, batch))
-    return {**ranking_metrics(requests, ks=ks), "examples": len(rows),
-            "ranking": "full catalog, inner product with item embeddings; history items not filtered"}
+        return model.scores(model(sequence.to(device))[:, -1])
 
-
-def save_checkpoint(path, model, optimizer, sampler, epoch, step, best, bad_evals, stopped):
-    state = {"model": model.state_dict(), "optimizer": optimizer.state_dict(),
-             "sampler_state": sampler.get_state(), "epoch": epoch, "step": step,
-             "best_ndcg10": best, "bad_evals": bad_evals, "stopped_early": stopped,
-             "torch_rng_state": torch.get_rng_state()}
-    if torch.cuda.is_available():
-        state["cuda_rng_state"] = torch.cuda.get_rng_state_all()
-    temporary = path.with_suffix(path.suffix + ".part")
-    torch.save(state, temporary)
-    os.replace(temporary, path)
+    with torch.no_grad():
+        return rank_full_catalog(rows, asins, score, batch_size, model.num_items, ks)
 
 
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-root", type=Path, default=ROOT / "data/amazon_reviews")
     parser.add_argument("--category", default="Beauty")
-    parser.add_argument("--run-name", required=True)
-    parser.add_argument("--runs-dir", type=Path, default=ROOT / "Recall/SASRec/baseline/runs")
+    add_run_arguments(parser, ROOT / "Recall/SASRec/baseline/runs")
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--batch-size", type=int, default=128, help="training windows per step")
     parser.add_argument("--eval-batch-size", type=int, default=512)
@@ -80,134 +73,94 @@ def build_parser():
     parser.add_argument("--max-history", type=int, default=20)
     parser.add_argument("--max-train-examples", type=int)
     parser.add_argument("--max-validation-examples", type=int)
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--device", choices=("cpu", "cuda", "mps"), default="cpu")
-    parser.add_argument("--resume", action="store_true")
-    parser.add_argument("--eval-test-only", action="store_true",
-                        help="evaluate best.pt on held-out test once")
     return parser
 
 
 def main():
     parser = build_parser()
     args = parser.parse_args()
-    if Path(args.run_name).name != args.run_name or args.run_name in ("", ".", ".."):
-        parser.error("--run-name must be one directory name")
+    error = check_run_arguments(args)
+    if error:
+        parser.error(error)
     if min(args.epochs, args.batch_size, args.eval_batch_size, args.eval_every,
            args.max_history, args.hidden, args.heads, args.layers) < 1 or args.patience < 0:
         parser.error("counts must be positive")
     if not 0 <= args.dropout < 1:
         parser.error("--dropout must be in [0, 1)")
-    for limit in (args.max_train_examples, args.max_validation_examples):
-        if limit is not None and limit < 1:
-            parser.error("example limits must be positive")
-    if args.device == "cuda" and not torch.cuda.is_available():
-        parser.error("CUDA is unavailable")
-    if args.device == "mps" and not torch.backends.mps.is_available():
-        parser.error("MPS is unavailable")
-
-    year = args.data_root / "2014"
-    catalog_path = year / "catalog" / args.category / "items.jsonl"
-    split_manifest_path = year / "train/raw" / args.category / "split_manifest.json"
-    paths = {split: year / split / "raw" / args.category / "examples.jsonl"
-             for split in ("train", "validation", "test")}
-    if not catalog_path.is_file() or not split_manifest_path.is_file() or not all(
-            path.is_file() for path in paths.values()):
-        parser.error("prepare the 2014 {} split first (scripts.prepare_amazon_reviews_2014)".format(args.category))
-    catalog_sha = file_sha256(catalog_path)
-    split_manifest = json.loads(split_manifest_path.read_text())
-    if split_manifest.get("catalog", {}).get("sha256") not in (None, catalog_sha):
-        parser.error("split manifest was produced from a different catalog")
-    split_history = split_manifest.get("rules", {}).get("max_history")
-    if split_history is not None and args.max_history > split_history:
-        parser.error("--max-history exceeds the split's history cap {}".format(split_history))
-    asins = load_catalog(catalog_path)
-    item_index = {asin: index + 1 for index, asin in enumerate(asins)}
+    try:
+        split = AsinSplit(args.data_root, args.category)
+        split.check_history(args.max_history)
+    except RunError as error:
+        parser.error(str(error))
+    asins = split.asins
 
     model_config = {key: getattr(args, key) for key in MODEL_KEYS}
-    run_dir = args.runs_dir / args.run_name
-    config = {"implementation": "Kuriyo PyTorch SASRec (Kang & McAuley 2018)",
-              "git_revision": git_revision(ROOT), "category": args.category,
-              "catalog_sha256": catalog_sha, "num_items": len(asins),
-              "train_sha256": file_sha256(paths["train"]),
-              "validation_sha256": file_sha256(paths["validation"]),
-              "split_manifest_sha256": file_sha256(split_manifest_path),
-              "model": model_config, "loss": args.loss, "epochs": args.epochs,
-              "batch_size": args.batch_size, "eval_batch_size": args.eval_batch_size,
-              "eval_every": args.eval_every, "patience": args.patience,
-              "optimizer": "Adam(betas=(0.9, 0.98))", "lr": args.lr,
-              "weight_decay": args.weight_decay,
-              "training_data": "per-user train sequences rebuilt from prefix examples, split into "
-                               "windows of max_history + 1; loss at every real position",
-              "max_train_examples": args.max_train_examples,
-              "max_validation_examples": args.max_validation_examples,
-              "selection": "best validation NDCG@10", "seed": args.seed, "device": args.device}
+    layout = RunLayout(args.runs_dir / args.run_name, split.eval_set)
+    settings = {
+        "run": run_section(args.run_name, "SASRec", "baseline",
+                           "Kuriyo PyTorch SASRec (Kang & McAuley 2018)", ROOT, args.device, args.seed),
+        "data": {**split.settings(ROOT, args.max_history, args.max_train_examples,
+                                  args.max_validation_examples),
+                 "training_examples": "per-user train sequences rebuilt from prefix examples, split "
+                                      "into windows of max_history + 1; loss at every real position"},
+        "model": {"config": model_config},
+        "training": {"loss": args.loss, "optimizer": "Adam(betas=(0.9, 0.98))", "lr": args.lr,
+                     "weight_decay": args.weight_decay, "epochs": args.epochs,
+                     "batch_size": args.batch_size},
+        "evaluation": {"set": split.eval_set, "every_epochs": args.eval_every,
+                       "batch_size": args.eval_batch_size, "patience": args.patience,
+                       "selection": "best validation NDCG@10", "ks": [5, 10],
+                       "ranking": "full catalog, inner product with item embeddings; "
+                                  "history items not filtered"}}
 
     seed_everything(args.seed)
-    if args.device == "cpu":
-        torch.set_num_threads(min(4, os.cpu_count() or 1))
+    configure_threads(args.device)
     model = SASRec(len(asins), **model_config).to(args.device)
-    config["parameters"] = sum(parameter.numel() for parameter in model.parameters())
+    settings["model"]["parameters"] = sum(parameter.numel() for parameter in model.parameters())
 
     if args.eval_test_only:
-        best_path, test_metrics_path = run_dir / "best.pt", run_dir / "test-metrics.json"
-        if not best_path.is_file() or test_metrics_path.exists():
-            parser.error("best checkpoint missing or test already evaluated")
-        previous = json.loads((run_dir / "config.json").read_text())
-        for key in ("catalog_sha256", "train_sha256", "validation_sha256", "model"):
-            if previous[key] != config[key]:
-                parser.error("test settings differ from selected run: {}".format(key))
-        test = read_examples(paths["test"], item_index)
-        model.load_state_dict(torch.load(best_path, map_location=args.device, weights_only=True))
-        with RunLogger(run_dir) as logger:
-            metrics = evaluate(model, test, asins, args.max_history, args.device, args.eval_batch_size)
-            metrics["split"] = "test"
-            metrics["test_sha256"] = file_sha256(paths["test"])
-            metrics["selected_validation"] = json.loads((run_dir / "best-metrics.json").read_text())
-            write_json(test_metrics_path, metrics)
-            logger.event("test_completed", metrics=metrics)
-            print(json.dumps(metrics), flush=True)
+        test = split.read("test")
+        try:
+            evaluate_test_once(layout, settings, TEST_KEYS, RESUME_KEYS, model,
+                               lambda: evaluate(model, test, asins, args.max_history, args.device,
+                                                args.eval_batch_size),
+                               split.sha256["test"])
+        except RunError as error:
+            parser.error(str(error))
         return
 
-    train_rows = read_examples(paths["train"], item_index, args.max_train_examples)
+    train_rows = split.read("train", args.max_train_examples)
     train = [window for sequence in user_sequences(train_rows, args.max_history)
              for window in windows(sequence, args.max_history)]
-    validation = read_examples(paths["validation"], item_index, args.max_validation_examples)
+    validation = split.read("validation", args.max_validation_examples)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.98),
                                  weight_decay=args.weight_decay)
+    try:
+        recorded = open_run(layout, settings, RESUME_KEYS, args.resume)
+    except RunError as error:
+        parser.error(str(error))
     if args.resume:
-        if not (run_dir / "latest.pt").is_file():
-            parser.error("--resume requires latest.pt")
-        previous = json.loads((run_dir / "config.json").read_text())
-        for key in RESUME_KEYS:
-            if previous[key] != config[key]:
-                parser.error("resume config mismatch: {}".format(key))
-        state = torch.load(run_dir / "latest.pt", map_location="cpu", weights_only=False)
+        state = load_checkpoint(layout.latest, args.device)
         model.load_state_dict(state["model"])
         optimizer.load_state_dict(state["optimizer"])
         sampler = torch.Generator()
         sampler.set_state(state["sampler_state"])
         start_epoch, step = state["epoch"], state["step"]
-        best, bad_evals, stopped = state["best_ndcg10"], state["bad_evals"], state["stopped_early"]
-        torch.set_rng_state(state["torch_rng_state"])
-        if args.device == "cuda" and "cuda_rng_state" in state:
-            torch.cuda.set_rng_state_all(state["cuda_rng_state"])
+        selection = Selection.from_checkpoint(state, args.patience)
     else:
-        if run_dir.exists():
-            parser.error("run directory already exists: {}".format(run_dir))
-        run_dir.mkdir(parents=True)
-        write_json(run_dir / "config.json", config)
         sampler = torch.Generator().manual_seed(args.seed)
-        start_epoch, step, best, bad_evals, stopped = 0, 0, -1.0, 0, False
+        start_epoch, step, selection = 0, 0, Selection(args.patience)
 
-    with RunLogger(run_dir) as logger:
+    with layout.logger() as logger:
         logger.event("resume" if args.resume else "training_started", starting_epoch=start_epoch,
-                     starting_step=step, target_epochs=args.epochs, git_revision=config["git_revision"],
+                     starting_step=step, target_epochs=args.epochs,
+                     git_revision=settings["run"]["git_revision"],
+                     settings_git_revision=recorded["run"]["git_revision"],
                      slurm_job_id=os.environ.get("SLURM_JOB_ID"))
         print("SASRec parameters={} items={} train_examples={} windows={} validation={} "
-              "starting_epoch={}".format(config["parameters"], len(asins), len(train_rows), len(train),
-                                         len(validation), start_epoch), flush=True)
-        if stopped:
+              "starting_epoch={}".format(settings["model"]["parameters"], len(asins), len(train_rows),
+                                         len(train), len(validation), start_epoch), flush=True)
+        if selection.stopped:
             print("run already stopped early; nothing to resume", flush=True)
             logger.event("already_stopped", epoch=start_epoch)
             return
@@ -230,25 +183,17 @@ def main():
             if epoch % args.eval_every == 0 or epoch == args.epochs:
                 metrics = evaluate(model, validation, asins, args.max_history, args.device,
                                    args.eval_batch_size)
-                metrics.update(split="validation", epoch=epoch, step=step)
-                write_json(run_dir / "validation-epoch-{}.json".format(epoch), metrics)
-                logger.event("validation", metrics=metrics)
-                print(json.dumps(metrics), flush=True)
-                if metrics["ndcg@10"] > best:
-                    best, bad_evals = metrics["ndcg@10"], 0
-                    torch.save(model.state_dict(), run_dir / "best.pt")
-                    write_json(run_dir / "best-metrics.json", metrics)
-                else:
-                    bad_evals += 1
-                stopped = bool(args.patience) and bad_evals >= args.patience
-            save_checkpoint(run_dir / "latest.pt", model, optimizer, sampler,
-                            epoch, step, best, bad_evals, stopped)
-            logger.event("checkpoint_saved", epoch=epoch, step=step, path="latest.pt")
-            if stopped:
-                logger.event("early_stopped", epoch=epoch, best_ndcg10=best)
+                metrics.update(split="validation", set=layout.eval_set, epoch=epoch, step=step)
+                selection.record(layout, logger, model, metrics, "epoch", epoch)
+            save_checkpoint(layout.latest, {"model": model.state_dict(), "optimizer": optimizer.state_dict(),
+                                            "sampler_state": sampler.get_state(), "epoch": epoch,
+                                            "step": step, **selection.state()})
+            logger.event("checkpoint_saved", epoch=epoch, step=step, path="checkpoints/latest.pt")
+            if selection.stopped:
+                logger.event("early_stopped", epoch=epoch, best_ndcg10=selection.best)
                 print("early stop at epoch {}".format(epoch), flush=True)
                 break
-        print("Saved {}".format(run_dir), flush=True)
+        print("Saved {}".format(layout.root), flush=True)
 
 
 if __name__ == "__main__":

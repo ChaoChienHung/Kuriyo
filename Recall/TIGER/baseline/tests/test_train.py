@@ -59,19 +59,20 @@ class PaperBaselineTests(unittest.TestCase):
                             "--max-validation-examples", "1", "--device", "cpu")
             run(*base_command, "--steps", "1")
             mismatch = subprocess.run([sys.executable, "-m", *base_command, "--steps", "2", "--resume",
-                                       "--adafactor-scale-parameter"],
+                                       "--no-adafactor-scale-parameter"],
                                       cwd=ROOT, capture_output=True, text=True, timeout=120)
             self.assertNotEqual(mismatch.returncode, 0, "resume must keep the Adafactor scaling")
             self.assertIn("adafactor_scale_parameter", mismatch.stderr)
             run(*base_command, "--steps", "2", "--resume")
             run(*base_command, "--eval-test-only")
             run_dir = base / "runs/smoke"
-            self.assertIs(json.loads((run_dir / "config.json").read_text())
-                          ["adafactor_scale_parameter"], False)
-            self.assertEqual(json.loads((run_dir / "test-metrics.json").read_text())
+            self.assertIs(json.loads((run_dir / "settings.json").read_text())
+                          ["training"]["adafactor_scale_parameter"], True)
+            self.assertEqual(json.loads((run_dir / "test/amazon2014-beauty/metrics.json").read_text())
                              ["test_examples"], 1)
-            self.assertTrue((run_dir / "best.pt").is_file())
-            history = [json.loads(line) for line in (run_dir / "train.jsonl").read_text().splitlines()]
+            self.assertTrue((run_dir / "checkpoints/best.pt").is_file())
+            self.assertTrue((run_dir / "validation/amazon2014-beauty/step-000002.json").is_file())
+            history = [json.loads(line) for line in (run_dir / "train/train.jsonl").read_text().splitlines()]
             self.assertEqual([row["step"] for row in history], [1, 2])
             self.assertNotEqual(history[0]["session_id"], history[1]["session_id"])
             events = [json.loads(line)["event"] for line in (run_dir / "events.log").read_text().splitlines()]

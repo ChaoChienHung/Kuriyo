@@ -33,9 +33,9 @@ One stage-selectable script covers every Recall family. Submit from the reposito
 | --- | --- | --- |
 | `MODEL` | `tiger` (default), `sasrec`, `fmrec` | SASRec/FMRec read the raw ASIN split and accept only `STAGE=prepare\|train\|test\|all` |
 | `STAGE` | `prepare`, `sid`, `materialize`, `train`, `test`, `all` | `all` excludes the held-out `test` |
-| `RUN_NAME` | new name per experiment | existing run with `latest.pt` resumes; a run directory without it is refused |
+| `RUN_NAME` | new name per experiment | an existing run with `checkpoints/latest.pt` (or a flat pre-2026-11-19 `latest.pt`, moved into the new layout on resume) resumes; a run directory without a checkpoint is refused |
 | `SID_RECIPE`, `SID_VERSION` | TIGER only | an existing SID version is reused only if its manifest records the same recipe |
-| `ADAFACTOR_SCALE_PARAMETER` | `0` (default) or `1` | TIGER only; resume refuses a changed value |
+| `ADAFACTOR_SCALE_PARAMETER` | `1` (default, T5X-style) or `0` | TIGER only; `0` is needed only to resume runs from before 2026-11-19; resume refuses a changed value |
 
 Use `--job-name=kuriyo-<model>` so the log is `slurm-kuriyo-<model>-<jobid>.out`. The script's `#SBATCH` defaults (partition `gpu-long`, 2 days, 1 GPU, 8 CPUs, 32 GB) were chosen for TIGER; override with `sbatch` flags when the live cluster differs.
 

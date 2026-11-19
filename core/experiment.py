@@ -1,4 +1,4 @@
-"""Shared run provenance and reproducibility helpers."""
+"""Run provenance and reproducibility helpers shared by every stage."""
 
 import hashlib
 import json

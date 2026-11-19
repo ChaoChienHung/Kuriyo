@@ -17,6 +17,10 @@
   - **Context:** `Recall/TIGER/INSIGHT.md` H5 已強烈支持（20k Recall@10 0.0800 對 0.0132）；SoC job 1165519 繼續訓練。
   - **Scope:** 使用者推 log 後，更新 TIGER baseline Experiment-log、TIGER INSIGHT、`Recall/INSIGHT.md` 對照表。
   - **Acceptance:** 每 20k 的 validation 曲線與最佳 step 記錄完成，並與 SASRec 0.1023、FMRec 0.1031 比較。
+- [ ] 依目標商品熱門度分組評估（冷啟動與長尾）
+  - **Context:** `Recall/INSIGHT.md` H2、`Recall/TIGER/INSIGHT.md` H7：SASRec／FMRec 的 ID embedding 隨機初始化，對沒學過的商品無能為力；validation 目標有 20.8% 在 train 當目標少於 5 次、0.23% 完全沒出現。整體指標由熱門商品主導。
+  - **Scope:** 在 `Recall/core/` 加依 train 出現次數（0、1–4、5 以上）分組的指標，各模型 validation 一併輸出；不改既有整體指標。
+  - **Acceptance:** 有 checkpoint 的 run 可重新評估出分組 Recall@10／NDCG@10，三個家族的結果並列在 `Recall/INSIGHT.md`。
 - [ ] 若 TIGER 跑滿後仍明顯落後 item-ID 模型，找剩下的差距
   - **Context:** 20k 時與 SASRec／FMRec 仍差約 0.02。
   - **Scope:** 容量（H4）、訓練樣本、token 排列、解碼；每項新 RUN_NAME。
@@ -43,7 +47,7 @@
   - **Acceptance:** 中斷後以同一 SID_VERSION 續訓，結果與不中斷一致（小資料測試）。
 - [ ] 單一因素對照（各自新 RUN_NAME，等主要問題釐清後）
   - **Context:** `Recall/FMRec/INSIGHT.md` H1、`Recall/SASRec/INSIGHT.md` H1。
-  - **Scope:** FMRec `--mode-scale 0.4`、`--attention causal`、`--sample-steps 1` 對 30；SASRec `--loss bce`、hidden 50／1 head。
+  - **Scope:** FMRec `--mode-scale 0.4`、`--attention causal`、`--sample-steps 1` 對 30；SASRec `--loss bce`（H1：隨機負例太容易，預期明顯低於 CE、接近論文 0.06）、hidden 50／1 head。
   - **Acceptance:** 每項在對應的 Experiment-log 有一條完整紀錄，並更新假設狀態。
 - [ ] 完整環境 lock 與 GPU preflight
   - **Context:** 現有 Torch pin 不是完整 lockfile；壞節點要等 Python 啟動後才發現。

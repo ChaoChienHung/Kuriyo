@@ -50,3 +50,13 @@ Append-only. Newest entries at the bottom.
 
 - 新增 `Recall/{TIGER,SASRec,FMRec}/baseline/Experiment-log.md` 與 `Representations/SID/Experiment-log.md`，run 的完整數字從 INSIGHT 搬入；INSIGHT、TODO 依新模板改寫，新增根目錄 `REVIEW.md`。規則寫在根 `AGENTS.md`。
 - [[model-family-layout]] 加上變體的 `Experiment-log.md`；[[sid-rqvae-training]]、[[sasrec]] 的數據出處改指 Experiment-log。
+
+## [2026-11-19] update | TIGER 預設改用 T5X 式 Adafactor
+
+- SoC job 1165519 在 20k 的 validation Recall@10 0.0800（舊設定 0.0132），`train.py` 的 `--adafactor-scale-parameter` 與 `run.sbatch` 的 `ADAFACTOR_SCALE_PARAMETER` 預設改為開啟；[[tiger-training]] 補上續訓舊 run 要設 0 的陷阱。行號引用隨 `run.sbatch` 改動更新。
+
+## [2026-11-19] update | 共用 run 目錄與家族層 Experiment-log
+
+- 新增 `core/runs.py`（run 版面、`settings.json`、續訓與 test 檢查、checkpoint、選最佳）、`Recall/core/evaluation.py`，`AsinSplit` 等移入 `Recall/core/data.py`，`experiment.py` 從 `Recall/core/` 移到 `core/`。SASRec、FMRec、TIGER baseline 改用它們；固定 seed 的小 run 在重構前後 loss 與指標逐位相同。
+- run 改成 `settings.json`、`train/`、`checkpoints/`、`validation/<set>/`、`test/<set>/`；舊的平版面在續訓或 test 時核對後搬移。新頁 [[run-directory]]。
+- Experiment-log 從 `Recall/<family>/baseline/` 移到 `Recall/<family>/`，條目加 Variant 與資料／前處理；[[model-family-layout]]、[[sasrec]]、[[fmrec]]、[[tiger-training]] 更新出處與行號。

@@ -10,6 +10,7 @@ repository. The rules and procedures are in [`AGENTS.md`](AGENTS.md).
 1. 根目錄 `README.md` → `AGENTS.md` → `HANDOFF.md`
 2. [[sid-rqvae-training]] -- 為什麼現有 SID 品質差、改 SID 前要先知道的坑
 3. [[model-family-layout]] -- 模型家族與變體的目錄規則：每個變體自成完整空間
+4. [[run-directory]] -- 訓練 run 裡有什麼、續訓與 test 怎麼檢查、改共用零件前要做的回歸檢查
 
 ---
 
@@ -20,6 +21,7 @@ repository. The rules and procedures are in [`AGENTS.md`](AGENTS.md).
 ## architecture
 
 - [[model-family-layout]] -- 每個變體（如 `Recall/TIGER/baseline/`）自成完整空間，變體間不互相 import
+- [[run-directory]] -- run 目錄版面（settings、train、checkpoints、validation／test 各評估集）、共用訓練零件與舊 run 的搬移
 
 ## subsystems
 

@@ -4,6 +4,10 @@
 
 ## Awaiting review
 
+- [ ] 共用 run 目錄與訓練零件；Experiment-log 移到家族層
+  - **Delivered:** 新增 `core/runs.py`（run 版面、`settings.json`、建立／續訓／只跑一次 test、checkpoint 含 RNG、`Selection` 選最佳與 early stop、共用 CLI 與裝置檢查）與 `Recall/core/evaluation.py`；`AsinSplit`、`load_catalog`、`read_examples` 移入 `Recall/core/data.py`，`experiment.py` 移到 `core/`。三個 baseline 改用它們。run 改成 `settings.json`、`train/`、`checkpoints/`、`validation/<set>/`、`test/<set>/`；舊的平版面在續訓或 test 時核對後搬移。Experiment-log 移到 `Recall/<family>/Experiment-log.md`，條目加 Variant 與資料／前處理。INSIGHT 補上 BCE 與 CE 的機制（SASRec H1）與冷啟動限制（`Recall/INSIGHT.md` H2、TIGER H7）。
+  - **Evidence:** 重構前後以固定 seed 跑 SASRec、FMRec（真實資料子集）與 TIGER（合成資料），各含一次續訓與 test，loss、validation、test 指標逐位相同；舊版面 run 的搬移、拒絕與續訓在本機驗證；完整 unittest discovery 65 項通過（新增 `tests/test_runs.py` 3 項）；docs lint 通過。
+  - **Review focus:** 舊 run 搬移後保留 `config.json`，`settings.json` 中未被核對的欄位取自搬移時的指令；`validation/` 檔名改為補零的 `epoch-000005.json`／`step-020000.json`；TIGER test 的 `selected_validation` 改存完整指標。smoke trainer 仍用舊版面。
 - [ ] 每個變體一份 Experiment-log，INSIGHT／TODO 改成模板格式
   - **Delivered:** 新增 `Recall/{TIGER,SASRec,FMRec}/baseline/Experiment-log.md` 與 `Representations/SID/Experiment-log.md`；run 的逐 step 數字從 INSIGHT 搬進這些日誌，INSIGHT 只留結論並連結。七份 INSIGHT 加上建立／更新日期與日誌連結，根 INSIGHT 分 `### General`／`### Data`。TODO 改成 Agent-ready／Owner-led／Ideas；新增本檔。AGENTS.md、README 與 docs 跟著更新。
   - **Evidence:** 完整 unittest discovery 通過；docs lint 通過；搬移前後逐項比對過數字。
@@ -13,9 +17,9 @@
   - **Evidence:** `tests/test_run_sbatch.py` 新增 6 項 orchestration 測試並通過；SoC job 1165520（FMRec）已正常訓練。
   - **Review focus:** 同時提交多個 job 時要用 `STAGE=train`，`all`／`prepare` 會同時寫同一份切分，目前只有文件警告，沒有鎖。
 - [ ] TIGER 的 T5X 式 Adafactor 選項（`83f321a`）
-  - **Delivered:** `--adafactor-scale-parameter`／`ADAFACTOR_SCALE_PARAMETER=1`；預設行為不變，續訓拒絕改變此設定。
+  - **Delivered:** `--adafactor-scale-parameter`／`ADAFACTOR_SCALE_PARAMETER`；續訓拒絕改變此設定。job 1165519 證實有效後，預設改為 T5X 式（1），`--no-adafactor-scale-parameter`／`0` 還原舊行為。
   - **Evidence:** TIGER baseline 測試通過；SoC job 1165519 前 1,500 steps 的 train loss 比 baseline 低約 1.0（validation 未出）。
-  - **Review focus:** 舊 run 的 `config.json` 沒有此欄位時視為 False 是否合理。
+  - **Review focus:** 預設改成 1 後，續訓舊 run（如 `tiger-paper-v1`）必須明確設 0；舊 `config.json` 沒有此欄位時視為 False。
 - [ ] SASRec baseline（`17727c0`）
   - **Delivered:** `Recall/SASRec/baseline/`，原論文架構、預設 full-softmax CE，讀 Kuriyo ASIN 切分；本機完整 run validation Recall@10 0.0938。
   - **Evidence:** 變體測試通過；本機 run 紀錄見其 Experiment-log。

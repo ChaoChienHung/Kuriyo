@@ -48,9 +48,15 @@ Kuriyo 是推薦模型研究 repo，預計包含 Recall、Ranking、其他推薦
 
 baseline run 現在的標準位置是 `Recall/TIGER/baseline/runs/<RUN_NAME>/`。SoC 上的 `tiger-paper-20261117-005232` 仍在舊路徑 `Recall/TIGER/runs/`，續訓或 test 前需 `mkdir -p Recall/TIGER/baseline/runs && mv Recall/TIGER/runs/tiger-paper-20261117-005232 Recall/TIGER/baseline/runs/`（尚未執行；`run.sbatch` 遇到只在舊路徑的 run 會拒絕執行）。SID 產物路徑不變；本地只有舊 smoke 產物、git 歷史中的 Slurm log 及重建的匯入紀錄，不假設已同步完整 GPU checkpoints／manifest。
 
+## Run 目錄（2026-11-19 起）
+
+SASRec、FMRec、TIGER baseline 的 run 改用 `core/runs.py` 的版面：`settings.json`（資料與前處理、評估集、模型、訓練、seed、revision）、`events.log`、`train/train.jsonl`、`checkpoints/{latest,best}.pt`、`validation/amazon2014-beauty/`、`test/amazon2014-beauty/metrics.json`（見 [core/README.md](core/README.md#run-目錄)）。重構前後以固定 seed 的小 run 比對，loss 與 validation／test 指標逐位相同。
+
+SoC 上的既有 run（`tiger-t5x-adafactor-v1`、`tiger-paper-v1`、`sasrec-beauty-v1`、`fmrec-beauty-v1` 等）都是舊的平版面。新程式在 `--resume` 或 `--eval-test-only`（`STAGE=train` 續訓或 `STAGE=test`）時先用 `config.json` 核對設定，相符才搬進新版面並寫 `settings.json`。執行中的 job 1165519 已載入舊程式，pull 不影響它；它還在跑時，不要對同一 run 執行新程式。
+
 ## Logging 與匯入狀態
 
-新版 `core/run_logging.py` 已接入 paper trainer 和 SID generator：TIGER 每 step、SID 每 epoch 寫 `train.jsonl`，生命週期等事件寫 `events.log`（JSON Lines），含 UTC timestamp、session ID、elapsed_seconds。續訓追加，不抹掉歷史；重跑相同 step 用 session ID 區分。SIGKILL、斷電或 logger 啟動前的錯誤未必留下失敗事件。舊 smoke trainer 尚未接入。
+新版 `core/run_logging.py` 已接入 paper trainer 和 SID generator：TIGER 每 step 寫 run 的 `train/train.jsonl`、SID 每 epoch 寫 `train.jsonl`，生命週期等事件寫 `events.log`（JSON Lines），含 UTC timestamp、session ID、elapsed_seconds。續訓追加，不抹掉歷史；重跑相同 step 用 session ID 區分。SIGKILL、斷電或 logger 啟動前的錯誤未必留下失敗事件。舊 smoke trainer 尚未接入。
 
 完整 run 使用的是新版 logger 之前的程式，因此不能回溯逐 step loss／時間。已用 `scripts/import_slurm_training_log.py` 在本地建立：
 
@@ -84,7 +90,7 @@ SoC 安裝指令在根 requirements.txt 註解與 run.sbatch，明確使用 torc
 
 新 SID `tiger-paper-v1` 的 TIGER run（SoC job 1163052，log 在 `00d4470`）跑滿 200k，validation Recall@10 0.0368，舊 SID 為 0.0342，新 SID 幾乎沒有改善。為檢查共用資料與評估，新增 `Recall/SASRec/baseline/`；本機 MPS 完整 run `sasrec-beauty-v1`（約 23 分鐘，epoch 75 early stop）best epoch 50 的 validation Recall@10 0.0938、NDCG@10 0.0461，約 TIGER 的 3 倍。結論：切分、歷史上限與指標正常，TIGER 的差距在它自己的流程。完整數字在 `Recall/SASRec/INSIGHT.md` 與 `Recall/INSIGHT.md`。
 
-程式碼檢查找到主要嫌疑：TIGER 的 HF Adafactor 用 `scale_parameter=False`，lr 0.01 成了絕對步長；T5X（論文框架）預設乘上參數 RMS。新增 `--adafactor-scale-parameter`（`run.sbatch` 的 `ADAFACTOR_SCALE_PARAMETER=1`），預設不變；續訓會拒絕改變此設定。證據與驗證方式見 `Recall/TIGER/INSIGHT.md` 的 Facts 與 H5。本機負載過高（load average 40–60），T5 overfit 測試未完成。
+程式碼檢查找到主因：TIGER 的 HF Adafactor 用 `scale_parameter=False`，lr 0.01 成了絕對步長；T5X（論文框架）預設乘上參數 RMS。新增 `--adafactor-scale-parameter`，SoC job 1165519 證實它讓 20k validation Recall@10 從 0.0132 變成 0.0800；**2026-11-19 起這是 `train.py` 與 `run.sbatch` 的預設**，續訓舊 run 需 `ADAFACTOR_SCALE_PARAMETER=0`（否則會被拒絕）。證據見 `Recall/TIGER/INSIGHT.md` H5。
 
 ## 下一步（依優先順序）
 

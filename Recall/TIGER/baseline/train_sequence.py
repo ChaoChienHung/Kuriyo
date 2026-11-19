@@ -16,7 +16,7 @@ if __package__ in (None, ""):
 
 from Recall.TIGER.baseline.sequence import SIDTokenizer, TIGERTransformer, constrained_beam_search
 from Recall.core.data import pad_token_sequences
-from Recall.core.experiment import file_sha256, git_revision, seed_everything, write_json
+from core.experiment import file_sha256, git_revision, seed_everything, write_json
 from Recall.core.metrics import ranking_metrics
 
 

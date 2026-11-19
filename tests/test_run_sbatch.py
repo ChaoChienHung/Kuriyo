@@ -128,6 +128,7 @@ esac
         (split / "split_manifest.json").write_text("{}\n")
 
     def test_train_resumes_baseline_run_from_variant_directory(self):
+        # A flat run from before 2026-11-19; the trainer moves it into checkpoints/.
         self.prepare_train_stage()
         run = self.root / "Recall/TIGER/baseline/runs/test-v1"
         run.mkdir(parents=True)
@@ -136,15 +137,19 @@ esac
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("--resume", Path(str(self.trace) + ".train").read_text())
 
-    def test_train_passes_adafactor_scaling_only_when_requested(self):
+    def test_train_uses_t5x_adafactor_scaling_unless_disabled(self):
         self.prepare_train_stage()
         result = self.run_job()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertNotIn("--adafactor-scale-parameter", Path(str(self.trace) + ".train").read_text())
-        self.env["ADAFACTOR_SCALE_PARAMETER"] = "1"
+        args = Path(str(self.trace) + ".train").read_text().split()
+        self.assertIn("--adafactor-scale-parameter", args)
+        self.assertIn("adafactor_scale_parameter=1", result.stdout)
+        self.env["ADAFACTOR_SCALE_PARAMETER"] = "0"
         result = self.run_job()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("--adafactor-scale-parameter", Path(str(self.trace) + ".train").read_text())
+        args = Path(str(self.trace) + ".train").read_text().split()
+        self.assertIn("--no-adafactor-scale-parameter", args)
+        self.assertNotIn("--adafactor-scale-parameter", args)
 
     def test_invalid_adafactor_scaling_stops_before_work(self):
         self.env["ADAFACTOR_SCALE_PARAMETER"] = "yes"
@@ -185,9 +190,9 @@ esac
     def test_fmrec_all_prepares_then_resumes_existing_run(self):
         self.env.update(MODEL="fmrec", STAGE="all")
         self.prepare_raw_split()
-        run = self.root / "Recall/FMRec/baseline/runs/test-v1"
-        run.mkdir(parents=True)
-        (run / "latest.pt").write_text("")
+        checkpoints = self.root / "Recall/FMRec/baseline/runs/test-v1/checkpoints"
+        checkpoints.mkdir(parents=True)
+        (checkpoints / "latest.pt").write_text("")
         result = self.run_job()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.trace.read_text().splitlines(), [

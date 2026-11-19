@@ -44,19 +44,19 @@ python -m pip install -r Recall/SASRec/baseline/requirements.txt
 python -m Recall.SASRec.baseline.train --run-name sasrec-beauty-v1 --device cuda
 ```
 
-資料放在其他位置時加 `--data-root <path>/data/amazon_reviews`。在 SoC 上用 [`scripts/run.sbatch`](../../../scripts/run.sbatch) 的 `MODEL=sasrec` 提交（資源先依 [SoC 操作說明](../../../skills/nus-soc-slurm/SKILL.md) 核對）。`STAGE=train` 只檢查 Beauty 切分存在就訓練；run 目錄已有 `latest.pt` 時自動續訓，有目錄但沒有 `latest.pt` 會拒絕；`STAGE=test` 做一次 held-out test：
+資料放在其他位置時加 `--data-root <path>/data/amazon_reviews`。在 SoC 上用 [`scripts/run.sbatch`](../../../scripts/run.sbatch) 的 `MODEL=sasrec` 提交（資源先依 [SoC 操作說明](../../../skills/nus-soc-slurm/SKILL.md) 核對）。`STAGE=train` 只檢查 Beauty 切分存在就訓練；run 目錄已有 `checkpoints/latest.pt`（或 2026-11-19 以前的 `latest.pt`）時自動續訓，有目錄但沒有 checkpoint 會拒絕；`STAGE=test` 做一次 held-out test：
 
 ```bash
 MODEL=sasrec RUN_NAME=sasrec-beauty-v1 STAGE=train sbatch --export=ALL --job-name=kuriyo-sasrec scripts/run.sbatch
 ```
 
-續訓（從 `latest.pt`，每個 epoch 結束時保存；資料校驗值、seed、batch size、loss、lr 與模型設定必須和 `config.json` 相同）：
+續訓（從 `checkpoints/latest.pt`，每個 epoch 結束時保存；資料校驗值、seed、batch size、loss、lr 與模型設定必須和 `settings.json` 相同）：
 
 ```bash
 python -m Recall.SASRec.baseline.train --run-name sasrec-beauty-v1 --device cuda --resume
 ```
 
-模型定案後，只執行一次 held-out test（拒絕覆寫既有的 `test-metrics.json`）：
+模型定案後，只執行一次 held-out test（拒絕覆寫既有的 `test/<set>/metrics.json`）：
 
 ```bash
 python -m Recall.SASRec.baseline.train --run-name sasrec-beauty-v1 --device cuda --eval-test-only
@@ -64,7 +64,7 @@ python -m Recall.SASRec.baseline.train --run-name sasrec-beauty-v1 --device cuda
 
 ## 輸出
 
-`Recall/SASRec/baseline/runs/<RUN_NAME>/`（Git 忽略）：`config.json`（資料與 catalog 的 SHA-256、git revision、設定、參數量）、`train.jsonl`（每 step 的 loss、epoch、session ID）、`events.log`（開始、續訓、validation、checkpoint、early stop、test）、`validation-epoch-<N>.json`、`best-metrics.json`、`best.pt`、`latest.pt`；test 後有 `test-metrics.json`。
+`Recall/SASRec/baseline/runs/<RUN_NAME>/`（Git 忽略）；run 目錄的版面與 `settings.json` 見 [`core/README.md`](../../../core/README.md#run-目錄)。`train/train.jsonl` 每 step 記 loss、learning rate 與 epoch；validation 每 `--eval-every` epochs 寫 `validation/amazon2014-beauty/epoch-<N>.json`。
 
 ## 測試
 

@@ -11,8 +11,10 @@ import uuid
 class RunLogger:
     """One session per invocation; repeated steps after resume remain distinguishable."""
 
-    def __init__(self, run_dir):
+    def __init__(self, run_dir, train_file='train.jsonl'):
+        """train_file is relative to run_dir; core.runs.RunLayout uses train/train.jsonl."""
         self.run_dir = Path(run_dir)
+        self.train_file = train_file
         self.session_id = uuid.uuid4().hex
         self.started = time.monotonic()
 
@@ -21,11 +23,13 @@ class RunLogger:
                       session_id=self.session_id,
                       elapsed_seconds=time.monotonic() - self.started)
         line = json.dumps(record, ensure_ascii=False, allow_nan=False)
-        with (self.run_dir / filename).open('a', encoding='utf-8') as output:
+        path = self.run_dir / filename
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open('a', encoding='utf-8') as output:
             output.write(line + '\n')
 
     def train(self, **values):
-        self._append('train.jsonl', values)
+        self._append(self.train_file, values)
 
     def event(self, name, **values):
         self._append('events.log', dict(values, event=name))

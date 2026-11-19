@@ -52,11 +52,11 @@ STAGE=test sbatch --export=ALL scripts/run.sbatch
 | `prepare` | 下載或驗證 Beauty 原始資料，建立或驗證商品目錄與 ASIN splits |
 | `sid` | 先執行 prepare，再以 `SID_RECIPE` 生成 SID；已完成的 SID 目錄只在 manifest 記錄相同配方時重用，否則停止 |
 | `materialize` | 需要完整 SID 與 ASIN splits；轉換三個 split，完整既有輸出會重用 |
-| `train` | 需要 materialized splits；既有 run 有 `latest.pt` 時自動續訓 |
-| `test` | 需要 run 的 `best.pt`；寫出最終 test 指標，拒絕覆寫已存在的結果 |
+| `train` | 需要 materialized splits；既有 run 有 `checkpoints/latest.pt`（或 2026-11-19 以前的 `latest.pt`）時自動續訓 |
+| `test` | 需要 run 的 `checkpoints/best.pt`；寫出 `test/<set>/metrics.json`，拒絕覆寫已存在的結果 |
 | `all`（預設） | 依序 prepare → sid → materialize → train |
 
-所有階段使用相同的 `SID_VERSION`；序列訓練與 test 使用相同的 `RUN_NAME`。新實驗使用新 run 名稱；更換 SID 設定時也使用新 SID 版本。`SID_RECIPE` 預設 `stable`；要重現 job 1153307 的 SID 用 `paper-pytorch`（已知會塌縮，只作對照）。`ADAFACTOR_SCALE_PARAMETER=1`（`train.py --adafactor-scale-parameter`）讓 Adafactor 依參數 RMS 縮放步長，與 T5X 預設相同；預設 0 維持 2026-11-19 以前所有 run 的行為（lr 是絕對步長）。續訓時必須與原 run 相同，否則拒絕執行。舊版 SID 目錄的 manifest 沒有 recipe 欄位，視為 `paper-pytorch`。重開 shell 後記得重新 export。若計算節點不能連外，需在允許的節點預先準備依賴、資料與 Hugging Face cache。
+所有階段使用相同的 `SID_VERSION`；序列訓練與 test 使用相同的 `RUN_NAME`。新實驗使用新 run 名稱；更換 SID 設定時也使用新 SID 版本。`SID_RECIPE` 預設 `stable`；要重現 job 1153307 的 SID 用 `paper-pytorch`（已知會塌縮，只作對照）。`ADAFACTOR_SCALE_PARAMETER`（預設 1，`train.py --adafactor-scale-parameter`）讓 Adafactor 依參數 RMS 縮放步長，與 T5X 預設相同；設 0（`--no-adafactor-scale-parameter`）還原 2026-11-19 以前所有 run 的行為（lr 是絕對步長），只用於續訓或重現那些 run。續訓時必須與原 run 相同，否則拒絕執行。舊版 SID 目錄的 manifest 沒有 recipe 欄位，視為 `paper-pytorch`。重開 shell 後記得重新 export。若計算節點不能連外，需在允許的節點預先準備依賴、資料與 Hugging Face cache。
 
 ## 安裝依賴與手動執行
 
@@ -188,7 +188,7 @@ Recall/TIGER/baseline/
 
 SID 完成後有 `semantic_ids.jsonl`、`manifest.json`、`embeddings.npz`、`rqvae.pt`。manifest 記錄商品來源 SHA、item count 與 codebook usage；應確認完整 12,101 件商品、沒有 `limit_items`，並檢查碼本使用率與碰撞。轉換器會檢查 ASIN 覆蓋是否與 catalog 完全一致，並將來源 SHA 寫入 train SID 目錄的 `split_manifest.json`；訓練入口也會檢查 catalog 與 SID split 的一致性。
 
-序列 run 包含 `config.json`（參數、seed、Git revision、資料 SHA）、`latest.pt`（模型、optimizer 與抽樣狀態）、`best.pt`、`best-metrics.json`、`validation-step-<step>.json`；最終 test 寫入 `test-metrics.json`。`latest.pt` 用於續訓，`best.pt` 用於最終評估。
+paper baseline 的 run 版面與 `settings.json` 見 [`core/README.md`](../../../core/README.md#run-目錄)：`settings.json` 另記 SID 版本、配方與 SHA；validation 每 `--eval-every` steps 寫 `validation/amazon2014-beauty/step-<N>.json`；`checkpoints/latest.pt` 用於續訓（含 permutation 與 cursor），`checkpoints/best.pt` 用於最終評估。2026-11-19 以前的平的 run 會在續訓或 test 時搬進新版面。smoke trainer（`train_sequence.py`）仍用舊的平版面。
 
 ## 小樣本檢查與測試
 
@@ -225,14 +225,14 @@ SID 完成後有 `semantic_ids.jsonl`、`manifest.json`、`embeddings.npz`、`rq
 - [`train_sequence.py`](train_sequence.py)、[`sequence.py`](sequence.py)：小型序列模型入口與 SID tokenizer／解碼工具。
 - [`Recall/core/`](../../core/README.md)：共用 metrics、batching、實驗記錄及基礎 Transformer；測試位於 [`Recall/tests/`](../../tests/)。
 - [`Representations/SID/`](../../../Representations/SID/README.md)：商品向量與 RQ-VAE SID 生成。
-- 本變體的 [`Experiment-log.md`](Experiment-log.md)：每次實驗的設定與結果；家族 [`INSIGHT.md`](../INSIGHT.md)：結論與假設；根目錄 [`TODO.md`](../../../TODO.md)：待辦事項。
+- 家族的 [`Experiment-log.md`](../Experiment-log.md)：每次實驗的設定與結果（條目以 Variant 標明變體）；家族 [`INSIGHT.md`](../INSIGHT.md)：結論與假設；根目錄 [`TODO.md`](../../../TODO.md)：待辦事項。
 
 
 ## 元件測試與訓練紀錄
 
 baseline 的 SID 解碼、資料載入，以及訓練／續訓／test 整合測試放在 `tests/`，跨模型共用的 Recall 測試放在 `../../tests/`。從 repo 根目錄執行 `.venv/bin/python -m unittest discover -s . -v` 可涵蓋全部。家族與變體組織原則見 [根目錄 README](../../../README.md#模型家族變體與測試)。
 
-paper baseline 的 run 內新增 `train.jsonl`（每 step loss、learning rate）與 `events.log`（JSON Lines 事件）；直接執行 Python 也會保存。續訓追加紀錄並以 session ID 區分，原有 config、validation/test JSON 與 checkpoint 繼續保留。run 被 Git 忽略，Slurm `.out` 也不保留在 repo 中；要保存紀錄請依下方方式匯入或另行匯出小型摘要。
+paper baseline 的 run 內有 `train/train.jsonl`（每 step loss、learning rate）與 `events.log`（JSON Lines 事件）；直接執行 Python 也會保存。續訓追加紀錄並以 session ID 區分，原有 settings、validation/test JSON 與 checkpoint 繼續保留。run 被 Git 忽略，Slurm `.out` 也不保留在 repo 中；要保存紀錄請依下方方式匯入或另行匯出小型摘要。
 
 ### 匯入舊 Slurm 訓練紀錄
 

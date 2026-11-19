@@ -10,8 +10,9 @@ SASRec（Self-Attentive Sequential Recommendation）用因果 self-attention 讀
 Recall/SASRec/
 ├── README.md        # 本檔：家族說明與變體列表
 ├── INSIGHT.md       # 家族研究筆記
+├── Experiment-log.md # 所有變體的實驗日誌（條目標明變體）
 └── baseline/        # PyTorch 實作（python -m Recall.SASRec.baseline.train）
-    ├── README.md, Experiment-log.md, requirements.txt, model.py, data.py, train.py, tests/
+    ├── README.md, requirements.txt, model.py, data.py, train.py, tests/
     └── runs/<RUN_NAME>/
 ```
 

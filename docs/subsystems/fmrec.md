@@ -2,18 +2,19 @@
 title: FMRec baseline（flow matching 序列推薦）
 type: subsystem
 created: 2026-11-18
-updated: 2026-11-18
+updated: 2026-11-19
 sources:
   - code: Recall/FMRec/README.md
   - code: Recall/FMRec/baseline/README.md
   - code: Recall/FMRec/baseline/model.py
   - code: Recall/FMRec/baseline/data.py
   - code: Recall/FMRec/baseline/train.py
+  - code: Recall/core/evaluation.py
   - code: Recall/FMRec/baseline/tests/test_model.py
   - code: Recall/FMRec/baseline/tests/test_train.py
   - ext: https://arxiv.org/abs/2505.16298
   - ext: https://github.com/FengLiu-1/FMRec
-verified_at: 2c946fe
+verified_at: 6b9097b
 ---
 
 # FMRec baseline
@@ -22,9 +23,9 @@ verified_at: 2c946fe
 
 ## 流程
 
-- `Recall/FMRec/baseline/data.py`：catalog 順序決定商品 index（1..N，0 是 padding）；`collate` 把最近 `max_history` 件左側補零到批次最大長度（`Recall/FMRec/baseline/data.py:38`）。
+- `Recall/FMRec/baseline/data.py`：catalog 順序決定商品 index（1..N，0 是 padding）；`collate` 把最近 `max_history` 件左側補零到批次最大長度（`Recall/FMRec/baseline/data.py:9`）。
 - `Recall/FMRec/baseline/model.py`：`FMRec.loss` 抽時間 t、組 z_t、做 x₀ 預測，合併 L_FM + α·L_CE + β·L_MSE（`Recall/FMRec/baseline/model.py:189`）；`FMRec.sample` 以 Euler 30 步從雜訊走到 z₁（`Recall/FMRec/baseline/model.py:204`）；`FMRec.scores` 以內積對全 catalog 排名（`Recall/FMRec/baseline/model.py:167`）。
-- `Recall/FMRec/baseline/train.py`：epoch 制訓練、每 `--eval-every` epochs 做 validation、以 NDCG@10 選 `best.pt`、每 epoch 寫 `latest.pt`，`--eval-test-only` 只跑一次 test（`Recall/FMRec/baseline/train.py:107`）。
+- `Recall/FMRec/baseline/train.py`：epoch 制訓練、每 `--eval-every` epochs 做 validation、以 NDCG@10 選 `checkpoints/best.pt`、每 epoch 寫 `checkpoints/latest.pt`，`--eval-test-only` 只跑一次 test；run 目錄、checkpoint 與選最佳都來自 `core/runs.py`（見 [[run-directory]]），catalog 與切分由 `Recall/core/data.py` 讀取。
 
 ## 對照作者程式時的事實
 
@@ -42,9 +43,9 @@ verified_at: 2c946fe
 
 > ⚠️ uncertainty 權重是對 `[B, L, H]` 逐元素抽樣，抽樣結果會隨 padding 寬度不同而對到不同位置，所以「padding invariance」只在分布上成立。測試把這項雜訊固定在平均值，才能逐值比較（`Recall/FMRec/baseline/tests/test_model.py`）。
 
-> ⚠️ 評估雜訊（z₀ 與 uncertainty）用 `--seed` 建立的獨立 CPU generator 產生，不動全域 RNG（`Recall/FMRec/baseline/model.py:133`、`Recall/FMRec/baseline/train.py:35`）。若改回 `torch.randn` 直接抽，validation 會消耗訓練 RNG，續訓與不中斷訓練的 loss 會分岔，`test_train_resume_and_held_out_test` 會失敗。
+> ⚠️ 評估雜訊（z₀ 與 uncertainty）用 `--seed` 建立的獨立 CPU generator 產生，不動全域 RNG（`Recall/FMRec/baseline/model.py:133`、`Recall/FMRec/baseline/train.py:43`）。若改回 `torch.randn` 直接抽，validation 會消耗訓練 RNG，續訓與不中斷訓練的 loss 會分岔，`test_train_resume_and_held_out_test` 會失敗。
 
-> ⚠️ `FMRec.scores` 把 padding 欄設為 −inf，CE 與排名都排除 index 0。作者程式沒有排除。`evaluate` 用 `asins[index - 1]` 對回 ASIN，若哪天 padding 欄沒被排除，index 0 會被對到最後一件商品，錯誤不會報錯。
+> ⚠️ `FMRec.scores` 把 padding 欄設為 −inf，CE 與排名都排除 index 0。作者程式沒有排除。`evaluate` 以 `rank_full_catalog(..., index_offset=1)` 用 `asins[index - 1]` 對回 ASIN（`Recall/core/evaluation.py:11`），若哪天 padding 欄沒被排除，index 0 會被對到最後一件商品，錯誤不會報錯。
 
 > ⚠️ 參數量約 2,840 萬，大部分在重建 MLP 最後一層（2048 × 商品數）。CPU 上每 step 很慢，完整訓練（約 257 steps/epoch，最多 500 epochs）要用 GPU。
 
