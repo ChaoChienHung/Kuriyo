@@ -27,7 +27,7 @@ python3 -m venv .venv
 | `paper-tf-adagrad` | Adagrad lr 0.4，accumulator 0.1（TF／Optax 預設） | 是 | 否 | 最貼近論文的穩定版本；本機 60 epochs 碼本全用，但重建只到「輸出平均 embedding」水準 |
 | `stable`（`run.sbatch` 預設） | AdamW lr 1e-3 | 是 | 是 | 本機診斷中唯一重建明顯優於平均值、且碼本全用的設定 |
 
-本機診斷數字與 SoC 20,000 epochs 的 `stable` 結果見 [SID INSIGHT](INSIGHT.md)；對 TIGER 指標的影響還沒驗證。標準化時，各維平均值與標準差會一起存進 `embeddings.npz`（`standardize_mean`、`standardize_std`）；開啟重設時，每個 epoch 重設的碼數寫在 `train.jsonl` 的 `dead_codes_reset`，manifest 會記錄配方與總重設數。完成後檢查 manifest 的 `codebook_usage_ratio`（論文稱至少 80%）與碰撞統計。
+本機診斷數字與 SoC 20,000 epochs 的 `stable` 結果見 [SID Experiment-log](Experiment-log.md)，結論在 [SID INSIGHT](INSIGHT.md)；新 SID 對 TIGER 只提升 0.0026 Recall@10（[TIGER baseline Experiment-log](../../Recall/TIGER/baseline/Experiment-log.md) 2026-11-18）。標準化時，各維平均值與標準差會一起存進 `embeddings.npz`（`standardize_mean`、`standardize_std`）；開啟重設時，每個 epoch 重設的碼數寫在 `train.jsonl` 的 `dead_codes_reset`，manifest 會記錄配方與總重設數。完成後檢查 manifest 的 `codebook_usage_ratio`（論文稱至少 80%）與碰撞統計。
 
 不指定 `--recipe` 時可以用 `--optimizer`、`--adagrad-initial-accumulator`、`--reset-dead-codes`、`--standardize-embeddings` 組合小型試跑；配方會覆寫這些選項。
 

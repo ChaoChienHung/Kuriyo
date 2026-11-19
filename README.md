@@ -9,7 +9,8 @@ Kuriyo 這個 repository 主要用來存放**推薦模型**及其相關的資料
 ## 文件導覽與目前狀態
 
 - [HANDOFF.md](HANDOFF.md)：背景、最新 run 證據、操作限制與接手步驟；內容上限 0.1M tokens。
-- [TODO.md](TODO.md)：依優先順序追蹤工作；[INSIGHT.md](INSIGHT.md)：研究筆記總覽；各鏈路（Recall、Ranking、SID）與各模型家族有自己的 `INSIGHT.md`，根檔摘要並連結它們。
+- [TODO.md](TODO.md)：未完成的工作（Agent-ready、Owner-led、Ideas）；[REVIEW.md](REVIEW.md)：已完成、等人審查的工作。
+- [INSIGHT.md](INSIGHT.md)：研究筆記總覽；各鏈路（Recall、Ranking、SID）與各模型家族有自己的 `INSIGHT.md`，根檔摘要並連結它們。每個模型變體（例如 `Recall/TIGER/baseline/`）與 SID 元件各有一份 `Experiment-log.md`，依日期記錄跑了什麼與結果。
 - [AGENTS.md](AGENTS.md)：協作與修改規則；各元件 README：實際入口與操作方式。
 
 完整 run `tiger-paper-20261117-005232` 的最佳已記錄 validation 位於 step 200,000：Recall@10 **0.03420829**、NDCG@10 **0.01678776**。SID 三層各 256 個碼，實際使用 **6 / 26 / 25**；下一步先調查 SID 與實作設定，不能把 validation 當作論文 test 的直接對照。證據為 job 1153307 的 Slurm log；該檔已於 `2ad21c7` 從 repo 移除，可用 `git show 2ad21c7^:slurm-kuriyo-tiger-1153307.out` 取回。完整 GPU 產物仍在 SoC，Git 只同步程式與小型紀錄。

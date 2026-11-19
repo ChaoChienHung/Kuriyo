@@ -6,6 +6,7 @@ updated: 2026-11-19
 sources:
   - code: Recall/SASRec/README.md
   - code: Recall/SASRec/baseline/README.md
+  - code: Recall/SASRec/baseline/Experiment-log.md
   - code: Recall/SASRec/baseline/model.py
   - code: Recall/SASRec/baseline/data.py
   - code: Recall/SASRec/baseline/train.py
@@ -13,12 +14,12 @@ sources:
   - code: Recall/SASRec/baseline/tests/test_train.py
   - code: utils/amazon_reviews_2014.py
   - ext: https://arxiv.org/abs/1808.09781
-verified_at: 2c946fe
+verified_at: c7d9de2
 ---
 
 # SASRec baseline（資料與評估的檢查基準）
 
-`Recall/SASRec/baseline/` 是 SASRec（Kang & McAuley 2018）的 PyTorch 實作。它在 Kuriyo 的用途是當檢查基準：TIGER 換了健康的新 SID 之後，validation 仍和塌縮的舊 SID 差不多，所以要先確認共用的資料與評估沒有問題。TIGER 論文表 3 的 SASRec Beauty Recall@10 是 0.0605；Kuriyo 的 SASRec 在同一份切分與 `Recall/core/metrics.py` 下若接近這個值，差距就在 TIGER 自己的流程裡。結果記在 `Recall/INSIGHT.md`。
+`Recall/SASRec/baseline/` 是 SASRec（Kang & McAuley 2018）的 PyTorch 實作。它在 Kuriyo 的用途是當檢查基準：TIGER 換了健康的新 SID 之後，validation 仍和塌縮的舊 SID 差不多，所以要先確認共用的資料與評估沒有問題。TIGER 論文表 3 的 SASRec Beauty Recall@10 是 0.0605；Kuriyo 的 SASRec 在同一份切分與 `Recall/core/metrics.py` 下若接近這個值，差距就在 TIGER 自己的流程裡。結果記在 `Recall/SASRec/baseline/Experiment-log.md`，跨家族對照在 `Recall/INSIGHT.md`。
 
 模型是 pre-norm Transformer encoder，加上因果遮罩、learned position embedding，並與 item embedding 共用輸出層（`Recall/SASRec/baseline/model.py:26`）。預設 loss 是全 catalog softmax CE，`--loss bce` 改回原論文的單一負例。評估取最後一個位置，對全 catalog 排名，不過濾歷史商品，和 TIGER、FMRec 一致（`Recall/SASRec/baseline/train.py:33`）。與原論文的差異表在 baseline README。
 

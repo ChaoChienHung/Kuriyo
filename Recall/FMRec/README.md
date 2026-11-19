@@ -11,7 +11,7 @@ Recall/FMRec/
 ├── README.md        # 本檔：家族說明與變體列表
 ├── INSIGHT.md       # 家族研究筆記（事實、限制、假設分開）
 └── baseline/        # 依作者程式的重新實作（python -m Recall.FMRec.baseline.train）
-    ├── README.md, requirements.txt, model.py, data.py, train.py, tests/
+    ├── README.md, Experiment-log.md, requirements.txt, model.py, data.py, train.py, tests/
     └── runs/<RUN_NAME>/
 ```
 

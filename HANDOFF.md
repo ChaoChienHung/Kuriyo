@@ -2,7 +2,7 @@
 
 # Kuriyo 交接紀錄
 
-更新日期：2026-11-17。交接前程式版本：`b9e8c22`；本次為文件與目錄導覽整理。先讀 [AGENTS.md](AGENTS.md)、[README.md](README.md)，工作清單見 [TODO.md](TODO.md)，研究事實與假設從 [INSIGHT.md](INSIGHT.md) 的各層連結開始（SID、Recall、TIGER、FMRec 各有一份）。
+更新日期：2026-11-19。先讀 [AGENTS.md](AGENTS.md)、[README.md](README.md)；未完成的工作見 [TODO.md](TODO.md)，等審查的工作見 [REVIEW.md](REVIEW.md)，研究結論與假設從 [INSIGHT.md](INSIGHT.md) 的各層連結開始。每個 run 的設定與完整數字記在變體的 `Experiment-log.md`（`Recall/<family>/baseline/`、`Representations/SID/`），本檔只留交接所需的摘要。
 
 ## 背景與目標
 

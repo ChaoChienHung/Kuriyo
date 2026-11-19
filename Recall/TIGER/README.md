@@ -9,7 +9,7 @@ Recall/TIGER/
 ├── README.md        # 本檔：家族說明與變體列表
 ├── INSIGHT.md       # 家族研究筆記
 ├── baseline/        # 目前在 SoC 執行的實作
-│   ├── README.md, requirements.txt, train.py, ..., tests/
+│   ├── README.md, Experiment-log.md, requirements.txt, train.py, ..., tests/
 │   └── runs/<RUN_NAME>/
 └── <variant-name>/  # 之後的變體，同樣自成一個完整空間
 ```
@@ -25,4 +25,4 @@ Recall/TIGER/
 1. 只有超參數不同時，在既有變體加具名設定，不開新目錄。
 2. 需要不同實作時，複製 `baseline/` 成與它同層的新目錄，名稱描述差異（例如 `constrained-decoding/`），不用 `variant1/`、`v2/`。
 3. 變體之間不互相 import；只可 import 跨模型共用的 `Recall/core/`、`core/` 等。這樣修改 baseline 不會悄悄改變其他變體的結果。
-4. 在新變體的 README 寫明與 baseline 的差異，並更新上表；runs 寫到自己的 `runs/`，測試放自己的 `tests/`（含 `__init__.py`）。
+4. 在新變體的 README 寫明與 baseline 的差異，並更新上表；runs 寫到自己的 `runs/`，測試放自己的 `tests/`（含 `__init__.py`），實驗記在自己的 `Experiment-log.md`（從空白開始，不複製 baseline 的條目）。

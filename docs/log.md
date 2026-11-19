@@ -45,3 +45,8 @@ Append-only. Newest entries at the bottom.
 
 - wiki 規則從 `docs/CLAUDE.md` 移到 `docs/AGENTS.md`，四個 `/docs-*` 指令的步驟也併入其 Procedures 一節，任何 agent 都可直接照做；`docs/CLAUDE.md` 只剩 `@AGENTS.md` 匯入，`.claude/commands/` 只剩指向。
 - 根 `AGENTS.md` 新增 Agent instruction files 一節；`.agents/`（自動轉換的副本）加入 `.gitignore`。
+
+## [2026-11-19] update | 每個變體一份 Experiment-log
+
+- 新增 `Recall/{TIGER,SASRec,FMRec}/baseline/Experiment-log.md` 與 `Representations/SID/Experiment-log.md`，run 的完整數字從 INSIGHT 搬入；INSIGHT、TODO 依新模板改寫，新增根目錄 `REVIEW.md`。規則寫在根 `AGENTS.md`。
+- [[model-family-layout]] 加上變體的 `Experiment-log.md`；[[sid-rqvae-training]]、[[sasrec]] 的數據出處改指 Experiment-log。

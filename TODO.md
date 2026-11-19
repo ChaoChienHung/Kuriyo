@@ -1,57 +1,88 @@
 # TODO
 
-更新：2026-11-17。背景與操作交接見 [HANDOFF.md](HANDOFF.md)，研究證據與假設見 [INSIGHT.md](INSIGHT.md) 與各層的 INSIGHT。勾選表示已完成該項工作，不代表論文重現成功。
+更新：2026-11-19。未完成的工作放這裡；已完成、等人審查的工作放 [REVIEW.md](REVIEW.md)；agent 目前停在哪裡見 [HANDOFF.md](HANDOFF.md)；研究證據與假設見 [INSIGHT.md](INSIGHT.md) 與各層的 INSIGHT。
 
-## P0 — 確認完整 baseline 與 SID 問題
+## Task rules
 
-- [x] SoC job 1153307 對完整 Beauty 生成 SID，完成 200,000-step TIGER 訓練並記錄 10 次 validation。
-- [x] 同步 Slurm log，確認最佳已記錄 validation 在 step 200,000；尚無最終 test 結果。
-- [x] 舊 log 匯入獨立 train.jsonl/events.log，保留來源 SHA、行號、缺失資訊與採樣頻率。
-- [ ] 取得／核對該 run 的 config、SID manifest、best-metrics、實際 checkpoint 存在性與 job 最終狀態；不要提交大型產物。
-- [x] 檢查 RQ-VAE 首 epoch 巨大 loss 與低碼本使用率：PyTorch Adagrad accumulator 預設 0 造成第一步發散；穩定 optimizer 下第一層仍塌縮。診斷工具 `Representations/SID/scripts/diagnose_rqvae.py`，結果見 `Representations/SID/INSIGHT.md`。
-- [x] `generate_sids --recipe`：Adagrad accumulator、未使用碼重設、embedding 標準化；`run.sbatch` 的 `SID_RECIPE` 與配方不符時拒絕重用；補元件與 orchestration 測試。
-- [ ] 在 SoC 以 `SID_RECIPE=stable` 產生新 SID 版本，檢查 manifest 的 `codebook_usage_ratio` 與碰撞；可選再跑 `paper-tf-adagrad` 對照。
-- [ ] 以新 SID、同一 T5 設定、新 RUN_NAME 在 SoC 訓練，比較 20k／60k step validation 與現有 run（驗證 `Recall/TIGER/INSIGHT.md` H3）。
-- [ ] 對 SoC 上現有 SID 統計碰撞商品比例與最大 collision suffix（本機診斷已含此統計，可直接套用 `embeddings.npz`）。
-- [ ] 核對 paper/T5X 與 HF 設定：實際參數量 5,587,968、metadata 文句、user hash、prefix expansion、optimizer、解碼與評估。
-- [x] 熱門商品基線：validation Recall@10 0.01704、test 0.01203（見 `Recall/INSIGHT.md`）。
-- [ ] 設計單一因素對照實驗（SID 方法、模型容量），使用新 run 名稱保留現有結果。
-- [ ] 模型選定後執行一次 held-out test，再與論文 test 指標比較；不用 test 調參。
+- 每個 checkbox 一件工作，寫清楚結果與驗收方式。
+- 只有影響實作時才寫範圍與相依。
+- 需要 SoC 的工作由 agent 準備指令、使用者提交；agent 不自行提交、取消或修改 job。
+- 長期構想留在 Ideas to discuss，接受、否決或完成後再移走。
 
-## P1 — 可重現訓練與維護
+## Agent-ready
 
-- [x] SID 與完整 catalog 獨立於推薦模型；SID/splits 按版本隔離。
-- [x] 共用 Recall Transformer、padding、metrics、實驗工具與模組測試。
-- [x] TIGER 專有 tests 分離；驗證 causal mask、padding invariance、訓練／續訓／test。
-- [x] 分階段 run.sbatch、SoC skill、Torch cu126 明確安裝指令。
-- [x] 獨立 run logger 接入 TIGER paper trainer 與 SID；測試追加、session 與錯誤傳遞。
-- [x] 舊資料目錄 ignore、清除 tracked .DS_Store；Slurm log 曾提交，已於 `2ad21c7` 移除，保留在 git 歷史。
-- [x] README/AGENTS 記錄家族與變體原則，建立 HANDOFF。
-- [ ] SID 增加 checkpoint/resume（目前無中途恢復）。
-- [ ] 完整環境 lock／環境快照與 GPU preflight；既有 Torch pin 不是完整 lockfile。
-- [ ] 增加小型 run summary 匯出機制，方便分享 config／metrics／manifest，而不提交 runs/checkpoints。
-- [x] TIGER 家族改為每個變體自成完整空間，現有實作全部放入 `baseline/`，記錄於 README/AGENTS。
-- [ ] 真正新增變體時實作具名設定或複製 `baseline/` 為 `Recall/TIGER/<variant-name>/`，補該變體的測試。
+依優先順序。
 
-## P1 — FMRec 同切分比較
+- [ ] 判讀 H5：T5X 式 Adafactor 的 20k／40k validation
+  - **Context:** `Recall/TIGER/INSIGHT.md` H5；SoC job 1165519（`tiger-t5x-adafactor-v1`）訓練中。
+  - **Scope:** 使用者推 log 後，更新 `Recall/TIGER/baseline/Experiment-log.md` 2026-11-19 條目、TIGER INSIGHT 的 H5 狀態、`Recall/INSIGHT.md` 對照表。
+  - **Acceptance:** 20k／40k Recall@10 與 `tiger-paper-v1`（0.0132／0.0174）並列，寫出支持或不支持 H5 與下一步（跑滿 200k，或查訓練樣本、token 排列、解碼）。
+- [ ] 記錄 FMRec 完整訓練的 validation
+  - **Context:** `Recall/FMRec/INSIGHT.md` H2；SoC job 1165520（`fmrec-beauty-v1`）訓練中，每 20 epochs 驗證一次。
+  - **Scope:** `Recall/FMRec/baseline/Experiment-log.md`、FMRec INSIGHT、`Recall/INSIGHT.md` 對照表。
+  - **Acceptance:** best validation Recall@10／NDCG@10 與 SASRec 0.0938、TIGER 0.0368／0.0342、熱門基線 0.0170 並列，更新 H2 狀態。
+- [ ] 在 SoC GPU 重跑 SASRec
+  - **Context:** job 1165521、1165548 落在壞節點 xgpe4／xgpe6，沒有訓練。
+  - **Scope:** 使用者提交 `MODEL=sasrec RUN_NAME=sasrec-beauty-v1 STAGE=train sbatch --export=ALL --exclude='xgpe[0-4,6]' --job-name=kuriyo-sasrec scripts/run.sbatch`；agent 讀 log 並更新 `Recall/SASRec/baseline/Experiment-log.md`。
+  - **Acceptance:** best validation Recall@10 落在本機 run 的 0.092–0.094 附近，或記錄差異的原因。
+- [ ] 若 H5 不成立，繼續找 TIGER 與 SASRec 的差距
+  - **Context:** `Recall/TIGER/INSIGHT.md` Problems to solve 2。
+  - **Scope:** 小型 overfit 測試、訓練樣本、token 排列、beam search 解碼；每項新 RUN_NAME。
+  - **Acceptance:** 找到能讓 validation 明顯上升的單一因素，或逐項排除並記錄在 Experiment-log。
+- [ ] 核對論文 T5X 與 HF T5 的設定
+  - **Context:** `Recall/TIGER/INSIGHT.md` H4；HF T5 4.8–5.6M 參數，論文約 1,300 萬。
+  - **Scope:** 容量（embedding 共享、詞表）、商品文句、user hash、prefix expansion、解碼與評估。
+  - **Acceptance:** TIGER INSIGHT 有逐項對照，事實與猜測分開。
+- [ ] SoC 上舊 SID 的碰撞商品比例與最大 collision suffix
+  - **Context:** 碰撞群組數（228／279）不能換算成碰撞商品比例。
+  - **Scope:** 對 SoC 的 `embeddings.npz`／`semantic_ids.jsonl` 套用 `diagnose_rqvae` 的統計；使用者在 SoC 執行指令。
+  - **Acceptance:** 兩個 SID 版本的碰撞商品數與最大群記在 `Representations/SID/Experiment-log.md`。
+- [ ] 核對 job 1153307 的產物
+  - **Context:** 只有 log，沒有 config、SID manifest、best-metrics、checkpoint 存在性與 sacct 最終狀態。
+  - **Scope:** 使用者在 SoC 執行檢查指令並回報；不提交大型產物。
+  - **Acceptance:** HANDOFF 與 TIGER baseline Experiment-log 註明哪些產物存在、job 最終狀態。
+- [ ] SID 分項 loss 記錄
+  - **Context:** `Representations/SID/INSIGHT.md` Problems to solve 1。
+  - **Scope:** `generate_sids` 的 `train.jsonl` 加入重建、碼本、commitment 分項 loss 與 latent 範數；補測試。
+  - **Acceptance:** 小資料 run 的 `train.jsonl` 每 epoch 有分項欄位，測試通過。
+- [ ] SID checkpoint／resume
+  - **Context:** 20,000 epochs 中斷就要重跑。
+  - **Scope:** `Representations/SID/`、`scripts/run.sbatch` 的 sid 階段與 orchestration 測試。
+  - **Acceptance:** 中斷後以同一 SID_VERSION 續訓，結果與不中斷一致（小資料測試）。
+- [ ] 單一因素對照（各自新 RUN_NAME，等主要問題釐清後）
+  - **Context:** `Recall/FMRec/INSIGHT.md` H1、`Recall/SASRec/INSIGHT.md` H1。
+  - **Scope:** FMRec `--mode-scale 0.4`、`--attention causal`、`--sample-steps 1` 對 30；SASRec `--loss bce`、hidden 50／1 head。
+  - **Acceptance:** 每項在對應的 Experiment-log 有一條完整紀錄，並更新假設狀態。
+- [ ] 完整環境 lock 與 GPU preflight
+  - **Context:** 現有 Torch pin 不是完整 lockfile；壞節點要等 Python 啟動後才發現。
+  - **Scope:** 環境快照、`run.sbatch` 在安裝前檢查 `nvidia-smi`。
+  - **Acceptance:** 壞節點上的 job 在 pip 之前就以明確訊息結束；環境可由 lock 重建。
+- [ ] 小型 run summary 匯出
+  - **Context:** 分享 config／metrics／manifest 時不想提交 runs 或 checkpoints。
+  - **Scope:** `core/` 或 `scripts/` 的匯出指令與測試。
+  - **Acceptance:** 一個指令輸出可提交的小檔，內容足以填寫 Experiment-log 的 Details。
 
-- [x] `Recall/FMRec/baseline/`：依作者程式 `1c39b17` 實作，讀 Kuriyo ASIN 切分（20 件歷史上限），共用指標 full ranking；測試與 CPU smoke 通過。
-- [ ] 在 SoC GPU 以作者預設跑完整訓練：`MODEL=fmrec RUN_NAME=fmrec-beauty-v1 STAGE=train sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch`（先核對 SoC 資源）；記錄 validation，與 SASRec 0.0938、TIGER 0.0368／0.0342、熱門基線 0.0170（皆 validation Recall@10）比較。
-- [ ] 視結果做單一因素對照，每項新 RUN_NAME：`--mode-scale 0.4`（論文 B.2 的另一個 s）、`--attention causal`、`--sample-steps 1` 對 30（檢驗 `Recall/FMRec/INSIGHT.md` 的 H1）。
-- [ ] 優先度低：50 件歷史對照（FMRec 論文設定），需另建 `--max-history 50` 的切分。
-- [x] `scripts/run.sbatch` 的 `MODEL=fmrec`／`MODEL=sasrec`（STAGE prepare／train／test／all），含 orchestration 測試。
+## Owner-led
 
-## P1 — SASRec 資料／評估檢查
+- [ ] 決定何時定案並跑 held-out test
+  - **Decision needed:** 哪個 TIGER run（以及對照的 SASRec、FMRec run）算定案；之後才對 test 跑一次，不用 test 調參。
+  - **Acceptance:** 每個定案 run 只有一次 test，記在 Experiment-log，並與論文 test 數字並列。
+- [ ] 確定推薦任務與成功指標
+  - **Decision needed:** 下一項商品召回之外，是否也做評分預測或排序；目標使用情境與主要指標。
+  - **Acceptance:** 根 INSIGHT 的 Discussion 寫下決定，Problems to solve 1 關閉。
+- [ ] 跨 Recall 模型的候選輸出契約
+  - **Decision needed:** 候選集的格式、數量與載入方式，供 Ranking 與 pipelines 共用。
+  - **Acceptance:** `Recall/README.md` 記錄格式；至少一個 Recall 模型能輸出它。
+- [ ] 評估協定的延伸
+  - **Decision needed:** 是否加入固定 catalog 之外的 cold-start 協定、同日時間戳的敏感度分析、全域時間切分（根 INSIGHT H2）。
+  - **Acceptance:** 採用的協定寫進 README 與根 INSIGHT，結果與現有切分分開報告。
+- [ ] Ranking 的候選集、負例與標籤
+  - **Decision needed:** 是否以 Recall 輸出作為候選集、負例怎麼抽、標籤怎麼定。
+  - **Acceptance:** `Ranking/INSIGHT.md` 記錄決定，可以開始建立 Ranking 基線。
 
-- [x] `Recall/SASRec/baseline/`：原論文架構、預設 full-softmax CE，讀 Kuriyo ASIN 切分（20 件歷史上限），共用指標 full ranking；測試通過。
-- [x] 完整訓練並記錄 validation：本機 `sasrec-beauty-v1` best Recall@10 0.0938（約 TIGER 的 3 倍），共用資料／評估正常，差距在 TIGER 流程。
-- [ ] 找出 TIGER 流程的問題：先在 SoC 以 `ADAFACTOR_SCALE_PARAMETER=1` 驗證 Adafactor 步長假設（`Recall/TIGER/INSIGHT.md` H5），不成立再查訓練樣本、token 排列與解碼。
-- [ ] 視結果做單一因素對照：`--loss bce`（原論文 loss）、hidden 50／1 head。
+## Ideas to discuss
 
-## P2 — 後續模型與資料
-
-- [ ] 定義跨 Recall 模型的候選輸出、載入與評估契約。
-- [ ] 實作 sentence-t5_kmeans、sentence-t5_lsh；目前只有預留方法名稱。
-- [ ] 明定固定 catalog 與 cold-start 協定，量測同日時間 ties 的敏感度。
-- [ ] 若啟用 2023 All_Beauty，另外定義切分與評估，不與 2014 混用。
-- [ ] Ranking 候選集、負例與基線；有實際模型後定義跨階段 pipelines。
+- 啟用 2023 `All_Beauty`：需要另訂切分與評估，不與 2014 混用。
+- 實作 `sentence-t5_kmeans`、`sentence-t5_lsh` 比較 SID 方法（`Recall/TIGER/INSIGHT.md` H6）；等 TIGER 的訓練正常後才有意義。
+- FMRec 以 50 件歷史對照論文設定（需另建 `--max-history 50` 的切分），優先度低。
+- 真正需要不同實作時，新增 TIGER 變體（例如 `constrained-decoding/`），附自己的 Experiment-log 與測試。

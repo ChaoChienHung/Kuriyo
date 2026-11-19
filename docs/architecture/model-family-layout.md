@@ -14,10 +14,11 @@ sources:
   - code: scripts/train_tiger_sequence.py
   - code: tests/test_run_sbatch.py
   - code: AGENTS.md
+  - code: Recall/TIGER/baseline/Experiment-log.md
   - code: Recall/FMRec/README.md
   - code: Recall/SASRec/README.md
   - code: .gitignore
-verified_at: 2c946fe
+verified_at: c7d9de2
 ---
 
 # 模型家族與變體目錄結構
@@ -27,7 +28,7 @@ Kuriyo 以「模型家族」組織同一類模型的不同實作，**每個變�
 ## 結構
 
 - **家族根層**只放 `README.md`（家族說明與變體表）、`INSIGHT.md`（適用於所有變體的研究筆記）和套件用的初始化檔，不放程式、測試、依賴或 runs。研究筆記放在家族層而不是變體裡，因為像「SID 品質影響效果」這類發現對每個變體都成立。
-- **每個變體**是家族下的直接子目錄，擁有自己的 `README.md`、`requirements.txt`、模型與訓練程式、`tests/` 與 Git 忽略的 `runs/<RUN_NAME>/`。baseline 的內容：
+- **每個變體**是家族下的直接子目錄，擁有自己的 `README.md`、`Experiment-log.md`（依日期記錄這個變體的實驗）、`requirements.txt`、模型與訓練程式、`tests/` 與 Git 忽略的 `runs/<RUN_NAME>/`。實驗紀錄放在變體裡，因為每個變體的 run 只屬於它自己；超出單一 run 的結論才往上整理到家族 `INSIGHT.md`。baseline 的內容：
   - 正式入口 `python -m Recall.TIGER.baseline.train`，預設輸出目錄在 `Recall/TIGER/baseline/train.py:113`。
   - `SIDTokenizer`（`Recall/TIGER/baseline/sequence.py:10`）與 constrained beam search（`Recall/TIGER/baseline/sequence.py:67`）。
   - smoke trainer `Recall/TIGER/baseline/train_sequence.py`，其 runs 也寫到 baseline 自己的目錄（`Recall/TIGER/baseline/train_sequence.py:24`）。根目錄的相容 wrapper `scripts/train_tiger_sequence.py` 轉交給它。

@@ -225,7 +225,7 @@ SID 完成後有 `semantic_ids.jsonl`、`manifest.json`、`embeddings.npz`、`rq
 - [`train_sequence.py`](train_sequence.py)、[`sequence.py`](sequence.py)：小型序列模型入口與 SID tokenizer／解碼工具。
 - [`Recall/core/`](../../core/README.md)：共用 metrics、batching、實驗記錄及基礎 Transformer；測試位於 [`Recall/tests/`](../../tests/)。
 - [`Representations/SID/`](../../../Representations/SID/README.md)：商品向量與 RQ-VAE SID 生成。
-- 根目錄 [`INSIGHT.md`](../../../INSIGHT.md)、[`TODO.md`](../../../TODO.md)：研究事實、假設、限制與待辦事項。
+- 本變體的 [`Experiment-log.md`](Experiment-log.md)：每次實驗的設定與結果；家族 [`INSIGHT.md`](../INSIGHT.md)：結論與假設；根目錄 [`TODO.md`](../../../TODO.md)：待辦事項。
 
 
 ## 元件測試與訓練紀錄
