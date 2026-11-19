@@ -21,6 +21,11 @@
 - **Command:** `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 STAGE=sid sbatch --export=ALL scripts/run.sbatch`
 - **Artifacts:** SoC 的 `data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/tiger-paper-v1/`；log 用 `git show b7a4078:slurm-kuriyo-tiger-1162430.out` 取回。
 
+#### Settings
+
+- **架構：**Sentence-T5 base 向量，MLP 512／256／128，latent 32，三層各 256 碼，k-means 以隨機 1,024 件商品初始化；batch 1,024，seed 42。
+- **配方 `stable`：**AdamW lr 1e-3，embedding 逐維標準化，每 epoch 重設未使用碼；20,000 epochs。
+
 #### Expectation
 
 三層全碼本使用，碰撞少，重建明顯低於「輸出平均 embedding」的水準。
@@ -57,6 +62,11 @@
 - **Environment:** 本機，60 epochs，seed 42。
 - **Command:** `python -m Representations.SID.scripts.diagnose_rqvae --emb <SID 目錄>/embeddings.npz --recipe <配方> --epochs 60 --report 20`
 - **Artifacts:** 只有終端輸出，沒有保存產物。
+
+#### Settings
+
+- **架構：**Sentence-T5 base 向量，MLP 512／256／128，latent 32，三層各 256 碼，k-means 以隨機 1,024 件商品初始化；batch 1,024，seed 42。
+- **配方：**`paper-pytorch`（Adagrad lr 0.4、accumulator 0）、`paper-tf-adagrad`（Adagrad lr 0.4、accumulator 0.1、重設未使用碼）、`stable`（同上一條）；各 60 epochs。
 
 #### Expectation
 
@@ -95,6 +105,11 @@ job 1153307 的 SID 第一個 epoch loss 8.7e9，三層只用 6/26/25 碼。找�
 - **Environment:** 本機 CPU，seed 42，batch 1,024，`generate_sids.initialize_codebooks`（隨機 1,024 件 k-means 初始化）；程式為 `495076a` 之後的工作樹（`rqvae.py` 未改）。
 - **Command:** `python -m Representations.SID.scripts.diagnose_rqvae`
 - **Artifacts:** 只有終端輸出。
+
+#### Settings
+
+- **架構：**Sentence-T5 base 向量，MLP 512／256／128，latent 32，三層各 256 碼，k-means 以隨機 1,024 件商品初始化；batch 1,024，seed 42。
+- **各設定：**optimizer、accumulator、標準化與重設未使用碼見結果表 A–F；A–C 跑 300 epochs，D–F 跑 60 epochs。
 
 #### Expectation
 
@@ -139,6 +154,11 @@ A 應重現 SoC 的第一 epoch 發散與塌縮。若主因是 Adagrad accumulat
 - **Environment:** SoC job 1153307，程式 `5f99955`（`STAGE=all` 的 SID 階段）。
 - **Command:** 見 [TIGER baseline Experiment-log](../../Recall/TIGER/baseline/Experiment-log.md) 2026-11-17。
 - **Artifacts:** SoC 的 `data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/tiger-paper-20261117-005232/`；log 用 `git show 2ad21c7^:slurm-kuriyo-tiger-1153307.out` 取回。
+
+#### Settings
+
+- **架構：**Sentence-T5 base 向量，MLP 512／256／128，latent 32，三層各 256 碼，k-means 以隨機 1,024 件商品初始化；batch 1,024，seed 42。
+- **配方（相當於現在的 `paper-pytorch`）：**PyTorch Adagrad lr 0.4、accumulator 0，不標準化、不重設碼；20,000 epochs。
 
 #### Expectation
 

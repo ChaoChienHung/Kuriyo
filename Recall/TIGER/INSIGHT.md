@@ -8,7 +8,7 @@ TIGER 家族的研究筆記，適用於家族下所有變體。事實與假設�
 
 從資料或實驗得到、會改變後續做法的解讀。
 
-- **換 SID 沒有解決差距，問題在序列模型的訓練：**全碼本使用的新 SID 在 200k 的 validation Recall@10 只比舊 SID 高 0.0026（0.0368 對 0.0342），同切分 SASRec 有 0.0938。下一步查 TIGER 自己的訓練；主要嫌疑是 Adafactor 步長（H5）。證據：[baseline Experiment-log](baseline/Experiment-log.md) 2026-11-18。
+- **換 SID 沒有解決差距，問題在序列模型的訓練：**全碼本使用的新 SID 在 200k 的 validation Recall@10 只比舊 SID 高 0.0026（0.0368 對 0.0342），同切分 SASRec 與 FMRec 都約 0.10。下一步查 TIGER 自己的訓練；主要嫌疑是 Adafactor 步長（H5）。證據：[baseline Experiment-log](baseline/Experiment-log.md) 2026-11-18。
 - **validation 到 200k 仍在上升：**兩個完整 run 的曲線都沒有收斂（約 390 個 epoch），且不是嚴格單調。現有預算下看不到 TIGER 的上限，比較變體時要比相同 step。
 
 ## Facts
@@ -59,5 +59,5 @@ TIGER 家族的研究筆記，適用於家族下所有變體。事實與假設�
 具體的阻礙或未知；排入工作後在 `TODO.md` 追蹤。
 
 1. 等 H5 的 20k／40k validation（job 1165519）。
-2. 若 H5 不成立，繼續找與同切分 SASRec（Recall@10 0.0938）的差距：小型 overfit 測試（本機負載過高未完成）、訓練樣本、token 排列、beam search 解碼。程式碼檢查已確認 token offset、user token、decoder start、label 格式、beam 對應與 validation 歷史沒有問題。
+2. 若 H5 不成立，繼續找與同切分 SASRec、FMRec（Recall@10 約 0.10）的差距：小型 overfit 測試（本機負載過高未完成）、訓練樣本、token 排列、beam search 解碼。程式碼檢查已確認 token offset、user token、decoder start、label 格式、beam 對應與 validation 歷史沒有問題。
 3. 對齊論文的模型容量、訓練預算與解碼協定，確認指標的可比性；模型定案後才對 test 做一次最終評估。

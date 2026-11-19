@@ -8,22 +8,22 @@ SASRec 家族的研究筆記。事實與假設分開，每個結果都註明資�
 
 從資料或實驗得到、會改變後續做法的解讀。
 
-- 在 Kuriyo 的 2014 Beauty 切分與共用指標下，SASRec 的 validation Recall@10 達 0.0938，是同切分 TIGER（0.034–0.037）的約 3 倍，也高於 TIGER 論文表 3 的 SASRec（0.0605，test）。共用的資料、20 件歷史上限與指標程式能讓成熟模型得到正常甚至偏高的數字，因此 TIGER 的差距不在這些共用部分。證據：[baseline Experiment-log](baseline/Experiment-log.md) 2026-11-19。
+- 在 Kuriyo 的 2014 Beauty 切分與共用指標下，SASRec 的 validation Recall@10 達 0.094–0.102，是同切分 TIGER（0.034–0.037）的約 3 倍，也高於 TIGER 論文表 3 的 SASRec（0.0605，test）。共用的資料、20 件歷史上限與指標程式能讓成熟模型得到正常甚至偏高的數字，因此 TIGER 的差距不在這些共用部分。證據：[baseline Experiment-log](baseline/Experiment-log.md) 2026-11-19。
 
 ## Facts
 
 已確認的資料性質、實作細節與 run 結果。
 
-- 本機完整 run `sasrec-beauty-v1`（baseline 預設：hidden 64、2 層、full-softmax CE、seed 42，826,368 參數）best epoch 50：validation Recall@10 0.09382、NDCG@10 0.04609；epoch 30 之後在 0.092–0.094 之間波動，epoch 75 early stop。逐 epoch 數字見 [baseline Experiment-log](baseline/Experiment-log.md) 2026-11-19。
+- `sasrec-beauty-v1`（baseline 預設：hidden 64、2 層、full-softmax CE、seed 42，826,368 參數）跑了兩次：SoC CUDA（job 1165570，程式 `7c00c35`）best epoch 85 的 validation Recall@10 0.10227、NDCG@10 0.05083；本機 MPS best epoch 50 的 Recall@10 0.09382、NDCG@10 0.04609。逐 epoch 數字見 [baseline Experiment-log](baseline/Experiment-log.md) 2026-11-19。
 - 沒有執行 held-out test：模型尚未定案，test 只在定案後跑一次。
 
 ## Limitations
 
 會限制結論範圍的已知弱點。
 
-- 只跑了一個 seed；validation 不是 test，不能直接和論文的 test 數字比。
+- 每個環境只跑了一個 seed；SoC 與本機差 0.0085 Recall@10，原因（環境或 seed）未分辨。validation 不是 test，不能直接和論文的 test 數字比。
 - 歷史上限 20（原論文 Beauty 用 50）、預設 CE 而非原論文的 BCE；差異表在 baseline README。
-- 本機 run 的 `config.json` revision（`97cae0f`）早於 SASRec 程式的 commit；程式內容相同，但 run 本身無法以 revision 直接追溯。
+- 本機 run 的 `config.json` revision（`97cae0f`）早於 SASRec 程式的 commit，無法以 revision 直接追溯；之後以 SoC run 為主要參考。
 
 ## Hypothesis
 

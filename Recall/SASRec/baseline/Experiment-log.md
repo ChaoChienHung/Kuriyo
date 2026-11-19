@@ -17,9 +17,15 @@
 - **Baseline:** 本機 run `sasrec-beauty-v1`（同日下方條目）。
 - **Change:** 只換執行環境（本機 MPS → SoC CUDA）；設定與 seed 相同。
 - **Data:** 2014 Beauty ASIN 切分。
-- **Environment:** SoC；job 1165521（xgpe4）與 1165548（xgpe6，程式 `6c4d233`）都因 `CUDA unknown error` 在建立 run 目錄前以 exit 2 結束，沒有訓練。
+- **Environment:** SoC job 1165570，程式 `7c00c35`。先前的 job 1165521（xgpe4）與 1165548（xgpe6，程式 `6c4d233`）都因 `CUDA unknown error` 在建立 run 目錄前以 exit 2 結束，沒有訓練。
 - **Command:** `MODEL=sasrec RUN_NAME=sasrec-beauty-v1 STAGE=train sbatch --export=ALL --exclude='xgpe[0-4,6]' --job-name=kuriyo-sasrec scripts/run.sbatch`
-- **Artifacts:** SoC 的 `Recall/SASRec/baseline/runs/sasrec-beauty-v1/`（尚未產生）；失敗 log `slurm-kuriyo-sasrec-1165548.out`，1165521 用 `git show b7a4078:slurm-kuriyo-sasrec-1165521.out` 取回。
+- **Artifacts:** SoC 的 `Recall/SASRec/baseline/runs/sasrec-beauty-v1/`；log `slurm-kuriyo-sasrec-1165570.out`（repo 根目錄）。失敗 log `slurm-kuriyo-sasrec-1165548.out`，1165521 用 `git show b7a4078:slurm-kuriyo-sasrec-1165521.out` 取回。
+
+#### Settings
+
+- **模型：**hidden 64、2 層、2 heads、dropout 0.5，可學的位置 embedding，歷史上限 20；826,368 參數。
+- **訓練：**full-softmax CE，Adam（betas 0.9、0.98）lr 1e-3、weight decay 0，batch 128 個視窗，最多 200 epochs，seed 42。
+- **評估：**每 5 epochs 做一次 validation，以 NDCG@10 選 `best.pt`，patience 5。
 
 #### Expectation
 
@@ -32,12 +38,21 @@ GPU 與 MPS 的數值不會逐位相同，但 best validation Recall@10 應落�
 
 #### Results
 
-- **Observations:** 兩次提交都落在壞節點，沒有指標。xgpe2／4／6 在 `sinfo` 上顯示 idle，所以新 job 常先分到它們。
-- **Hypotheses:** 無。
+| Run | Recall@5 | Recall@10 | NDCG@5 | NDCG@10 | Notes |
+| --- | --- | --- | --- | --- | --- |
+| 本機 MPS（best epoch 50） | 0.06394 | 0.09382 | 0.03647 | 0.04609 | 早停於 epoch 75 |
+| SoC CUDA（best epoch 85） | 0.06882 | 0.10227 | 0.04010 | 0.05083 | job 1165570，早停於 epoch 110 |
+
+| epoch | 5 | 10 | 20 | 30 | 50 | 85 | 110 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| SoC Recall@10 | 0.03421 | 0.06332 | 0.09230 | 0.09842 | 0.10236 | 0.10227 | 0.10231 |
+
+- **Observations:** 前兩次提交落在壞節點；排除整組 xgpe 後的 job 1165570 跑完並存檔。SoC 的 best Recall@10 比本機高 0.0085、NDCG@10 高 0.0047，超出預期的範圍。SoC 在 epoch 35 之後停在 0.101–0.103，比本機的平台（0.092–0.094）高，訓練也多走了 35 個 epoch 才早停。
+- **Hypotheses:** 差異可能來自 MPS 與 CUDA 的數值與隨機數不同；兩邊各只有一個 seed，無法分辨環境差異和 seed 變異。未驗證。
 
 #### Conclusion
 
-待重送（排除整組 xgpe）。
+SoC run 完成，作為 SASRec 的主要參考（有完整 commit 紀錄，本機 run 沒有）。與本機差 0.0085，原因不明；它不影響「共用資料與評估正常」的結論，因為兩者都遠高於 TIGER。若要釐清，需在同一環境多跑幾個 seed。沒有跑 test。
 
 ### 本機完整 run `sasrec-beauty-v1`
 
@@ -50,9 +65,15 @@ TIGER 換了健康的新 SID 後 validation 仍只有 0.0368。用成熟的 item
 - **Baseline:** TIGER 論文表 3 的 SASRec（Recall@10 0.0605，test，不同前處理）；同切分 TIGER `tiger-paper-v1`（0.0368）。
 - **Change:** —
 - **Data:** 2014 Beauty ASIN 切分；131,413 個 train 前綴還原成 23,607 個視窗。
-- **Environment:** 本機 Apple MPS，約 23 分鐘，seed 42。baseline 預設：hidden 64、2 層、2 heads、dropout 0.5、full-softmax CE、Adam lr 1e-3、batch 128 個視窗；826,368 參數。每 5 epochs 驗證一次，patience 5。
+- **Environment:** 本機 Apple MPS，約 23 分鐘。
 - **Command:** `python -m Recall.SASRec.baseline.train --run-name sasrec-beauty-v1 --device mps`
 - **Artifacts:** 本機 `Recall/SASRec/baseline/runs/sasrec-beauty-v1/`（Git 忽略），`best.pt` 是 epoch 50。`config.json` 記錄的 revision 是 `97cae0f`，但 SASRec 程式當時尚未 commit，內容與之後提交的版本相同。
+
+#### Settings
+
+- **模型：**hidden 64、2 層、2 heads、dropout 0.5，可學的位置 embedding，歷史上限 20；826,368 參數。
+- **訓練：**full-softmax CE，Adam（betas 0.9、0.98）lr 1e-3、weight decay 0，batch 128 個視窗，最多 200 epochs，seed 42。
+- **評估：**每 5 epochs 做一次 validation，以 NDCG@10 選 `best.pt`，patience 5。
 
 #### Expectation
 

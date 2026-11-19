@@ -14,10 +14,10 @@ Kuriyo 研究筆記的總覽。事實與假設分開，每個結果都註明資�
 | 檔案 | 範圍 | 目前重點 |
 |---|---|---|
 | [Representations/SID/INSIGHT.md](Representations/SID/INSIGHT.md) | 與模型無關的商品 SID 產生 | 舊 SID 訓練因 PyTorch Adagrad 第一步發散而塌縮；`stable` 配方在 SoC 20,000 epochs 達 256/256/256，但對 TIGER 只提升 0.0026 Recall@10 |
-| [Recall/INSIGHT.md](Recall/INSIGHT.md) | 召回階段、跨家族比較 | 同切分 SASRec validation Recall@10 0.0938，約 TIGER 的 3 倍：共用資料與評估正常，差距在 TIGER 流程 |
+| [Recall/INSIGHT.md](Recall/INSIGHT.md) | 召回階段、跨家族比較 | 同切分 SASRec 與 FMRec 的 validation Recall@10 都約 0.10，約 TIGER 的 2.8 倍：共用資料與評估正常，差距在 TIGER 流程 |
 | [Recall/TIGER/INSIGHT.md](Recall/TIGER/INSIGHT.md) | TIGER 家族 | 200k Recall@10：舊 SID 0.0342、新 SID 0.0368，H3 不被支持；Adafactor 步長（H5）驗證中 |
-| [Recall/FMRec/INSIGHT.md](Recall/FMRec/INSIGHT.md) | FMRec 家族 | 完整訓練在 SoC 進行中，尚無 validation |
-| [Recall/SASRec/INSIGHT.md](Recall/SASRec/INSIGHT.md) | SASRec 家族 | 資料與評估的檢查基準；本機完整 run validation Recall@10 0.0938 |
+| [Recall/FMRec/INSIGHT.md](Recall/FMRec/INSIGHT.md) | FMRec 家族 | 訓練中，epoch 80 validation Recall@10 0.1019，H2 已支持 |
+| [Recall/SASRec/INSIGHT.md](Recall/SASRec/INSIGHT.md) | SASRec 家族 | 資料與評估的檢查基準；SoC run validation Recall@10 0.1023 |
 | [Ranking/INSIGHT.md](Ranking/INSIGHT.md) | 排序階段 | 尚無候選集、標籤或模型 |
 
 新增一層時，在該目錄建立 `INSIGHT.md` 並加進上表；`pipelines/` 等目前沒有內容的層級，等有發現時再建立。各層的 Experiment-log 由該層 INSIGHT 開頭連結。

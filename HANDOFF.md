@@ -92,6 +92,7 @@ SoC 安裝指令在根 requirements.txt 註解與 run.sbatch，明確使用 torc
    `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-v1 ADAFACTOR_SCALE_PARAMETER=1 STAGE=train sbatch --export=ALL scripts/run.sbatch`。
    第一次提交 job 1165195 落在節點 xgpe2，CUDA 初始化失敗（`CUDA unknown error`），train.py 在建立 run 目錄前以 exit 2 結束，沒有訓練；重送時加 `--exclude=xgpe2`，同一 RUN_NAME 可用。
    2026-11-19 同時提交三個 job（程式 `bb1088c`）：TIGER job 1165519（`tiger-t5x-adafactor-v1`）與 FMRec job 1165520（`fmrec-beauty-v1`）正在訓練；SASRec job 1165521（xgpe4）與重送的 1165548（xgpe6）都因 `CUDA unknown error` 在建立 run 目錄前結束。sacct 確認 TIGER／FMRec 在 xgpf11 正常執行；xgpe2／4／6 在 gpu-long 上顯示 idle，所以新 job 容易先分到它們。SASRec 重送時用 `--exclude='xgpe[0-4,6]'` 排除整組 xgpe（xgpe5 不存在，寫 `xgpe[0-6]` 會被 sbatch 以 Invalid node name 拒絕）。
+   之後排除 xgpe 重送的 SASRec job 1165570 已跑完（best validation Recall@10 0.1023，本機為 0.0938）；FMRec 到 epoch 80 為 0.1019，仍在訓練。TIGER job 1165519 截至 step 11,000，尚無 validation。數字見各變體的 Experiment-log。
    比較 20k／40k validation 與 `tiger-paper-v1`（Recall@10 0.0132／0.0174）。明顯較高就跑滿 200k；否則依 `Recall/TIGER/INSIGHT.md` Problems 2 繼續查。
 2. 新 SID 完整 run `tiger-paper-v1` 已完成（200k Recall@10 0.0368），SID 產生紀錄見 job 1162430 與 `Representations/SID/INSIGHT.md`。已記錄進 INSIGHT 的 Slurm log（job 1162430、1163050、1163052）與失敗 job（1165195、1165521）的 log 已從工作目錄移除，可用 `git show b7a4078:slurm-kuriyo-<job>.out` 取回。
 3. 核對 paper/T5X 與 HF T5 的容量、商品文字、user hash、訓練樣本、optimizer、解碼與評估設定；將事實與猜測分開記錄。

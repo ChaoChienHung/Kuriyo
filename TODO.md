@@ -17,14 +17,10 @@
   - **Context:** `Recall/TIGER/INSIGHT.md` H5；SoC job 1165519（`tiger-t5x-adafactor-v1`）訓練中。
   - **Scope:** 使用者推 log 後，更新 `Recall/TIGER/baseline/Experiment-log.md` 2026-11-19 條目、TIGER INSIGHT 的 H5 狀態、`Recall/INSIGHT.md` 對照表。
   - **Acceptance:** 20k／40k Recall@10 與 `tiger-paper-v1`（0.0132／0.0174）並列，寫出支持或不支持 H5 與下一步（跑滿 200k，或查訓練樣本、token 排列、解碼）。
-- [ ] 記錄 FMRec 完整訓練的 validation
-  - **Context:** `Recall/FMRec/INSIGHT.md` H2；SoC job 1165520（`fmrec-beauty-v1`）訓練中，每 20 epochs 驗證一次。
+- [ ] 記錄 FMRec 完整訓練的最終 validation
+  - **Context:** SoC job 1165520（`fmrec-beauty-v1`）訓練中；epoch 80 已達 Recall@10 0.1019，H2 已支持。
   - **Scope:** `Recall/FMRec/baseline/Experiment-log.md`、FMRec INSIGHT、`Recall/INSIGHT.md` 對照表。
-  - **Acceptance:** best validation Recall@10／NDCG@10 與 SASRec 0.0938、TIGER 0.0368／0.0342、熱門基線 0.0170 並列，更新 H2 狀態。
-- [ ] 在 SoC GPU 重跑 SASRec
-  - **Context:** job 1165521、1165548 落在壞節點 xgpe4／xgpe6，沒有訓練。
-  - **Scope:** 使用者提交 `MODEL=sasrec RUN_NAME=sasrec-beauty-v1 STAGE=train sbatch --export=ALL --exclude='xgpe[0-4,6]' --job-name=kuriyo-sasrec scripts/run.sbatch`；agent 讀 log 並更新 `Recall/SASRec/baseline/Experiment-log.md`。
-  - **Acceptance:** best validation Recall@10 落在本機 run 的 0.092–0.094 附近，或記錄差異的原因。
+  - **Acceptance:** best validation Recall@10／NDCG@10 寫進 Experiment-log 與 `Recall/INSIGHT.md` 對照表。
 - [ ] 若 H5 不成立，繼續找 TIGER 與 SASRec 的差距
   - **Context:** `Recall/TIGER/INSIGHT.md` Problems to solve 2。
   - **Scope:** 小型 overfit 測試、訓練樣本、token 排列、beam search 解碼；每項新 RUN_NAME。

@@ -21,6 +21,14 @@
 - **Command:** `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-v1 ADAFACTOR_SCALE_PARAMETER=1 STAGE=train sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch`
 - **Artifacts:** SoC 的 `Recall/TIGER/baseline/runs/tiger-t5x-adafactor-v1/`；log `slurm-kuriyo-tiger-1165519.out`（repo 根目錄）。
 
+#### Settings
+
+- **模型：**HF T5，encoder／decoder 各 4 層，d_model 128、d_kv 64、d_ff 1024、6 heads、dropout 0.1、ReLU；詞表為 SID token 加 2,000 個 hashed user token。
+- **訓練：**Adafactor，lr 0.01 到 10k steps，之後 0.01·√(10000/step)；batch 256，200,000 steps，歷史上限 20，seed 42。
+- **評估：**每 20k steps 在 validation 做 unconstrained beam search（beam 10，eval batch 16），以 NDCG@10 選最佳。
+- **Adafactor `scale_parameter`：**True（**與 baseline 唯一的差異**）。
+- **參數量：**4,815,488（SID `tiger-paper-v1` 的詞表）。
+
 #### Expectation
 
 若步長是主因，20k、40k 的 validation Recall@10 會明顯高於 baseline 的 0.0132、0.0174，而且收斂所需的 steps 明顯變少。
@@ -60,6 +68,14 @@
 - **Environment:** SoC job 1163050（`STAGE=materialize`）與 job 1163052（`STAGE=train`），程式 `ea3fb5f`，seed 42。
 - **Command:** `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-paper-v1 STAGE=train sbatch --export=ALL scripts/run.sbatch`
 - **Artifacts:** SoC 的 `Recall/TIGER/baseline/runs/tiger-paper-v1/`；log 已從工作目錄移除，用 `git show b7a4078:slurm-kuriyo-tiger-1163052.out` 取回。
+
+#### Settings
+
+- **模型：**HF T5，encoder／decoder 各 4 層，d_model 128、d_kv 64、d_ff 1024、6 heads、dropout 0.1、ReLU；詞表為 SID token 加 2,000 個 hashed user token。
+- **訓練：**Adafactor，lr 0.01 到 10k steps，之後 0.01·√(10000/step)；batch 256，200,000 steps，歷史上限 20，seed 42。
+- **評估：**每 20k steps 在 validation 做 unconstrained beam search（beam 10，eval batch 16），以 NDCG@10 選最佳。
+- **Adafactor `scale_parameter`：**False。
+- **參數量：**4,815,488（新 SID 詞表較小）。
 
 #### Expectation
 
@@ -109,6 +125,14 @@
 - **Environment:** SoC job 1153307，程式 `5f99955`，seed 42，T5 5,587,968 參數。
 - **Command:** `SID_VERSION=tiger-paper-20261117-005232 RUN_NAME=tiger-paper-20261117-005232 STAGE=all sbatch --export=ALL scripts/run.sbatch`（依 log 記錄的設定重建；SID 20,000 epochs → materialize → TIGER 200,000 steps）
 - **Artifacts:** SoC 舊路徑 `Recall/TIGER/runs/tiger-paper-20261117-005232/`（續訓或 test 前需搬到 `baseline/runs/`）；log 用 `git show 2ad21c7^:slurm-kuriyo-tiger-1153307.out` 取回；本機匯入紀錄在 `runs/tiger-paper-20261117-005232/imports/slurm-1153307/`（重建指令見 [HANDOFF](../../../HANDOFF.md)）。
+
+#### Settings
+
+- **模型：**HF T5，encoder／decoder 各 4 層，d_model 128、d_kv 64、d_ff 1024、6 heads、dropout 0.1、ReLU；詞表為 SID token 加 2,000 個 hashed user token。
+- **訓練：**Adafactor，lr 0.01 到 10k steps，之後 0.01·√(10000/step)；batch 256，200,000 steps，歷史上限 20，seed 42。
+- **評估：**每 20k steps 在 validation 做 unconstrained beam search（beam 10，eval batch 16），以 NDCG@10 選最佳。
+- **Adafactor `scale_parameter`：**False（當時入口 `Recall/TIGER/scripts/train_paper_baseline.py`，設定與現行 `train.py` 相同）。
+- **參數量：**5,587,968。
 
 #### Expectation
 
