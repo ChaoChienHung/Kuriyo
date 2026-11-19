@@ -1,0 +1,237 @@
+Looking in indexes: https://pypi.org/simple, https://download.pytorch.org/whl/cu126
+Requirement already satisfied: torch==2.7.1+cu126 in ./.venv/lib/python3.12/site-packages (2.7.1+cu126)
+Requirement already satisfied: numpy<3,>=1.26 in ./.venv/lib/python3.12/site-packages (from -r Representations/SID/../../requirements.txt (line 2)) (2.5.5)
+Requirement already satisfied: sentence-transformers<6,>=3 in ./.venv/lib/python3.12/site-packages (from -r Representations/SID/requirements.txt (line 4)) (5.7.0)
+Requirement already satisfied: transformers<5,>=4.44 in ./.venv/lib/python3.12/site-packages (from -r Representations/SID/requirements.txt (line 5)) (4.57.6)
+Requirement already satisfied: scikit-learn<2,>=1.5 in ./.venv/lib/python3.12/site-packages (from -r Representations/SID/requirements.txt (line 6)) (1.9.1)
+Requirement already satisfied: filelock in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (4.2.10)
+Requirement already satisfied: typing-extensions>=4.10.0 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (4.16.0)
+Requirement already satisfied: setuptools in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (84.2.1)
+Requirement already satisfied: sympy>=1.13.3 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (1.14.0)
+Requirement already satisfied: networkx in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (3.7)
+Requirement already satisfied: jinja2 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (3.1.6)
+Requirement already satisfied: fsspec in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (2026.9.0)
+Requirement already satisfied: nvidia-cuda-nvrtc-cu12==12.6.77 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.77)
+Requirement already satisfied: nvidia-cuda-runtime-cu12==12.6.77 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.77)
+Requirement already satisfied: nvidia-cuda-cupti-cu12==12.6.80 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.80)
+Requirement already satisfied: nvidia-cudnn-cu12==9.5.1.17 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (9.5.1.17)
+Requirement already satisfied: nvidia-cublas-cu12==12.6.4.1 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.4.1)
+Requirement already satisfied: nvidia-cufft-cu12==11.3.0.4 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (11.3.0.4)
+Requirement already satisfied: nvidia-curand-cu12==10.3.7.77 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (10.3.7.77)
+Requirement already satisfied: nvidia-cusolver-cu12==11.7.1.2 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (11.7.1.2)
+Requirement already satisfied: nvidia-cusparse-cu12==12.5.4.2 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.5.4.2)
+Requirement already satisfied: nvidia-cusparselt-cu12==0.6.3 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (0.6.3)
+Requirement already satisfied: nvidia-nccl-cu12==2.26.2 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (2.26.2)
+Requirement already satisfied: nvidia-nvtx-cu12==12.6.77 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.77)
+Requirement already satisfied: nvidia-nvjitlink-cu12==12.6.85 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.85)
+Requirement already satisfied: nvidia-cufile-cu12==1.11.1.6 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (1.11.1.6)
+Requirement already satisfied: triton==3.3.1 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (3.3.1)
+Requirement already satisfied: tokenizers>=0.19 in ./.venv/lib/python3.12/site-packages (from sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (0.22.2)
+Requirement already satisfied: huggingface-hub>=0.23.0 in ./.venv/lib/python3.12/site-packages (from sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (0.36.2)
+Requirement already satisfied: scipy>=1.0.0 in ./.venv/lib/python3.12/site-packages (from sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (1.18.1)
+Requirement already satisfied: tqdm>=4.0.0 in ./.venv/lib/python3.12/site-packages (from sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (4.70.1)
+Requirement already satisfied: packaging>=20.0 in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (26.3)
+Requirement already satisfied: pyyaml>=5.1 in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (6.0.3)
+Requirement already satisfied: regex!=2019.12.17 in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2026.11.15)
+Requirement already satisfied: requests in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2.34.2)
+Requirement already satisfied: safetensors>=0.4.3 in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (0.8.0)
+Requirement already satisfied: joblib>=1.4.0 in ./.venv/lib/python3.12/site-packages (from scikit-learn<2,>=1.5->-r Representations/SID/requirements.txt (line 6)) (1.6.0)
+Requirement already satisfied: narwhals>=2.0.1 in ./.venv/lib/python3.12/site-packages (from scikit-learn<2,>=1.5->-r Representations/SID/requirements.txt (line 6)) (2.28.0)
+Requirement already satisfied: threadpoolctl>=3.5.0 in ./.venv/lib/python3.12/site-packages (from scikit-learn<2,>=1.5->-r Representations/SID/requirements.txt (line 6)) (3.8.0)
+Requirement already satisfied: hf-xet<2.0.0,>=1.1.3 in ./.venv/lib/python3.12/site-packages (from huggingface-hub>=0.23.0->sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (1.8.0)
+Requirement already satisfied: cloudpickle>=3.0 in ./.venv/lib/python3.12/site-packages (from joblib>=1.4.0->scikit-learn<2,>=1.5->-r Representations/SID/requirements.txt (line 6)) (3.1.2)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in ./.venv/lib/python3.12/site-packages (from sympy>=1.13.3->torch==2.7.1+cu126) (1.3.0)
+Requirement already satisfied: MarkupSafe>=2.0 in ./.venv/lib/python3.12/site-packages (from jinja2->torch==2.7.1+cu126) (3.0.4)
+Requirement already satisfied: charset_normalizer<4,>=2 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (3.5.2)
+Requirement already satisfied: idna<4,>=2.5 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (3.20)
+Requirement already satisfied: urllib3<3,>=1.26 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2.8.0)
+Requirement already satisfied: certifi>=2023.5.7 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2026.10.23)
+job=1166907 commit=1d5c37cbe9477429afc208c78a206845e559dd08 model=sasrec category=Beauty seed=44 train_args=[--loss ce] stage=train sid_version=tiger-paper-v1 sid_recipe=stable adafactor_scale_parameter=0 run=sasrec-paperce-beauty-s44
+SASRec parameters=637200 items=12101 train_examples=131413 windows=23607 validation=22363 starting_epoch=0
+epoch 1 step 1 loss=9.87277
+epoch 1 step 100 loss=9.42169
+epoch 2 step 200 loss=9.07232
+epoch 2 step 300 loss=8.78229
+epoch 3 step 400 loss=8.90039
+epoch 3 step 500 loss=8.68626
+epoch 4 step 600 loss=8.67651
+epoch 4 step 700 loss=8.88271
+epoch 5 step 800 loss=8.73756
+epoch 5 step 900 loss=8.73965
+{"recall@5": 0.018244421589232215, "recall@10": 0.030228502437061218, "ndcg@5": 0.010799295268273565, "ndcg@10": 0.014675360088079197, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 5, "step": 925}
+epoch 6 step 1000 loss=8.61100
+epoch 6 step 1100 loss=8.23798
+epoch 7 step 1200 loss=8.36876
+epoch 8 step 1300 loss=7.68190
+epoch 8 step 1400 loss=8.45206
+epoch 9 step 1500 loss=7.99778
+epoch 9 step 1600 loss=8.17872
+epoch 10 step 1700 loss=8.12858
+epoch 10 step 1800 loss=8.40689
+{"recall@5": 0.03474489111478782, "recall@10": 0.05455439788937084, "ndcg@5": 0.020707839870321005, "ndcg@10": 0.027066959133831944, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 10, "step": 1850}
+epoch 11 step 1900 loss=7.81214
+epoch 11 step 2000 loss=7.78940
+epoch 12 step 2100 loss=7.55568
+epoch 12 step 2200 loss=7.57486
+epoch 13 step 2300 loss=7.72016
+epoch 13 step 2400 loss=7.40200
+epoch 14 step 2500 loss=7.54319
+epoch 15 step 2600 loss=7.91129
+epoch 15 step 2700 loss=7.63366
+{"recall@5": 0.048249340428386175, "recall@10": 0.0729329696373474, "ndcg@5": 0.028502561180624185, "ndcg@10": 0.036450564310205415, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 15, "step": 2775}
+epoch 16 step 2800 loss=7.74787
+epoch 16 step 2900 loss=7.57741
+epoch 17 step 3000 loss=7.60120
+epoch 17 step 3100 loss=7.11390
+epoch 18 step 3200 loss=7.62459
+epoch 18 step 3300 loss=7.39878
+epoch 19 step 3400 loss=7.25024
+epoch 19 step 3500 loss=7.25764
+epoch 20 step 3600 loss=7.12501
+epoch 20 step 3700 loss=7.55386
+{"recall@5": 0.05549344900058132, "recall@10": 0.08388856593480302, "ndcg@5": 0.032046985889746776, "ndcg@10": 0.04127271397374201, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 20, "step": 3700}
+epoch 21 step 3800 loss=6.98001
+epoch 22 step 3900 loss=7.23153
+epoch 22 step 4000 loss=7.08276
+epoch 23 step 4100 loss=6.79234
+epoch 23 step 4200 loss=7.32800
+epoch 24 step 4300 loss=7.14145
+epoch 24 step 4400 loss=6.74396
+epoch 25 step 4500 loss=6.93464
+epoch 25 step 4600 loss=6.99701
+{"recall@5": 0.06153020614407727, "recall@10": 0.09171399186155704, "ndcg@5": 0.03548813985812464, "ndcg@10": 0.04523354192993, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 25, "step": 4625}
+epoch 26 step 4700 loss=6.90173
+epoch 26 step 4800 loss=7.09982
+epoch 27 step 4900 loss=7.07466
+epoch 28 step 5000 loss=6.55756
+epoch 28 step 5100 loss=7.27182
+epoch 29 step 5200 loss=6.95266
+epoch 29 step 5300 loss=6.78909
+epoch 30 step 5400 loss=7.00426
+epoch 30 step 5500 loss=7.10076
+{"recall@5": 0.06443679291687161, "recall@10": 0.09667754773509815, "ndcg@5": 0.03705276961358758, "ndcg@10": 0.047402416406918745, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 30, "step": 5550}
+epoch 31 step 5600 loss=6.85626
+epoch 31 step 5700 loss=6.87088
+epoch 32 step 5800 loss=7.23954
+epoch 32 step 5900 loss=6.81837
+epoch 33 step 6000 loss=6.79508
+epoch 33 step 6100 loss=6.73407
+epoch 34 step 6200 loss=6.58438
+epoch 35 step 6300 loss=6.78011
+epoch 35 step 6400 loss=6.91713
+{"recall@5": 0.06658319545678129, "recall@10": 0.09873451683584493, "ndcg@5": 0.038086636519093234, "ndcg@10": 0.04848926044147759, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 35, "step": 6475}
+epoch 36 step 6500 loss=6.72729
+epoch 36 step 6600 loss=6.71987
+epoch 37 step 6700 loss=6.77660
+epoch 37 step 6800 loss=7.04292
+epoch 38 step 6900 loss=6.59072
+epoch 38 step 7000 loss=7.19567
+epoch 39 step 7100 loss=6.56893
+epoch 39 step 7200 loss=6.76226
+epoch 40 step 7300 loss=6.55682
+epoch 40 step 7400 loss=6.83393
+{"recall@5": 0.06734337968966597, "recall@10": 0.09994186826454411, "ndcg@5": 0.038384230178752664, "ndcg@10": 0.048904452139212545, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 40, "step": 7400}
+epoch 41 step 7500 loss=6.91584
+epoch 42 step 7600 loss=6.36394
+epoch 42 step 7700 loss=6.69042
+epoch 43 step 7800 loss=6.64338
+epoch 43 step 7900 loss=6.75883
+epoch 44 step 8000 loss=6.66177
+epoch 44 step 8100 loss=6.66234
+epoch 45 step 8200 loss=6.73483
+epoch 45 step 8300 loss=6.50108
+{"recall@5": 0.06613602826096678, "recall@10": 0.09998658498412556, "ndcg@5": 0.03753894175319827, "ndcg@10": 0.04846511143392379, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 45, "step": 8325}
+epoch 46 step 8400 loss=6.40347
+epoch 46 step 8500 loss=6.83892
+epoch 47 step 8600 loss=6.51969
+epoch 48 step 8700 loss=6.63820
+epoch 48 step 8800 loss=6.85057
+epoch 49 step 8900 loss=6.83076
+epoch 49 step 9000 loss=6.61324
+epoch 50 step 9100 loss=6.79727
+epoch 50 step 9200 loss=6.80436
+{"recall@5": 0.06805884720296919, "recall@10": 0.10056790233868443, "ndcg@5": 0.03865222476146036, "ndcg@10": 0.049123861199156224, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 50, "step": 9250}
+epoch 51 step 9300 loss=6.85315
+epoch 51 step 9400 loss=6.52252
+epoch 52 step 9500 loss=6.61620
+epoch 52 step 9600 loss=6.55215
+epoch 53 step 9700 loss=6.99634
+epoch 53 step 9800 loss=6.51957
+epoch 54 step 9900 loss=6.82379
+epoch 55 step 10000 loss=6.65367
+epoch 55 step 10100 loss=6.34675
+{"recall@5": 0.06685149577427, "recall@10": 0.10003130170370701, "ndcg@5": 0.038576107298397014, "ndcg@10": 0.04927933941159304, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 55, "step": 10175}
+epoch 56 step 10200 loss=6.20847
+epoch 56 step 10300 loss=6.32699
+epoch 57 step 10400 loss=6.80072
+epoch 57 step 10500 loss=6.56320
+epoch 58 step 10600 loss=6.65548
+epoch 58 step 10700 loss=6.65324
+epoch 59 step 10800 loss=6.71393
+epoch 59 step 10900 loss=6.79849
+epoch 60 step 11000 loss=6.69353
+epoch 60 step 11100 loss=6.60028
+{"recall@5": 0.06761168000715467, "recall@10": 0.10003130170370701, "ndcg@5": 0.03824556653227235, "ndcg@10": 0.0486941223301322, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 60, "step": 11100}
+epoch 61 step 11200 loss=6.65408
+epoch 62 step 11300 loss=6.41757
+epoch 62 step 11400 loss=6.73176
+epoch 63 step 11500 loss=6.58922
+epoch 63 step 11600 loss=6.64476
+epoch 64 step 11700 loss=6.62350
+epoch 64 step 11800 loss=7.01939
+epoch 65 step 11900 loss=6.77667
+epoch 65 step 12000 loss=6.79566
+{"recall@5": 0.06828243080087645, "recall@10": 0.10199883736529088, "ndcg@5": 0.03942315945023322, "ndcg@10": 0.050306897224209675, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 65, "step": 12025}
+epoch 66 step 12100 loss=6.53921
+epoch 66 step 12200 loss=6.77024
+epoch 67 step 12300 loss=6.63542
+epoch 68 step 12400 loss=6.25330
+epoch 68 step 12500 loss=6.44447
+epoch 69 step 12600 loss=6.50321
+epoch 69 step 12700 loss=6.67718
+epoch 70 step 12800 loss=6.38294
+epoch 70 step 12900 loss=6.47160
+{"recall@5": 0.06787998032464339, "recall@10": 0.10213298752403524, "ndcg@5": 0.03898782141313035, "ndcg@10": 0.049999632407923496, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 70, "step": 12950}
+epoch 71 step 13000 loss=6.62949
+epoch 71 step 13100 loss=6.80484
+epoch 72 step 13200 loss=6.60555
+epoch 72 step 13300 loss=6.58237
+epoch 73 step 13400 loss=6.69072
+epoch 73 step 13500 loss=6.64696
+epoch 74 step 13600 loss=6.52171
+epoch 75 step 13700 loss=6.41971
+epoch 75 step 13800 loss=6.84273
+{"recall@5": 0.06819299736171354, "recall@10": 0.10132808657156911, "ndcg@5": 0.038991679887327955, "ndcg@10": 0.049690016902285646, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 75, "step": 13875}
+epoch 76 step 13900 loss=6.62340
+epoch 76 step 14000 loss=6.77838
+epoch 77 step 14100 loss=6.40448
+epoch 77 step 14200 loss=6.55236
+epoch 78 step 14300 loss=6.39352
+epoch 78 step 14400 loss=6.55896
+epoch 79 step 14500 loss=6.48264
+epoch 79 step 14600 loss=6.88739
+epoch 80 step 14700 loss=6.79986
+epoch 80 step 14800 loss=6.44633
+{"recall@5": 0.06779054688548049, "recall@10": 0.10235657112194249, "ndcg@5": 0.039021079380629244, "ndcg@10": 0.05018093521180044, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 80, "step": 14800}
+epoch 81 step 14900 loss=6.47840
+epoch 82 step 15000 loss=6.51655
+epoch 82 step 15100 loss=6.74636
+epoch 83 step 15200 loss=6.45528
+epoch 83 step 15300 loss=6.66646
+epoch 84 step 15400 loss=6.60619
+epoch 84 step 15500 loss=6.53748
+epoch 85 step 15600 loss=6.66255
+epoch 85 step 15700 loss=7.14889
+{"recall@5": 0.06653847873719984, "recall@10": 0.10181997048696508, "ndcg@5": 0.038763705014814236, "ndcg@10": 0.050144815304330584, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 85, "step": 15725}
+epoch 86 step 15800 loss=6.36876
+epoch 86 step 15900 loss=6.72728
+epoch 87 step 16000 loss=6.75341
+epoch 88 step 16100 loss=6.52360
+epoch 88 step 16200 loss=6.88312
+epoch 89 step 16300 loss=6.36626
+epoch 89 step 16400 loss=6.36123
+epoch 90 step 16500 loss=6.33602
+epoch 90 step 16600 loss=6.88909
+{"recall@5": 0.06761168000715467, "recall@10": 0.10168582032822072, "ndcg@5": 0.038408088991553284, "ndcg@10": 0.049435642114736736, "examples": 22363, "ranking": "full catalog, inner product with item embeddings; history items not filtered", "split": "validation", "set": "amazon2014-beauty", "epoch": 90, "step": 16650}
+early stop at epoch 90
+Saved /home/c/chaoch/Kuriyo/Recall/SASRec/baseline/runs/sasrec-paperce-beauty-s44

@@ -1,0 +1,107 @@
+{
+  "run": {
+    "name": "sasrec-paperce-beauty-s44",
+    "family": "SASRec",
+    "variant": "baseline",
+    "implementation": "Kuriyo PyTorch SASRec (Kang & McAuley 2018)",
+    "git_revision": "1d5c37cbe9477429afc208c78a206845e559dd08",
+    "created_utc": "2026-11-19T08:47:59.369479+00:00",
+    "slurm_job_id": "1166907",
+    "device": "cuda",
+    "seed": 44
+  },
+  "data": {
+    "year": "2014",
+    "category": "Beauty",
+    "catalog": {
+      "path": "data/amazon_reviews/2014/catalog/Beauty/items.jsonl",
+      "sha256": "76bb880d75502e9214b3c87f58bfb75887d75d20ef2ff02e9f1e206b5909b488",
+      "items": 12101
+    },
+    "splits": {
+      "train": {
+        "path": "data/amazon_reviews/2014/train/raw/Beauty/examples.jsonl",
+        "sha256": "a2843f072219a20d963be4c6baa01e381f7d45ddd6416ec4e4847e62ba288e4b"
+      },
+      "validation": {
+        "path": "data/amazon_reviews/2014/validation/raw/Beauty/examples.jsonl",
+        "sha256": "7b20368c368d4eb4c550353888408b107b77e8e0e488e7c18b12ff65780bd1ff"
+      },
+      "test": {
+        "path": "data/amazon_reviews/2014/test/raw/Beauty/examples.jsonl",
+        "sha256": "88e1d63794d8f6b8f184439e4ced56496e11c9aa5a748702d8153fb873fee4b7"
+      }
+    },
+    "preprocessing": {
+      "producer": "scripts.prepare_amazon_reviews_2014",
+      "manifest": {
+        "path": "data/amazon_reviews/2014/train/raw/Beauty/split_manifest.json",
+        "sha256": "72f5f1ed3fb041916de60c904746685a3bf8f936d02e1b0b7555cc9b497366a4"
+      },
+      "dataset": "Amazon Reviews 2014 5-core",
+      "source": {
+        "reviews": {
+          "path": "data/amazon_reviews/2014/raw/Beauty/reviews_Beauty_5.json.gz",
+          "sha256": "e5925ec99023f1dc9c7d3dff7ef34cfeacd40d1b981b5525e1e4ba9c8abc18fe"
+        },
+        "metadata": {
+          "path": "data/amazon_reviews/2014/raw/Beauty/meta_Beauty.json.gz",
+          "sha256": "c7977dc0e0ead14ac7df8c1c6de74da00e4bebfad87a0f0c5763d4c5bc9b53a0"
+        }
+      },
+      "rules": {
+        "minimum_user_interactions": 5,
+        "ordering": "unixReviewTime ascending; source row order breaks ties",
+        "train": "all except each user's last two events; one next-item example per prefix of length >=1",
+        "validation": "penultimate event, with preceding events as history",
+        "test": "last event, with preceding events including the validation event as history",
+        "max_history": 20,
+        "duplicate_user_item_events": "preserved"
+      },
+      "counts": {
+        "source_reviews": 198502,
+        "source_users": 22363,
+        "eligible_users": 22363,
+        "catalog_items": 12101,
+        "train_examples": 131413,
+        "validation_examples": 22363,
+        "test_examples": 22363
+      }
+    },
+    "max_history": 20,
+    "max_train_examples": null,
+    "max_validation_examples": null,
+    "training_examples": "per-user train sequences rebuilt from prefix examples, split into windows of max_history + 1; loss at every real position"
+  },
+  "model": {
+    "config": {
+      "max_history": 20,
+      "hidden": 50,
+      "heads": 1,
+      "layers": 2,
+      "dropout": 0.5
+    },
+    "parameters": 637200
+  },
+  "training": {
+    "loss": "ce",
+    "negatives": null,
+    "optimizer": "Adam(betas=(0.9, 0.98))",
+    "lr": 0.001,
+    "weight_decay": 0.0,
+    "epochs": 200,
+    "batch_size": 128
+  },
+  "evaluation": {
+    "set": "amazon2014-beauty",
+    "every_epochs": 5,
+    "batch_size": 512,
+    "patience": 5,
+    "selection": "best validation NDCG@10",
+    "ks": [
+      5,
+      10
+    ],
+    "ranking": "full catalog, inner product with item embeddings; history items not filtered"
+  }
+}

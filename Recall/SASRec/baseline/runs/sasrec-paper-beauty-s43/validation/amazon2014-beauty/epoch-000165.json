@@ -1,0 +1,12 @@
+{
+  "recall@5": 0.03447659079729911,
+  "recall@10": 0.0609488887895184,
+  "ndcg@5": 0.017421750573589724,
+  "ndcg@10": 0.025931262661667332,
+  "examples": 22363,
+  "ranking": "full catalog, inner product with item embeddings; history items not filtered",
+  "split": "validation",
+  "set": "amazon2014-beauty",
+  "epoch": 165,
+  "step": 30525
+}
