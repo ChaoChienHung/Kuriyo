@@ -120,7 +120,7 @@ Recall/TIGER/
 └── <variant-name>/                 # 之後的變體，例如 constrained-decoding/，同樣自成完整空間
 ```
 
-變體之間不互相 import，修改 baseline 不會悄悄改變其他變體的結果；只可 import `Recall/core/`、`core/`、`Representations/` 等跨模型共用元件。只有超參數不同時，優先在既有變體加具名設定；確實有不同實作時，才新增變體目錄，通常以複製 `baseline/` 為起點。名稱表達差異，例如 `baseline`、`constrained-decoding`，避免無法辨識內容的 `variant1`、`v2`。`baseline/` 代表比較起點，不代表已重現論文。
+變體之間不互相 import，修改 baseline 不會悄悄改變其他變體的結果；只可 import `Recall/core/`、`core/`、`Representations/` 等跨模型共用元件。只有設定不同時，用同一個變體加參數跑不同的 run（設定記在 `settings.json`）。**變體一旦有 run 記進 Experiment-log，結果就凍結：**同樣的設定在之後任何 commit 都要得到同樣的 loss 與指標，所以看變體名稱就知道它的行為。不影響結果的修改（logging、run 版面、命令列、錯誤訊息、測試）和預設維持舊行為的新選用參數可以直接改，改前改後各用固定 seed 跑一次確認逐位相同；改預設值、換演算法、或修正會改變結果的 bug，就複製成新的變體目錄，名稱表達差異（例如 `unseen-negatives`、`constrained-decoding`，避免 `variant1`、`v2`），舊變體保留，舊 run 才能照名稱重現。還沒有任何記錄 run 的變體可以自由修改。`baseline/` 的預設值是該家族論文的設定，不代表已重現論文。
 
 測試按責任分層：
 

@@ -23,7 +23,7 @@ Recall/TIGER/
 
 ## 新增變體
 
-1. 只有超參數不同時，在既有變體加具名設定，不開新目錄。
-2. 需要不同實作時，複製 `baseline/` 成與它同層的新目錄，名稱描述差異（例如 `constrained-decoding/`），不用 `variant1/`、`v2/`。
+1. 只有設定不同時，用既有變體加參數跑新的 run，不開新目錄。
+2. 變體有 run 記進 Experiment-log 後結果凍結（規則見根目錄 `AGENTS.md`）。要改預設值、換演算法或修正會改變結果的 bug 時，複製該變體成同層的新目錄，名稱描述差異（例如 `constrained-decoding/`），不用 `variant1/`、`v2/`；舊變體保留。
 3. 變體之間不互相 import；只可 import 跨模型共用的 `Recall/core/`、`core/` 等。這樣修改 baseline 不會悄悄改變其他變體的結果。
 4. 在新變體的 README 寫明與 baseline 的差異，並更新上表；runs 寫到自己的 `runs/`，測試放自己的 `tests/`（含 `__init__.py`），實驗記在家族的 `Experiment-log.md`，Details 寫 `Variant: <name>`。

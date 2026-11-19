@@ -22,4 +22,4 @@ Recall/SASRec/
 | --- | --- | --- |
 | [`baseline/`](baseline/README.md) | 可執行；論文設定尚未完整訓練；CE 設定 SoC validation Recall@10 0.1023 | 預設為原論文設定（BCE、負例排除看過的商品、hidden 50／1 head）；`--loss ce --hidden 64 --heads 2` 是先前的 CE 設定；使用 Kuriyo 20 件歷史上限 |
 
-新增變體的規則與 TIGER 家族相同：只有超參數不同時用具名設定或命令列參數；確實需要不同實作才複製 `baseline/` 成同層目錄，名稱描述差異，並更新上表。
+新增變體的規則與 TIGER 家族相同：只有設定不同時用同一個變體加參數跑新的 run；變體有 run 記進 Experiment-log 後結果凍結，要改預設值、換演算法或修正會改變結果的 bug 時，複製成同層的新目錄，名稱描述差異，舊變體保留，並更新上表（規則見根目錄 `AGENTS.md`）。

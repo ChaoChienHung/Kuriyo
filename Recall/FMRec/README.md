@@ -22,4 +22,4 @@ Recall/FMRec/
 | --- | --- | --- |
 | [`baseline/`](baseline/README.md) | 可執行；測試與 CPU smoke 通過，尚無完整訓練或 validation 結果 | 依作者程式 `1c39b17` 的 PyTorch 實作，使用 Kuriyo 20 件歷史上限；與作者程式的差異列在其 README |
 
-新增變體的規則與 TIGER 家族相同：只有超參數不同時用具名設定或命令列參數；確實需要不同實作才複製 `baseline/` 成同層目錄，名稱描述差異，並更新上表。
+新增變體的規則與 TIGER 家族相同：只有設定不同時用同一個變體加參數跑新的 run；變體有 run 記進 Experiment-log 後結果凍結，要改預設值、換演算法或修正會改變結果的 bug 時，複製成同層的新目錄，名稱描述差異，舊變體保留，並更新上表（規則見根目錄 `AGENTS.md`）。

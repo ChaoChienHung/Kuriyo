@@ -28,13 +28,14 @@ Kuriyo 以「模型家族」組織同一類模型的不同實作，**每個變�
 ## 結構
 
 - **家族根層**只放 `README.md`（家族說明與變體表）、`INSIGHT.md`（適用於所有變體的研究筆記）、`Experiment-log.md`（所有變體的實驗日誌，每個條目標明 Variant）和套件用的初始化檔，不放程式、測試、依賴或 runs。研究筆記放在家族層，因為像「SID 品質影響效果」這類發現對每個變體都成立；實驗日誌也放在家族層，才能在同一份檔案比較不同變體的 run。
-- **每個變體**是家族下的直接子目錄，擁有自己的 `README.md`、`requirements.txt`、模型與訓練程式、`tests/` 與 Git 忽略的 `runs/<RUN_NAME>/`（版面見 [[run-directory]]）。run 目錄、checkpoint 與評估流程等多個家族共用的結構放在 `core/` 與 `Recall/core/`，變體只寫模型與訓練迴圈。baseline 的內容：
+- **每個變體**是家族下的直接子目錄，擁有自己的 `README.md`、`requirements.txt`、模型與訓練程式、`tests/` 與 `runs/<RUN_NAME>/`（版面見 [[run-directory]]）。run 目錄、checkpoint 與評估流程等多個家族共用的結構放在 `core/` 與 `Recall/core/`，變體只寫模型與訓練迴圈。baseline 的內容：
   - 正式入口 `python -m Recall.TIGER.baseline.train`，預設輸出目錄在 `Recall/TIGER/baseline/train.py:112`。
   - `SIDTokenizer`（`Recall/TIGER/baseline/sequence.py:10`）與 constrained beam search（`Recall/TIGER/baseline/sequence.py:67`）。
   - smoke trainer `Recall/TIGER/baseline/train_sequence.py`，其 runs 也寫到 baseline 自己的目錄（`Recall/TIGER/baseline/train_sequence.py:24`）。根目錄的相容 wrapper `scripts/train_tiger_sequence.py` 轉交給它。
   - 依賴 `Recall/TIGER/baseline/requirements.txt`，以 `-r ../../../requirements.txt` 引入根目錄共用依賴；`scripts/run.sbatch` 安裝的就是這份。
 - **變體之間不互相 import**，只可 import `Recall/core/`、`core/`、`Representations/` 等跨模型共用元件。這樣修改 baseline 不會悄悄改變其他變體的結果；代價是新變體通常要從複製 `baseline/` 開始。
-- `.gitignore` 以 `Recall/**/runs/` 涵蓋所有變體的 runs。
+- `.gitignore` 對 `Recall/**/runs/*/` 用白名單：只追蹤 `settings.json`、`events.log`、`validation/`、`test/`，checkpoint、`train/` 與快取都忽略。
+- **變體有 run 記進 Experiment-log 後結果凍結**（`AGENTS.md`）：同樣設定之後要得到同樣結果；改預設值、換演算法或修正改變結果的 bug 要開新變體。凍結前的例外列在 SASRec 與 TIGER baseline 的 README。
 
 `scripts/run.sbatch` 以 `MODEL`（tiger／sasrec／fmrec，預設 tiger）選擇家族，每個家族目前都跑 `baseline/` 變體的 `train.py`，runs 寫在 `Recall/<Family>/baseline/runs/<RUN_NAME>/`（`scripts/run.sbatch:98` 起）。SASRec 與 FMRec 不用 SID，只接受 `STAGE=prepare|train|test|all`；`CATEGORY`（預設 `Beauty`）選資料集，`RUN_NAME` 預設為 `sasrec-paper-<分類小寫>-v1`、`fmrec-<分類小寫>-v1`（既有的 `sasrec-beauty-v1` 是舊預設的 CE 設定），TIGER 在 Beauty 以外是 `tiger-paper-<分類小寫>-v1`。`SEED` 與 `TRAIN_ARGS` 會同時傳給 train 與 test。
 

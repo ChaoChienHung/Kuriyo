@@ -15,6 +15,10 @@
 - **評估**：取最後一個位置的輸出與所有 item embedding 做內積，全 catalog 排名，不過濾歷史商品（與 TIGER、FMRec 一致），用共用的 `Recall/core/metrics.py` 算 Recall@5/10、NDCG@5/10。
 - **最佳化**：Adam（betas 0.9、0.98）lr 1e-3、weight decay 0、batch 128 個視窗、最多 200 epochs、每 5 epochs 做一次 validation、以 NDCG@10 選 `best.pt`、patience 5。
 
+## 結果凍結前的例外
+
+結果凍結規則（根目錄 `AGENTS.md`）定案前，本變體在 2026-11-19 改過一次會影響結果的行為（`fa1b700`）：預設值從 full-softmax CE、hidden 64、2 heads 改成論文設定，BCE 負例從「只避開目標」改成「排除使用者 train 序列中的商品」。CE 路徑以固定 seed 驗證過逐位相同，所以 `fa1b700` 之前的 CE run 帶 `--loss ce --hidden 64 --heads 2` 即可重現；舊 BCE 抽樣沒有記錄過的 run，未保留。之後要再改結果，須另開變體。
+
 ## 與原論文的差異
 
 | 項目 | 原論文 | 本實作 | 原因 |

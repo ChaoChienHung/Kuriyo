@@ -151,6 +151,8 @@ Recall/TIGER/baseline/
 | [`train.py`](train.py) | 依論文已公開設定建立的 HF T5；`run.sbatch` 使用此入口 | Unconstrained beam search；無效 SID 和重複商品保留排名位置並計為未命中 |
 | [`train_sequence.py`](train_sequence.py) | 小型 PyTorch Transformer，供流程試跑 | 限定有效商品 SID 的 constrained beam search |
 
+> **結果凍結前的例外：**結果凍結規則（根目錄 `AGENTS.md`）定案前，`a71575e`（2026-11-19）把 Adafactor 預設從 `scale_parameter=False` 改成 T5X 式（`--adafactor-scale-parameter`）。舊行為仍以 `--no-adafactor-scale-parameter`／`ADAFACTOR_SCALE_PARAMETER=0` 重現，續訓舊 run 時必須帶上。之後要再改結果，須另開變體。
+
 正式入口的目前預設值如下，實際定義在 `train.py`；[`config.py`](config.py) 是小型模型的初始參考設定，不控制正式入口。
 
 | 設定 | 目前實作 |
