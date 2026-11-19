@@ -13,10 +13,10 @@
 
 依優先順序。
 
-- [ ] 記錄 T5X 式 Adafactor TIGER 跑滿 200k 的結果
-  - **Context:** `Recall/TIGER/INSIGHT.md` H5 已強烈支持（20k Recall@10 0.0800 對 0.0132）；SoC job 1165519 繼續訓練。
-  - **Scope:** 使用者推 log 後，更新 TIGER baseline Experiment-log、TIGER INSIGHT、`Recall/INSIGHT.md` 對照表。
-  - **Acceptance:** 每 20k 的 validation 曲線與最佳 step 記錄完成，並與 SASRec 0.1023、FMRec 0.1031 比較。
+- [ ] 找出 T5X 式 Adafactor TIGER 的最佳 step 與 20k 後下降的原因（H8）
+  - **Context:** `Recall/TIGER/INSIGHT.md` H8：job 1165519 的 validation 在 20k 最好（0.0800），到 100k 降到 0.0546，無效 beam 增加。
+  - **Scope:** 使用者從 job 1165519 的 Slurm log 取 train loss（`grep "^step" slurm-kuriyo-tiger-1165519.out | awk 'NR%50==0'`）；新 run `RUN_NAME=tiger-t5x-adafactor-eval2k-v1 TRAIN_ARGS="--eval-every 2000 --steps 40000"`（同 seed、同 SID）。是否提前結束 job 1165519 由使用者決定。
+  - **Acceptance:** 2k 間隔的 validation 曲線與 train loss 記在 TIGER Experiment-log，H8 判斷為過擬合或步長問題，並寫下一個實驗。
 - [ ] 逐使用者評估輸出與比較工具
   - **Context:** README「實驗設計與統計檢定」的主要檢定是使用者層級的配對檢定；目前 validation／test 只存整體平均，無法配對。
   - **Scope:** `Recall/core/evaluation.py` 另存每位使用者的目標排名（`validation/<set>/` 與 `test/<set>/` 旁的小檔，不改既有指標 JSON）；`core/` 或 `scripts/` 加比較指令：讀多個 run（多 seed），輸出平均 ± 標準差、95% CI、paired bootstrap／paired t、Welch t 與 Holm 校正後的 p 值。TIGER 的 beam 結果同樣輸出排名或 miss。
@@ -25,10 +25,6 @@
   - **Context:** README 規定定案結果要 5 個 seed；既有 `sasrec-beauty-v1`（CE 設定）、`fmrec-beauty-v1` 即 seed 42。
   - **Scope:** agent 準備指令，使用者提交；SASRec CE 設定 `SEED=43 RUN_NAME=sasrec-ce-beauty-s43 TRAIN_ARGS="--loss ce --hidden 64 --heads 2"`，FMRec `SEED=43 RUN_NAME=fmrec-beauty-s43`；每個 job 一張 GPU，先查配額。
   - **Acceptance:** 五個 seed 的 validation 平均 ± 標準差記在各家族 Experiment-log 與 `Recall/INSIGHT.md` 對照表。
-- [ ] SASRec 論文設定（新預設）與只換 CE 的對照，各 3 個 seed
-  - **Context:** 2026-11-19 起 baseline 預設是論文設定（BCE、負例排除看過的商品、hidden 50／1 head）。`Recall/SASRec/INSIGHT.md` H1：隨機負例太容易，預期明顯低於 CE、接近論文 0.06。單一因素對照是論文設定 vs 只加 `--loss ce`。
-  - **Scope:** 論文設定 `MODEL=sasrec STAGE=train`（預設 `sasrec-paper-beauty-v1`）與 `SEED=43／44 RUN_NAME=sasrec-paper-beauty-s43／-s44`；對照 `TRAIN_ARGS="--loss ce" RUN_NAME=sasrec-paperce-beauty-v1／-s43／-s44`。先寫 Expectation。
-  - **Acceptance:** SASRec Experiment-log 有完整條目，H1 狀態更新；依 README 的檢定判斷差距。
 - [ ] Sports_and_Outdoors、Toys_and_Games 資料與三個模型
   - **Context:** TIGER 論文在三個 2014 分類上報告；只看 Beauty 的結論可能不穩。`run.sbatch` 已支援 `CATEGORY`。
   - **Scope:** 使用者在 SoC 先跑 `CATEGORY=<分類> STAGE=prepare`（一次一個分類），README 補上兩個分類的筆數；之後 SASRec、FMRec、TIGER（各自的 SID 版本）用預設 run 名稱訓練，多 seed 依 README。
@@ -38,7 +34,7 @@
   - **Scope:** 在 `Recall/core/` 加依 train 出現次數（0、1–4、5 以上）分組的指標，各模型 validation 一併輸出；不改既有整體指標。
   - **Acceptance:** 有 checkpoint 的 run 可重新評估出分組 Recall@10／NDCG@10，三個家族的結果並列在 `Recall/INSIGHT.md`。
 - [ ] 若 TIGER 跑滿後仍明顯落後 item-ID 模型，找剩下的差距
-  - **Context:** 20k 時與 SASRec／FMRec 仍差約 0.02。
+  - **Context:** 20k 時與 SASRec CE／FMRec 仍差約 0.02；但已高於 SASRec 論文設定（0.060）。
   - **Scope:** 容量（H4）、訓練樣本、token 排列、解碼；每項新 RUN_NAME。
   - **Acceptance:** 找到能縮小差距的單一因素，或逐項排除並記錄在 Experiment-log。
 - [ ] 核對論文 T5X 與 HF T5 的設定

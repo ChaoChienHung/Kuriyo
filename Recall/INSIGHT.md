@@ -24,7 +24,9 @@
   | 熱門商品 | train 段落計數前 10 | 0.00984 | 0.01704 | 0.00581 | 0.00811 | 本機，2026-11-18 |
   | TIGER baseline | 舊 SID（6/26/25）、200k steps | 0.02057 | 0.03421 | 0.01241 | 0.01679 | SoC job 1153307；[log](TIGER/Experiment-log.md) 2026-11-17 |
   | TIGER baseline | 新 SID `tiger-paper-v1`（stable，256/256/256）、200k steps | 0.02182 | 0.03680 | 0.01349 | 0.01835 | SoC job 1163052；[log](TIGER/Experiment-log.md) 2026-11-18 |
-  | TIGER baseline | 新 SID、T5X 式 Adafactor（`scale_parameter=True`），**只到 20k**（訓練中） | 0.05290 | 0.07999 | 0.03467 | 0.04344 | SoC job 1165519；[log](TIGER/Experiment-log.md) 2026-11-19 |
+  | TIGER baseline | 新 SID、T5X 式 Adafactor（`scale_parameter=True`），20k 最佳（之後下降，100k 0.0546；TIGER INSIGHT H8） | 0.05290 | 0.07999 | 0.03467 | 0.04344 | SoC job 1165519；[log](TIGER/Experiment-log.md) 2026-11-19 |
+  | SASRec baseline | 論文設定（BCE、hidden 50、1 head），3 seeds 平均 ± sd | 0.03404 ± 0.00135 | 0.06016 ± 0.00145 | 0.01751 ± 0.00061 | 0.02591 ± 0.00064 | SoC jobs 1166902–04；[log](SASRec/Experiment-log.md) 2026-11-19 |
+  | SASRec baseline | 論文設定只換 CE，3 seeds 平均 ± sd | 0.06885 ± 0.00049 | 0.10237 ± 0.00061 | 0.03992 ± 0.00043 | 0.05072 ± 0.00042 | SoC jobs 1166905–07；[log](SASRec/Experiment-log.md) 2026-11-19 |
   | SASRec baseline | CE、hidden 64、2 層，SoC best epoch 85 | 0.06882 | 0.10227 | 0.04010 | 0.05083 | SoC job 1165570；本機同設定 0.09382；[log](SASRec/Experiment-log.md) 2026-11-19 |
   | FMRec baseline | 作者預設，best epoch 160 | 0.07280 | 0.10307 | 0.05058 | 0.06035 | SoC job 1165520；[log](FMRec/Experiment-log.md) 2026-11-19 |
 

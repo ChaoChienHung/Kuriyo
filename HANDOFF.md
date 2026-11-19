@@ -62,6 +62,10 @@ SoC 上的既有 run（`tiger-t5x-adafactor-v1`、`tiger-paper-v1`、`sasrec-bea
 
 **Run 紀錄進 Git（2026-11-19）：**`.gitignore` 改成只追蹤 run 目錄的 `settings.json`、`events.log`、`validation/`、`test/`。在 SoC 上 `git add Recall/*/baseline/runs` 前先看 `git status`，只提交有 Experiment-log 條目的 run。
 
+## 2026-11-19 晚：SASRec H1 成立、TIGER 20k 後下降
+
+SASRec 論文設定（BCE）3 個 seed 的 validation Recall@10 0.0602 ± 0.0015，只換 CE 0.1024 ± 0.0006（jobs 1166902–07，程式 `1d5c37c`）；H1 成立。TIGER job 1165519 的 validation 在 20k 最好（0.0800），40k–100k 一路降到 0.0546，無效 beam 升到 1.8%（TIGER INSIGHT H8）；仍在跑。下一步：從其 Slurm log 取 train loss，並以 `--eval-every 2000 --steps 40000` 跑細曲線（TODO 第一項）。
+
 ## Logging 與匯入狀態
 
 新版 `core/run_logging.py` 已接入 paper trainer 和 SID generator：TIGER 每 step 寫 run 的 `train/train.jsonl`、SID 每 epoch 寫 `train.jsonl`，生命週期等事件寫 `events.log`（JSON Lines），含 UTC timestamp、session ID、elapsed_seconds。續訓追加，不抹掉歷史；重跑相同 step 用 session ID 區分。SIGKILL、斷電或 logger 啟動前的錯誤未必留下失敗事件。舊 smoke trainer 尚未接入。

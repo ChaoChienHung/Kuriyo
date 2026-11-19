@@ -53,12 +53,24 @@
 | Baseline | 3.362 | 3.127 | 0.0174 |
 | T5X Adafactor | 2.36 | 2.144 | 待定（log 截至 step 30,500） |
 
-- **Observations:** 只改 Adafactor 的縮放，20k 的 validation Recall@10 從 0.0132 變成 0.0800（約 6 倍），NDCG@10 約 6 倍；已是 baseline 跑滿 200k（0.0368）的 2.2 倍，接近同切分 SASRec（0.1023）與 FMRec（0.1031）。invalid beam 仍需在 40k 一併確認。
-- **Hypotheses:** 剩下與 item-ID 模型的差距（約 0.02）可能隨訓練縮小，或來自容量（H4）；未驗證。
+**20k 之後（2026-11-19 補記，來自使用者推上的 `events.log`，job 1165519 仍在跑）：**
+
+| step | Recall@5 | Recall@10 | NDCG@5 | NDCG@10 | invalid beam |
+| --- | --- | --- | --- | --- | --- |
+| **20k（best）** | **0.05290** | **0.08000** | **0.03467** | **0.04344** | 0.0006 |
+| 40k | 0.04812 | 0.07132 | 0.03163 | 0.03910 | 0.0022 |
+| 60k | 0.04114 | 0.06104 | 0.02706 | 0.03349 | 0.0066 |
+| 80k | 0.03864 | 0.05710 | 0.02534 | 0.03125 | 0.0125 |
+| 100k | 0.03680 | 0.05464 | 0.02433 | 0.03006 | 0.0179 |
+
+- **Observations:** 只改 Adafactor 的縮放，20k 的 validation Recall@10 從 0.0132 變成 0.0800（約 6 倍），NDCG@10 約 6 倍；已是 baseline 跑滿 200k（0.0368）的 2.2 倍，接近同切分 SASRec（0.1023）與 FMRec（0.1031）。**20k 之後每次 validation 都下降**，到 100k 剩 0.0546（−32%）；無效 SID 的 beam 比例從 0.06% 升到 1.8%，下降的速度在 60k 後變慢。`best.pt` 仍是 20k。train loss 在 Git 外（`train.jsonl` 不追蹤，Slurm log 未推），還不知道它是否繼續下降。
+- **Hypotheses:** 剩下與 item-ID 模型的差距（約 0.02）可能隨訓練縮小，或來自容量（H4）；未驗證。20k 之後的下降可能是過擬合（train loss 繼續降、validation 降），或 T5X 式步長在 lr 0.01 下仍太大、模型在變差（train loss 也停滯或上升）；最佳點可能在 20k 之前。見 [INSIGHT](INSIGHT.md) H8。
 
 #### Conclusion
 
 強烈支持 H5：Adafactor 步長就是 TIGER 落後的主因。讓 job 繼續跑滿 200k，記錄 40k 之後的曲線與最佳 step；之後的 TIGER 實驗以 `ADAFACTOR_SCALE_PARAMETER=1` 為新 baseline。
+
+**補記（100k）：**20k 之後持續下降，「跑滿 200k」不再必要。下一步是 20k 前後的細曲線（H8），而不是更多 steps。
 
 ## 2026-11-18
 

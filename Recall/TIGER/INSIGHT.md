@@ -25,7 +25,7 @@ TIGER 家族的研究筆記，適用於家族下所有變體。事實與假設�
   | --- | --- | --- | --- | --- |
   | `tiger-paper-20261117-005232` | 舊（6/26/25） | 0.0342 | 0.0168 | job 1153307；[log](Experiment-log.md) 2026-11-17 |
   | `tiger-paper-v1` | `stable`（256/256/256） | 0.0368 | 0.0184 | job 1163052；[log](Experiment-log.md) 2026-11-18 |
-  | `tiger-t5x-adafactor-v1` | `stable`，T5X 式 Adafactor | 0.0800（**20k**，訓練中） | 0.0434 | job 1165519；[log](Experiment-log.md) 2026-11-19 |
+  | `tiger-t5x-adafactor-v1` | `stable`，T5X 式 Adafactor | 0.0800（**20k** 最佳；之後下降，100k 0.0546） | 0.0434 | job 1165519；[log](Experiment-log.md) 2026-11-19 |
 
   兩者 invalid_beam_fraction 都是 0，都沒有跑 test。逐 step 曲線只記在 Experiment-log。
 - **Adafactor 設定與論文框架不同**：`Recall/TIGER/baseline/train.py` 以 Hugging Face `Adafactor(lr=0.01, scale_parameter=False, relative_step=False)` 訓練。HF 在 `scale_parameter=False` 時每步更新量約為 lr 的絕對值（更新先以 RMS 正規化、clip 到 1）。T5X `t5x/adafactor.py` 的 `multiply_by_parameter_scale` 預設為 True，把 lr 乘上參數 RMS（下限 epsilon2=1e-3）；docstring 寫明 False 時 lr 是絕對步長。HF T5 初始化下，encoder `q.weight` 的 RMS 約 0.011、`k`／`v`／FFN `wi` 約 0.088、`o` 約 0.051、embedding 約 1.0。因此 Kuriyo 前 10k steps 每步約改動 `q` 權重自身大小的 90%，200k 時（lr 0.0022）仍約 20%；T5X 對同一權重的步長約 1e-4。`--adafactor-scale-parameter` 可改成 T5X 行為。
@@ -45,7 +45,8 @@ TIGER 家族的研究筆記，適用於家族下所有變體。事實與假設�
 
 - **H3 — SID 品質是與論文差距的主因（不支持）：**原預期：用不塌縮的 SID 重訓，其他不變，validation Recall@10 會明顯高於 0.0342。結果 0.0368，只高約 2 個標準誤（約 0.0013），差距主因不在 SID。證據：[baseline Experiment-log](Experiment-log.md) 2026-11-18。
 - **H4 — 模型容量不足是次要因素：**HF T5 實測 4.8–5.6M 參數，論文約 1,300 萬。差異可能來自 T5X 不共享輸入輸出 embedding 或詞表大小，尚未核實；H5 修正後與 item-ID 模型仍差約 0.02，是下一個候選，等跑滿 200k 再決定。
-- **H5 — Adafactor 步長是 TIGER 差距的主因（強烈支持）：**Kuriyo 以 `scale_parameter=False` 把 lr 0.01 當成絕對步長，小初始化的權重（如 `q`）每步被大幅改寫，訓練噪音大、收斂慢。兩個完整 run 到 200k 仍在上升，train loss 約 1.69／token（約 8.5 nats／商品），SASRec 約 7.0 nats 且 30 epochs 內收斂，與此相符。驗證：`ADAFACTOR_SCALE_PARAMETER=1`、SID `tiger-paper-v1`、新 RUN_NAME，比較 20k／40k validation 與 `tiger-paper-v1`（Recall@10 0.0132／0.0174）。結果：20k Recall@10 0.0800 對 0.0132（約 6 倍），已超過舊設定跑滿 200k 的 0.0368；[baseline Experiment-log](Experiment-log.md) 2026-11-19（job 1165519）。40k 之後的曲線待補。
+- **H5 — Adafactor 步長是 TIGER 差距的主因（強烈支持）：**Kuriyo 以 `scale_parameter=False` 把 lr 0.01 當成絕對步長，小初始化的權重（如 `q`）每步被大幅改寫，訓練噪音大、收斂慢。兩個完整 run 到 200k 仍在上升，train loss 約 1.69／token（約 8.5 nats／商品），SASRec 約 7.0 nats 且 30 epochs 內收斂，與此相符。驗證：`ADAFACTOR_SCALE_PARAMETER=1`、SID `tiger-paper-v1`、新 RUN_NAME，比較 20k／40k validation 與 `tiger-paper-v1`（Recall@10 0.0132／0.0174）。結果：20k Recall@10 0.0800 對 0.0132（約 6 倍），已超過舊設定跑滿 200k 的 0.0368；[baseline Experiment-log](Experiment-log.md) 2026-11-19（job 1165519）。20k 之後 validation 反而下降（H8）。
+- **H8 — T5X 式 Adafactor 的 TIGER 在 20k 左右（或更早）就達到最佳，之後變差：**job 1165519 的 validation Recall@10 在 20k 是 0.0800，之後每 20k 下降（40k 0.0713、60k 0.0610、80k 0.0571、100k 0.0546），無效 SID 的 beam 比例從 0.06% 升到 1.8%。兩種解釋：過擬合（train loss 繼續下降），或步長仍太大（train loss 停滯）。驗證：同 seed、新 RUN_NAME，`TRAIN_ARGS="--eval-every 2000 --steps 40000"`，找出最佳 step；同時從 Slurm log 取 train loss 曲線。若最佳點在 20k 之前且 train loss 持續下降，支持過擬合，下一步是 dropout 或提早停止；若 train loss 也停滯，改查 lr。證據：[Experiment-log](Experiment-log.md) 2026-11-19。
 - **H6 — SID 方法影響召回品質：**在固定切分與相同模型預算下，RQ-VAE SID、隨機 ID 與其他內容編碼（`sentence-t5_kmeans`、`sentence-t5_lsh`）的召回品質不同。尚未比較，需先讓 TIGER 本身的訓練正常（H5）。
 - **H7 — SID 讓 TIGER 在冷門商品上占優：**相似商品共用 SID 前綴，冷門商品可借用熱門鄰居學到的 token；跨家族的驗證方式與預期見 `Recall/INSIGHT.md` H2。若 TIGER 整體仍低於 item-ID 模型，但在冷門組較好，代表兩者互補。
 
@@ -60,6 +61,6 @@ TIGER 家族的研究筆記，適用於家族下所有變體。事實與假設�
 
 具體的阻礙或未知；排入工作後在 `TODO.md` 追蹤。
 
-1. 讓 job 1165519 跑滿 200k，記錄最佳 step 與 validation；確認是否追上 SASRec／FMRec（約 0.10）。
+1. job 1165519 的 validation 在 20k 之後一路下降（H8）；先找出 20k 前後的最佳 step 與原因，再談是否追上 SASRec／FMRec（約 0.10）。
 2. 若仍落後，候選是容量（H4）、訓練樣本、token 排列與解碼。程式碼檢查已確認 token offset、user token、decoder start、label 格式、beam 對應與 validation 歷史沒有問題。
 3. 對齊論文的模型容量、訓練預算與解碼協定，確認指標的可比性；模型定案後才對 test 做一次最終評估。
