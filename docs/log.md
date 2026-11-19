@@ -71,3 +71,7 @@ Append-only. Newest entries at the bottom.
 - [[sasrec]]：預設 BCE（負例排除看過的商品）、hidden 50／1 head；舊 run 要以 CE 舊值呼叫。
 - [[model-family-layout]]：SASRec 預設 RUN_NAME 改為 `sasrec-paper-<分類>-v1`。
 - [[run-directory]]：預設值改變時舊 run 的核對、`STAGE=test` 的 checkpoint 檢查。
+
+## 2026-11-19 — 逐使用者排名與比較工具
+
+- [[run-directory]]：`best-ranks.json`、`test/<set>/ranks.json` 與 `per_user` 不可進指標 JSON；`core.compare` 只比同一批使用者。

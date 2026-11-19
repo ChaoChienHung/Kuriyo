@@ -16,6 +16,8 @@ sources:
   - code: Recall/TIGER/baseline/train.py
   - code: scripts/run.sbatch
   - code: tests/test_runs.py
+  - code: core/compare.py
+  - code: core/stats.py
 verified_at: 4f6594d
 ---
 
@@ -42,5 +44,7 @@ TIGER 的 smoke trainer（`Recall/TIGER/baseline/train_sequence.py`）仍用舊�
 > ⚠️ 預設值改變時（例如 2026-11-19 SASRec 改成論文設定），舊 run 的搬移與 test 也用 `RESUME_KEYS` 核對，所以必須以舊值呼叫（SASRec 舊 run 帶 `--loss ce --hidden 64 --heads 2`）。run 目錄不存在時 `evaluate_test_once` 只會報「best checkpoint missing」並印出路徑：先確認 job 是從放 run 的 repo 提交的；`scripts/run.sbatch` 的 `STAGE=test` 會在啟動 Python 前檢查。
 
 > ⚠️ `--eval-groups`（`core/runs.py` 的 `evaluate_groups`）會再評估一次 test，但只對已經跑過那一次 test 的 run，用來拆解同一個 checkpoint 的結果，不可拿來選模型。分組依「當 train 目標的次數」（`Recall/core/popularity.py`），用的是該 run 實際訓練的 train，所以 `--max-train-examples` 會改變分組。整體數字和原紀錄比對寫在 `max_abs_difference`；FMRec 的評估雜訊以 seed 固定，所以應該是 0，不是 0 時先查 batch size 或裝置是否不同。
+
+> ⚠️ 評估器回傳的 `per_user`（每位使用者的目標排名）不可寫進指標 JSON：`Selection.record`、`evaluate_test_once`、`evaluate_groups` 先把它取出（`core/runs.py` 的 `PER_USER`），另存 `best-ranks.json`／`test/<set>/ranks.json`。新增寫指標的路徑時也要先取出，否則 2 萬多位使用者的清單會進每個 validation 檔與 `events.log`。`python -m core.compare` 只比較 `users` 完全相同且同序的 run；不同切分或 `--max-validation-examples` 不同的 run 會被拒絕，不要為了讓它通過而改成取交集。
 
 相關：[[model-family-layout]]（家族與變體的目錄規則）、[[tiger-training]]、[[sasrec]]、[[fmrec]]。
