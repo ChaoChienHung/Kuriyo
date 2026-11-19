@@ -20,7 +20,7 @@
 - **Baseline:** 同一 run 的 validation（下方 SoC 條目）。
 - **Change:** 無；只對已選定的 `best.pt` 評估 test 一次。
 - **Data:** 2014 Beauty ASIN 切分的 test（22,363 筆，歷史含 validation 商品），test sha256 `88e1d637…`。
-- **Environment:** SoC，程式 `4f6594d`（舊平版面在這次 test 時搬進新版面）；成功那次的 job ID 待補（之後重送的 job 1166757 因「test 已跑過」被拒絕）。
+- **Environment:** SoC，程式 `4f6594d`（舊平版面在這次 test 時搬進新版面）；job ID 未記錄（不影響結果；之後重送的 job 1166757 因「test 已跑過」被拒絕）。2026-11-19 之後的 test 會把 Git revision 與 job ID 寫進 `metrics.json`。
 - **Command:** `MODEL=sasrec RUN_NAME=sasrec-beauty-v1 STAGE=test sbatch --export=ALL --exclude='xgpe[0-4,6]' --job-name=kuriyo-sasrec scripts/run.sbatch`
 - **Artifacts:** SoC 的 `Recall/SASRec/baseline/runs/sasrec-beauty-v1/test/amazon2014-beauty/metrics.json`。
 

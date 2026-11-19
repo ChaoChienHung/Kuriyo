@@ -7,7 +7,7 @@
 - [ ] SASRec／FMRec held-out test 紀錄；run 小型紀錄進 Git
   - **Delivered:** 兩個 Experiment-log 各加 Held-out test 條目（Expectation 標明事後補記），`Recall/INSIGHT.md` 加 test 對照表，SASRec／FMRec INSIGHT 加 test 事實。`.gitignore` 對 `Recall/**/runs/*/` 改成白名單：只追蹤 `settings.json`、`events.log`、`validation/`、`test/`；移除已無必要的「小型 run summary 匯出」TODO。
   - **Evidence:** 數字取自使用者貼上的 SoC `test/amazon2014-beauty/metrics.json`；`git check-ignore` 確認 checkpoint、`train/`、平版面 `config.json`／`latest.pt`、`hf-cache/` 仍被忽略，四種紀錄會被追蹤。
-  - **Review focus:** 成功那次 test 的 job ID 待補；`events.log` 的失敗事件含 traceback（會有 SoC 絕對路徑）；SID 的 runs 仍整個忽略。
+  - **Review focus:** 這兩次 test 的 job ID 未記錄（之後 `metrics.json` 自動記錄 revision 與 job ID）；`events.log` 的失敗事件含 traceback（會有 SoC 絕對路徑）；SID 的 runs 仍整個忽略。
 
 - [ ] SASRec baseline 預設改成論文設定；`STAGE=test` 先檢查 checkpoint
   - **Delivered:** 預設 `--loss bce`、hidden 50、1 head；BCE 負例改成從使用者 train 序列沒出現過的商品中均勻抽（`sample_negatives`，同原始程式 `random_neq`），原本只避開目標。AGENTS.md：baseline 的預設值是家族論文的設定，其他設定是同一份程式不同參數的 run，以 `settings.json` 比對。`run.sbatch` 的 SASRec 預設 RUN_NAME 改為 `sasrec-paper-<分類>-v1`；`STAGE=test` 在找不到 best checkpoint 時先停並印出路徑；`evaluate_test_once` 把兩種拒絕原因分開。

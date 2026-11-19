@@ -193,7 +193,9 @@ def evaluate_test_once(layout, settings, keys, legacy_keys, model, evaluate, tes
     with layout.logger() as logger:
         metrics = evaluate()
         metrics.update(split="test", set=layout.eval_set, test_sha256=test_sha256,
-                       selected_validation=json.loads(layout.best_metrics.read_text()))
+                       selected_validation=json.loads(layout.best_metrics.read_text()),
+                       git_revision=settings["run"]["git_revision"],
+                       slurm_job_id=os.environ.get("SLURM_JOB_ID"))
         layout.test.mkdir(parents=True, exist_ok=True)
         write_json(layout.test_metrics, metrics)
         logger.event("test_completed", metrics=metrics)

@@ -21,7 +21,7 @@ runs/<RUN_NAME>/
 ├── validation/<set>/
 │   ├── epoch-000005.json          每次評估一個檔（TIGER 用 step-020000.json）
 │   └── best.json                  best.pt 對應的指標
-└── test/<set>/metrics.json        只有 --eval-test-only 會寫，每個 run 一次
+└── test/<set>/metrics.json        只有 --eval-test-only 會寫，每個 run 一次；含選定的 validation、test 時的 Git revision 與 Slurm job ID
 ```
 
 `<set>` 是評估集名稱，例如 `amazon2014-beauty`（2014 Beauty 的留一法切分）；之後加入其他評估集（例如冷啟動協定）時各自一個資料夾，結果不混在一起。

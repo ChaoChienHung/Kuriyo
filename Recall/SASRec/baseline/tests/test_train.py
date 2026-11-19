@@ -107,6 +107,8 @@ class SASRecTrainTests(unittest.TestCase):
             self.assertTrue((run_dir / "checkpoints/best.pt").is_file())
             test_metrics = json.loads((run_dir / "test/amazon2014-beauty/metrics.json").read_text())
             self.assertEqual((test_metrics["split"], test_metrics["examples"]), ("test", 4))
+            self.assertIn("git_revision", test_metrics)
+            self.assertIn("slurm_job_id", test_metrics)
             settings = json.loads((run_dir / "settings.json").read_text())
             self.assertEqual((settings["training"]["loss"], settings["model"]["config"]["max_history"]),
                              ("bce", 4))
