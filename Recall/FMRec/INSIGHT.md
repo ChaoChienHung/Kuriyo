@@ -18,6 +18,7 @@ FMRec 家族的研究筆記。事實與假設分開，每個結果都註明資�
 - 作者程式做 x₀ 預測，z_t = t·x_target + (1−t)·noise（t=1 是資料）；L_FM 是 x₀ 預測對目標 embedding 的 MSE，L_MSE 是從 Decoder1 最後位置經 MLP 128→512→2048→N 重建歷史 multi-hot 的 balanced MSE。
 - 作者程式沒有位置 embedding、沒有因果遮罩；attention mask 遮的是 padding 的 query 列，真實位置仍 attend padding key。Kuriyo baseline 改為遮 key（見 baseline README 的差異表）。
 - 論文 Beauty 結果（HR@5 5.84%、HR@10 8.27%、NDCG@5 4.16%、NDCG@10 4.95%）使用 50 件歷史、ICLRec／DuoRec 處理的資料（22,361 users、12,101 items），論文沒有和 TIGER 比較。
+- `fmrec-beauty-v1`（作者預設，seed 42）在 Kuriyo 切分的 test：Recall@5 0.0576、Recall@10 0.0804、NDCG@5 0.0402、NDCG@10 0.0474，四項都在論文數字的 0.0025 以內；資料處理與歷史長度不同，只能當參考。證據：[Experiment-log](Experiment-log.md) 2026-11-19 Held-out test。
 - Kuriyo 的 20 件歷史上限來自 TIGER 論文 Appendix C（套用在訓練）；FMRec 論文用 50。Kuriyo 2014 Beauty 切分：22,363 users、12,101 items。
 - Kuriyo baseline 28,388,038 參數（SoC job 1165520 log），其中約 2,480 萬在重建 MLP 最後一層（2048 × 12,102）。
 - 完整訓練 `fmrec-beauty-v1`（SoC job 1165520，程式 `bb1088c`）在 epoch 260 early stop；best epoch 160 的 validation Recall@5 0.0728、Recall@10 0.1031、NDCG@5 0.0506、NDCG@10 0.0603。epoch 80 之後幾乎持平（[baseline Experiment-log](Experiment-log.md) 2026-11-19）。

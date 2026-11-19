@@ -58,7 +58,9 @@ SoC 上的既有 run（`tiger-t5x-adafactor-v1`、`tiger-paper-v1`、`sasrec-bea
 
 `scripts/run.sbatch` 新增 `CATEGORY`（`Beauty` 預設、`Sports_and_Outdoors`、`Toys_and_Games`）、`SEED`（預設 42）與 `TRAIN_ARGS`（單一因素的訓練旗標，train 與 test 都帶上）。`scripts.ensure_amazon_reviews_2014 --category <分類|all>` 取代只做 Beauty 的準備腳本（舊名保留為 wrapper）。比較與下結論的 seed 數與檢定方式見 README「實驗設計與統計檢定」；逐使用者配對檢定需要的排名輸出還沒做（TODO）。SoC 上兩個新分類尚未準備；既有的 `sasrec-beauty-v1`、`fmrec-beauty-v1` 都是 seed 42、尚未跑 test。
 
-**SASRec 預設改成論文設定（2026-11-19）：**BCE、負例排除看過的商品、hidden 50／1 head；`MODEL=sasrec` 的預設 RUN_NAME 改為 `sasrec-paper-<分類>-v1`。`sasrec-beauty-v1` 是舊預設（CE），續訓或 test 要帶 `TRAIN_ARGS="--loss ce --hidden 64 --heads 2"`。它的第一次 test（job 1166757，程式 `4f6594d`）在評估前以 "best checkpoint missing or test already evaluated" 結束；同樣的平版面在本機會正常搬移並完成 test，推測 job 的工作目錄不是放 run 的 repo（待使用者以 `sacct -j 1166757 --format=WorkDir` 確認）。`run.sbatch` 的 `STAGE=test` 現在先確認 best checkpoint 存在並印出完整路徑。
+**SASRec 預設改成論文設定（2026-11-19）：**BCE、負例排除看過的商品、hidden 50／1 head；`MODEL=sasrec` 的預設 RUN_NAME 改為 `sasrec-paper-<分類>-v1`。`sasrec-beauty-v1` 是舊預設（CE），續訓或 test 要帶 `TRAIN_ARGS="--loss ce --hidden 64 --heads 2"`。它的第一次 test（job 1166757，程式 `4f6594d`）在評估前以 "best checkpoint missing or test already evaluated" 結束；同樣的平版面在本機會正常搬移並完成 test，推測 job 的工作目錄不是放 run 的 repo（待使用者以 `sacct -j 1166757 --format=WorkDir` 確認）。後來確認是先前的提交已完成 test、1166757 是重送被拒。`sasrec-beauty-v1` test Recall@10 0.0851、`fmrec-beauty-v1` 0.0804（各 Experiment-log 2026-11-19 Held-out test）。`run.sbatch` 的 `STAGE=test` 現在先確認 best checkpoint 存在並印出完整路徑。
+
+**Run 紀錄進 Git（2026-11-19）：**`.gitignore` 改成只追蹤 run 目錄的 `settings.json`、`events.log`、`validation/`、`test/`。在 SoC 上 `git add Recall/*/baseline/runs` 前先看 `git status`，只提交有 Experiment-log 條目的 run。
 
 ## Logging 與匯入狀態
 

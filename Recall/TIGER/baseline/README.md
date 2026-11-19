@@ -141,7 +141,7 @@ Recall/TIGER/baseline/
 ├── train_sequence.py  # smoke trainer 與 read_examples
 ├── config.py          # 小型 smoke 模型的參考設定
 ├── tests/             # baseline 的契約與整合測試
-└── runs/<RUN_NAME>/   # Git 忽略的訓練產物
+└── runs/<RUN_NAME>/   # 訓練產物；Git 只追蹤 settings、events、validation、test
 ```
 
 目前有兩個序列模型入口，解碼與評估協定不同，結果不能混為同一比較：

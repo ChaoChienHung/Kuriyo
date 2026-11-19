@@ -8,7 +8,13 @@ __pycache__/
 *.pt
 *.pth
 *.safetensors
-Recall/**/runs/
+# Run directories: track the small records (settings, events, validation, test) so
+# results reach Git; checkpoints, per-step train logs and caches stay out.
+Recall/**/runs/*/*
+!Recall/**/runs/*/settings.json
+!Recall/**/runs/*/events.log
+!Recall/**/runs/*/validation/
+!Recall/**/runs/*/test/
 Representations/SID/runs/
 data/amazon_reviews/*/raw/*
 !data/amazon_reviews/*/raw/.gitkeep

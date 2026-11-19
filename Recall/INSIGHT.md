@@ -29,12 +29,21 @@
   | FMRec baseline | 作者預設，best epoch 160 | 0.07280 | 0.10307 | 0.05058 | 0.06035 | SoC job 1165520；[log](FMRec/Experiment-log.md) 2026-11-19 |
 
   逐 step／epoch 的數字與 run 證據只記在各變體的 Experiment-log；本表只並列最佳 validation，新增 run 時同時更新 log 與本表。
+- **Held-out test（2014 Beauty，22,363 examples，全商品排名，各一次、seed 42）：**
+
+  | 模型 | 設定 | Recall@5 | Recall@10 | NDCG@5 | NDCG@10 | 論文 test（Recall@10／NDCG@10） | 來源 |
+  |---|---|---|---|---|---|---|---|
+  | 熱門商品 | train 段落計數前 10 | 0.00729 | 0.01203 | 0.00400 | 0.00552 | — | 本機，2026-11-18 |
+  | SASRec baseline | CE、hidden 64、2 heads（`sasrec-beauty-v1`） | 0.05388 | 0.08505 | 0.03124 | 0.04133 | 0.0605／0.0318（TIGER 論文表 3） | [log](SASRec/Experiment-log.md) 2026-11-19 |
+  | FMRec baseline | 作者預設（`fmrec-beauty-v1`） | 0.05764 | 0.08036 | 0.04017 | 0.04745 | 0.0827／0.0495（FMRec 論文，另一份資料處理） | [log](FMRec/Experiment-log.md) 2026-11-19 |
+
+  test 比 validation 低 17–22%，與 test 的冷門目標較多相符（上一項）。單一 seed，兩模型的差距不足以排序（README「實驗設計與統計檢定」）。TIGER 跑完並定案後才跑 test。
 
 ## Limitations
 
 會限制結論範圍的已知弱點。
 
-- 各模型只有單一 seed、只有 validation；T5X Adafactor 的 TIGER 尚未訓練完。
+- 各模型只有單一 seed；SASRec（CE 設定）與 FMRec 各有一次 test，TIGER 只有 validation，T5X Adafactor 的 TIGER 尚未訓練完。
 - **目前的評估幾乎不測冷啟動：**catalog 固定，validation 目標只有 0.23% 完全沒出現在 train（見 Facts）。SASRec 與 FMRec 的商品 embedding 隨機初始化、只從互動學習，沒在 train 出現過的商品 embedding 等於沒被訓練過，幾乎不可能被推薦；冷門商品也只有少量更新。現有平均指標看不出這個弱點，因此「item-ID 模型約 0.10」只代表熱門與中段商品上的表現。
 
 ## Hypothesis

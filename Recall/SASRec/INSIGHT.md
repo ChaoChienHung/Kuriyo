@@ -8,7 +8,7 @@ SASRec 家族的研究筆記。事實與假設分開，每個結果都註明資�
 
 從資料或實驗得到、會改變後續做法的解讀。
 
-- 在 Kuriyo 的 2014 Beauty 切分與共用指標下，SASRec 的 validation Recall@10 達 0.094–0.102，是同切分 TIGER（0.034–0.037）的約 3 倍，也高於 TIGER 論文表 3 的 SASRec（0.0605，test）。共用的資料、20 件歷史上限與指標程式能讓成熟模型得到正常甚至偏高的數字，因此 TIGER 的差距不在這些共用部分。證據：[baseline Experiment-log](Experiment-log.md) 2026-11-19。
+- 在 Kuriyo 的 2014 Beauty 切分與共用指標下，SASRec 的 validation Recall@10 達 0.094–0.102，是同切分 TIGER（0.034–0.037）的約 3 倍，也高於 TIGER 論文表 3 的 SASRec（0.0605，test）；`sasrec-beauty-v1` 的 test Recall@10 是 0.0851（[Experiment-log](Experiment-log.md) 2026-11-19 Held-out test），同樣高於論文。共用的資料、20 件歷史上限與指標程式能讓成熟模型得到正常甚至偏高的數字，因此 TIGER 的差距不在這些共用部分。證據：[baseline Experiment-log](Experiment-log.md) 2026-11-19。
 
 ## Facts
 

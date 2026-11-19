@@ -69,15 +69,11 @@
   - **Context:** 現有 Torch pin 不是完整 lockfile；壞節點要等 Python 啟動後才發現。
   - **Scope:** 環境快照、`run.sbatch` 在安裝前檢查 `nvidia-smi`。
   - **Acceptance:** 壞節點上的 job 在 pip 之前就以明確訊息結束；環境可由 lock 重建。
-- [ ] 小型 run summary 匯出
-  - **Context:** 分享 config／metrics／manifest 時不想提交 runs 或 checkpoints。
-  - **Scope:** `core/` 或 `scripts/` 的匯出指令與測試。
-  - **Acceptance:** 一個指令輸出可提交的小檔，內容足以填寫 Experiment-log 的 Details。
 
 ## Owner-led
 
 - [ ] 決定何時定案並跑 held-out test
-  - **Decision needed:** 哪個 TIGER run（以及對照的 SASRec、FMRec run）算定案；之後才對 test 跑一次，不用 test 調參。
+  - **Decision needed:** 哪個 TIGER run 算定案；之後才對 test 跑一次，不用 test 調參。SASRec（`sasrec-beauty-v1`，CE 設定）與 FMRec（`fmrec-beauty-v1`）的 seed 42 已於 2026-11-19 跑過 test；其他 seed 與設定的 test 依 README 的統計規則。
   - **Acceptance:** 每個定案 run 只有一次 test，記在 Experiment-log，並與論文 test 數字並列。
 - [ ] 確定推薦任務與成功指標
   - **Decision needed:** 下一項商品召回之外，是否也做評分預測或排序；目標使用情境與主要指標。

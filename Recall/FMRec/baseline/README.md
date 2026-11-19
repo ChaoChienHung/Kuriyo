@@ -88,7 +88,7 @@ python -m Recall.FMRec.baseline.train --run-name fmrec-beauty-v1 --device cuda -
 
 ## 輸出
 
-`Recall/FMRec/baseline/runs/<RUN_NAME>/`（Git 忽略）；run 目錄的版面與 `settings.json` 見 [`core/README.md`](../../../core/README.md#run-目錄)。`train/train.jsonl` 每 step 記 loss、loss_fm、loss_ce、loss_mse、learning rate 與 epoch；`settings.json` 的 `run.implementation` 記上游 commit。
+`Recall/FMRec/baseline/runs/<RUN_NAME>/`（Git 只追蹤 `settings.json`、`events.log`、`validation/`、`test/`）；run 目錄的版面與 `settings.json` 見 [`core/README.md`](../../../core/README.md#run-目錄)。`train/train.jsonl` 每 step 記 loss、loss_fm、loss_ce、loss_mse、learning rate 與 epoch；`settings.json` 的 `run.implementation` 記上游 commit。
 
 模型約 2,840 萬參數，其中約 2,480 萬在歷史重建 MLP 的最後一層（2048×12,102）。
 

@@ -8,6 +8,49 @@
 
 ## 2026-11-19
 
+### Held-out test：`sasrec-beauty-v1`（seed 42）
+
+#### Motivation
+
+`sasrec-beauty-v1` 已訓練完並以 validation 選定 `best.pt`；先取得一次 test 數字，與論文的 test 並列。之後的設定比較仍只看 validation。
+
+#### Details
+
+- **Variant:** `baseline`
+- **Baseline:** 同一 run 的 validation（下方 SoC 條目）。
+- **Change:** 無；只對已選定的 `best.pt` 評估 test 一次。
+- **Data:** 2014 Beauty ASIN 切分的 test（22,363 筆，歷史含 validation 商品），test sha256 `88e1d637…`。
+- **Environment:** SoC，程式 `4f6594d`（舊平版面在這次 test 時搬進新版面）；成功那次的 job ID 待補（之後重送的 job 1166757 因「test 已跑過」被拒絕）。
+- **Command:** `MODEL=sasrec RUN_NAME=sasrec-beauty-v1 STAGE=test sbatch --export=ALL --exclude='xgpe[0-4,6]' --job-name=kuriyo-sasrec scripts/run.sbatch`
+- **Artifacts:** SoC 的 `Recall/SASRec/baseline/runs/sasrec-beauty-v1/test/amazon2014-beauty/metrics.json`。
+
+#### Settings
+
+- 與下方 SoC 條目相同（設定記在該 run 的 `settings.json`）。
+
+#### Expectation
+
+事後補記（test 跑完才寫）：test 低於 validation，因為 test 目標的冷門與長尾比例較高（`Recall/INSIGHT.md` Facts）。這個 run 是 `--loss ce --hidden 64 --heads 2` 設定（2026-11-19 以前的預設），不是論文設定。
+
+#### Key Metrics
+
+- test Recall@5/10、NDCG@5/10，與 validation 及論文 test 的差距。
+
+#### Results
+
+| | Recall@5 | Recall@10 | NDCG@5 | NDCG@10 |
+| --- | --- | --- | --- | --- |
+| validation（best） | 0.06882 | 0.10227 | 0.04010 | 0.05083 |
+| **test** | **0.05388** | **0.08505** | **0.03124** | **0.04133** |
+| TIGER 論文表 3 的 SASRec（test） | 0.0387 | 0.0605 | 0.0249 | 0.0318 |
+
+- **Observations:** test Recall@10 比 validation 低 0.0172（約 17%），NDCG@10 低 0.0095。仍比 TIGER 論文表中的 SASRec 高 0.0245（Recall@10），與 `INSIGHT.md` H1（CE loss）的方向一致。
+- **Hypotheses:** 單一 seed；使用者層級的標準誤約 0.0019（Recall@10），與其他模型的差距在這個範圍內不能下結論（README「實驗設計與統計檢定」）。
+
+#### Conclusion
+
+CE 設定 seed 42 的 test 是 Recall@10 0.0851、NDCG@10 0.0413。這個 run 不再訓練或調整；之後的 seed 與論文設定另開 run。H1 仍待論文設定的 run 驗證。
+
 ### SoC GPU 重跑 `sasrec-beauty-v1`
 
 #### Motivation

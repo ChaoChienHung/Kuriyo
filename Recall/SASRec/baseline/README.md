@@ -78,7 +78,7 @@ python -m Recall.SASRec.baseline.train --run-name sasrec-paper-beauty-v1 --devic
 
 ## 輸出
 
-`Recall/SASRec/baseline/runs/<RUN_NAME>/`（Git 忽略）；run 目錄的版面與 `settings.json` 見 [`core/README.md`](../../../core/README.md#run-目錄)。`train/train.jsonl` 每 step 記 loss、learning rate 與 epoch；validation 每 `--eval-every` epochs 寫 `validation/amazon2014-beauty/epoch-<N>.json`。
+`Recall/SASRec/baseline/runs/<RUN_NAME>/`（Git 只追蹤 `settings.json`、`events.log`、`validation/`、`test/`）；run 目錄的版面與 `settings.json` 見 [`core/README.md`](../../../core/README.md#run-目錄)。`train/train.jsonl` 每 step 記 loss、learning rate 與 epoch；validation 每 `--eval-every` epochs 寫 `validation/amazon2014-beauty/epoch-<N>.json`。
 
 ## 測試
 

@@ -109,7 +109,7 @@ SoC Linux GPU 的安裝指令集中記錄於根目錄 `requirements.txt` 的註�
 
 相關模型變體集中在同一個家族，例如 `Recall/TIGER/`。跨模型可重用的召回元件放 `Recall/core/`；跨鏈路工具放 `core/`；商品 SID 放 `Representations/SID/`，供不同模型共用。
 
-每個變體是家族底下的一個子目錄，**自成一個完整的空間**：自己的 `README.md`、`requirements.txt`、模型與訓練程式、入口、`tests/` 及 Git 忽略的 `runs/<RUN_NAME>/`。家族根層只放家族 README（說明與變體列表）：
+每個變體是家族底下的一個子目錄，**自成一個完整的空間**：自己的 `README.md`、`requirements.txt`、模型與訓練程式、入口、`tests/` 及 `runs/<RUN_NAME>/`（只有小型紀錄進 Git，見「獨立訓練紀錄」）。家族根層只放家族 README（說明與變體列表）：
 
 ```text
 Recall/TIGER/
@@ -162,4 +162,4 @@ TIGER paper baseline、FMRec baseline、SASRec baseline 和 SID 生成器使用 
 
 TIGER 續訓會追加紀錄；從較早 checkpoint 重跑的 step 可透過 session ID 區分。強制終止、斷電或進入 logger 前的錯誤不保證有失敗事件，因此仍需搭配 Slurm 狀態與產物檢查。SID 失敗後可能留下只有 log 的部分目錄，仍不可當作完成產物，且目前無中途續訓功能。舊的 smoke trainer 尚未接入此 logger。
 
-Slurm `.out` 不保留在 repo 中（job 1153307 的 log 只在 git 歷史）；`runs/`、SID 產物目錄與 checkpoint 被 Git 忽略，新增的 run logs 也不會自動同步。要分享結果，需另行匯出選定的小型紀錄。
+Slurm `.out` 不保留在 repo 中（job 1153307 的 log 只在 git 歷史）。Recall 的 run 目錄只有 `settings.json`、`events.log`、`validation/`、`test/` 會被 Git 追蹤（`.gitignore` 以白名單列出）；`checkpoints/`、`train/`（每 step 的紀錄，TIGER 可達數十 MB）、2026-11-19 以前平版面的檔案與快取都忽略。在 SoC 上把有 Experiment-log 條目的 run 紀錄 `git add` 後推上來，結果就能在 Git 裡核對；smoke test 的 run 目錄檢查完就刪，不提交。SID 產物目錄仍整個被忽略。
