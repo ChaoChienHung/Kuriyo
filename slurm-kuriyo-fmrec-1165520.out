@@ -1,0 +1,89 @@
+Looking in indexes: https://pypi.org/simple, https://download.pytorch.org/whl/cu126
+Requirement already satisfied: torch==2.7.1+cu126 in ./.venv/lib/python3.12/site-packages (2.7.1+cu126)
+Requirement already satisfied: numpy<3,>=1.26 in ./.venv/lib/python3.12/site-packages (from -r Representations/SID/../../requirements.txt (line 2)) (2.5.5)
+Requirement already satisfied: sentence-transformers<6,>=3 in ./.venv/lib/python3.12/site-packages (from -r Representations/SID/requirements.txt (line 4)) (5.7.0)
+Requirement already satisfied: transformers<5,>=4.44 in ./.venv/lib/python3.12/site-packages (from -r Representations/SID/requirements.txt (line 5)) (4.57.6)
+Requirement already satisfied: scikit-learn<2,>=1.5 in ./.venv/lib/python3.12/site-packages (from -r Representations/SID/requirements.txt (line 6)) (1.9.1)
+Requirement already satisfied: filelock in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (4.2.10)
+Requirement already satisfied: typing-extensions>=4.10.0 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (4.16.0)
+Requirement already satisfied: setuptools in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (84.2.1)
+Requirement already satisfied: sympy>=1.13.3 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (1.14.0)
+Requirement already satisfied: networkx in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (3.7)
+Requirement already satisfied: jinja2 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (3.1.6)
+Requirement already satisfied: fsspec in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (2026.9.0)
+Requirement already satisfied: nvidia-cuda-nvrtc-cu12==12.6.77 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.77)
+Requirement already satisfied: nvidia-cuda-runtime-cu12==12.6.77 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.77)
+Requirement already satisfied: nvidia-cuda-cupti-cu12==12.6.80 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.80)
+Requirement already satisfied: nvidia-cudnn-cu12==9.5.1.17 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (9.5.1.17)
+Requirement already satisfied: nvidia-cublas-cu12==12.6.4.1 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.4.1)
+Requirement already satisfied: nvidia-cufft-cu12==11.3.0.4 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (11.3.0.4)
+Requirement already satisfied: nvidia-curand-cu12==10.3.7.77 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (10.3.7.77)
+Requirement already satisfied: nvidia-cusolver-cu12==11.7.1.2 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (11.7.1.2)
+Requirement already satisfied: nvidia-cusparse-cu12==12.5.4.2 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.5.4.2)
+Requirement already satisfied: nvidia-cusparselt-cu12==0.6.3 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (0.6.3)
+Requirement already satisfied: nvidia-nccl-cu12==2.26.2 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (2.26.2)
+Requirement already satisfied: nvidia-nvtx-cu12==12.6.77 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.77)
+Requirement already satisfied: nvidia-nvjitlink-cu12==12.6.85 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (12.6.85)
+Requirement already satisfied: nvidia-cufile-cu12==1.11.1.6 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (1.11.1.6)
+Requirement already satisfied: triton==3.3.1 in ./.venv/lib/python3.12/site-packages (from torch==2.7.1+cu126) (3.3.1)
+Requirement already satisfied: tokenizers>=0.19 in ./.venv/lib/python3.12/site-packages (from sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (0.22.2)
+Requirement already satisfied: huggingface-hub>=0.23.0 in ./.venv/lib/python3.12/site-packages (from sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (0.36.2)
+Requirement already satisfied: scipy>=1.0.0 in ./.venv/lib/python3.12/site-packages (from sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (1.18.1)
+Requirement already satisfied: tqdm>=4.0.0 in ./.venv/lib/python3.12/site-packages (from sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (4.70.1)
+Requirement already satisfied: packaging>=20.0 in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (26.3)
+Requirement already satisfied: pyyaml>=5.1 in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (6.0.3)
+Requirement already satisfied: regex!=2019.12.17 in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2026.11.15)
+Requirement already satisfied: requests in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2.34.2)
+Requirement already satisfied: safetensors>=0.4.3 in ./.venv/lib/python3.12/site-packages (from transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (0.8.0)
+Requirement already satisfied: joblib>=1.4.0 in ./.venv/lib/python3.12/site-packages (from scikit-learn<2,>=1.5->-r Representations/SID/requirements.txt (line 6)) (1.6.0)
+Requirement already satisfied: narwhals>=2.0.1 in ./.venv/lib/python3.12/site-packages (from scikit-learn<2,>=1.5->-r Representations/SID/requirements.txt (line 6)) (2.28.0)
+Requirement already satisfied: threadpoolctl>=3.5.0 in ./.venv/lib/python3.12/site-packages (from scikit-learn<2,>=1.5->-r Representations/SID/requirements.txt (line 6)) (3.8.0)
+Requirement already satisfied: hf-xet<2.0.0,>=1.1.3 in ./.venv/lib/python3.12/site-packages (from huggingface-hub>=0.23.0->sentence-transformers<6,>=3->-r Representations/SID/requirements.txt (line 4)) (1.8.0)
+Requirement already satisfied: cloudpickle>=3.0 in ./.venv/lib/python3.12/site-packages (from joblib>=1.4.0->scikit-learn<2,>=1.5->-r Representations/SID/requirements.txt (line 6)) (3.1.2)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in ./.venv/lib/python3.12/site-packages (from sympy>=1.13.3->torch==2.7.1+cu126) (1.3.0)
+Requirement already satisfied: MarkupSafe>=2.0 in ./.venv/lib/python3.12/site-packages (from jinja2->torch==2.7.1+cu126) (3.0.4)
+Requirement already satisfied: charset_normalizer<4,>=2 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (3.5.2)
+Requirement already satisfied: idna<4,>=2.5 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (3.20)
+Requirement already satisfied: urllib3<3,>=1.26 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2.8.0)
+Requirement already satisfied: certifi>=2023.5.7 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2026.10.23)
+job=1165520 commit=bb1088c73d38ba276804f450adebd20dd34fea8a model=fmrec stage=train sid_version=tiger-paper-v1 sid_recipe=stable adafactor_scale_parameter=0 run=fmrec-beauty-v1
+FMRec parameters=28388038 items=12101 train=131413 validation=22363 starting_epoch=0
+epoch 1 step 1 loss=15.91907 fm=2.00738 ce=69.5572 mse=0.000603 lr=0.001
+epoch 1 step 100 loss=6.93426 fm=1.68361 ce=26.2528 mse=0.000246 lr=0.001
+epoch 1 step 200 loss=5.65356 fm=1.45924 ce=20.9712 mse=0.000216 lr=0.001
+epoch 2 step 300 loss=4.60863 fm=1.26319 ce=16.7268 mse=0.000208 lr=0.001
+epoch 2 step 400 loss=3.85508 fm=1.11480 ce=13.7010 mse=0.000204 lr=0.001
+epoch 2 step 500 loss=3.19978 fm=0.98664 ce=11.0653 mse=0.000202 lr=0.001
+epoch 3 step 600 loss=3.02991 fm=0.96411 ce=10.3286 mse=0.000189 lr=0.001
+epoch 3 step 700 loss=2.95343 fm=0.94830 ce=10.0253 mse=0.000179 lr=0.001
+epoch 4 step 800 loss=2.89995 fm=0.93241 ce=9.8374 mse=0.000170 lr=0.001
+epoch 4 step 900 loss=2.84145 fm=0.91630 ce=9.6254 mse=0.000166 lr=0.001
+epoch 4 step 1000 loss=2.81083 fm=0.90059 ce=9.5509 mse=0.000170 lr=0.001
+epoch 5 step 1100 loss=2.80125 fm=0.88922 ce=9.5598 mse=0.000162 lr=0.001
+epoch 5 step 1200 loss=2.76812 fm=0.88152 ce=9.4327 mse=0.000148 lr=0.001
+epoch 6 step 1300 loss=2.71877 fm=0.86218 ce=9.2827 mse=0.000162 lr=0.001
+epoch 6 step 1400 loss=2.67926 fm=0.84847 ce=9.1537 mse=0.000147 lr=0.001
+epoch 6 step 1500 loss=2.64926 fm=0.83499 ce=9.0711 mse=0.000153 lr=0.001
+epoch 7 step 1600 loss=2.62324 fm=0.82564 ce=8.9878 mse=0.000140 lr=0.001
+epoch 7 step 1700 loss=2.61792 fm=0.81318 ce=9.0234 mse=0.000173 lr=0.001
+epoch 8 step 1800 loss=2.55435 fm=0.79013 ce=8.8208 mse=0.000145 lr=0.001
+epoch 8 step 1900 loss=2.53331 fm=0.77655 ce=8.7835 mse=0.000153 lr=0.001
+epoch 8 step 2000 loss=2.50264 fm=0.75186 ce=8.7536 mse=0.000148 lr=0.001
+epoch 9 step 2100 loss=2.49719 fm=0.75323 ce=8.7195 mse=0.000144 lr=0.001
+epoch 9 step 2200 loss=2.49754 fm=0.74426 ce=8.7661 mse=0.000146 lr=0.001
+epoch 9 step 2300 loss=2.44951 fm=0.71655 ce=8.6645 mse=0.000135 lr=0.001
+epoch 10 step 2400 loss=2.44098 fm=0.70382 ce=8.6855 mse=0.000153 lr=0.001
+epoch 10 step 2500 loss=2.40468 fm=0.69209 ce=8.5627 mse=0.000151 lr=0.001
+epoch 11 step 2600 loss=2.36067 fm=0.67161 ce=8.4450 mse=0.000142 lr=0.001
+epoch 11 step 2700 loss=2.38090 fm=0.67114 ce=8.5485 mse=0.000137 lr=0.001
+epoch 11 step 2800 loss=2.35967 fm=0.66053 ce=8.4954 mse=0.000127 lr=0.001
+epoch 12 step 2900 loss=2.34853 fm=0.64777 ce=8.5035 mse=0.000144 lr=0.001
+epoch 12 step 3000 loss=2.31754 fm=0.62294 ce=8.4727 mse=0.000128 lr=0.001
+epoch 13 step 3100 loss=2.28081 fm=0.61044 ce=8.3516 mse=0.000132 lr=0.001
+epoch 13 step 3200 loss=2.28693 fm=0.60154 ce=8.4267 mse=0.000128 lr=0.001
+epoch 13 step 3300 loss=2.26217 fm=0.58657 ce=8.3777 mse=0.000145 lr=0.001
+epoch 14 step 3400 loss=2.21523 fm=0.56893 ce=8.2312 mse=0.000134 lr=0.001
+epoch 14 step 3500 loss=2.23015 fm=0.56593 ce=8.3208 mse=0.000141 lr=0.001
+epoch 15 step 3600 loss=2.18793 fm=0.55298 ce=8.1745 mse=0.000133 lr=0.001
+epoch 15 step 3700 loss=2.14521 fm=0.53534 ce=8.0491 mse=0.000131 lr=0.001
+epoch 15 step 3800 loss=2.18390 fm=0.52702 ce=8.2841 mse=0.000133 lr=0.001
