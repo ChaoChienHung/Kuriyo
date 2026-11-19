@@ -8,6 +8,45 @@
 
 ## 2026-11-19
 
+### 論文設定 vs 只換 CE（H1），各 3 個 seed
+
+#### Motivation
+
+baseline 預設改成論文設定後還沒有完整 run。同時檢驗 [INSIGHT](INSIGHT.md) H1：高於論文的數字主要來自 full-softmax CE，而不是其他差異。
+
+#### Details
+
+- **Variant:** `baseline`（`fa1b700` 起的預設值）
+- **Baseline:** 論文設定（預設值，無 `TRAIN_ARGS`）。
+- **Change:** 只加 `--loss ce`；hidden 50、1 head、其他設定相同。
+- **Data:** 2014 Beauty ASIN 切分。
+- **Environment:** SoC，seed 42、43、44；job ID 自動記在各 run。
+- **Command:** 論文設定 `MODEL=sasrec RUN_NAME=sasrec-paper-beauty-v1`（seed 42）、`SEED=43 RUN_NAME=sasrec-paper-beauty-s43`、`SEED=44 RUN_NAME=sasrec-paper-beauty-s44`；對照加 `TRAIN_ARGS="--loss ce"`，`RUN_NAME=sasrec-paperce-beauty-v1／-s43／-s44`；皆 `STAGE=train`。
+- **Artifacts:** `Recall/SASRec/baseline/runs/<RUN_NAME>/`。
+
+#### Settings
+
+- **資料／前處理：**同下方條目（2014 Beauty 5-core、leave-one-out、歷史上限 20）。
+- **模型：**hidden 50、2 層、1 head、dropout 0.5，可學的位置 embedding，歷史上限 20。
+- **訓練：**論文設定是 BCE，每個位置一個負例，從使用者 train 序列沒出現過的商品中均勻抽；對照是 full-softmax CE。Adam（0.9、0.98）lr 1e-3、batch 128 個視窗、最多 200 epochs。
+- **評估：**每 5 epochs validation，以 NDCG@10 選 `best.pt`，patience 5；只看 validation。
+
+#### Expectation
+
+論文設定的 validation Recall@10 三個 seed 平均落在 0.06–0.08，明顯低於 CE 設定（約 0.10）；只換 CE 的對照平均在 0.09 以上（模型比先前的 64／2 小，可能略低於 0.102）。兩者 Recall@10 平均差至少 0.02，且 seed 層級 Welch t-test p < 0.05。若差距小於 0.01，H1 不成立，高於論文的原因要另找（例如評估協定或資料）。
+
+#### Key Metrics
+
+- 每個 seed 的 best validation Recall@10、NDCG@10 與 best epoch；兩組的平均 ± 標準差、95% CI 與 Welch t-test（README「實驗設計與統計檢定」）。
+
+#### Results
+
+待補。
+
+#### Conclusion
+
+待補。
+
 ### Held-out test：`sasrec-beauty-v1`（seed 42）
 
 #### Motivation
