@@ -16,7 +16,7 @@
 - [ ] 找出 T5X 式 Adafactor TIGER 的最佳 step 與 20k 後下降的原因（H8）
   - **Context:** `Recall/TIGER/INSIGHT.md` H8：job 1165519 的 validation 在 20k 最好（0.0800），到 100k 降到 0.0546，無效 beam 增加。
   - **Context（更新）：**train loss 在 validation 下降時仍在降，支持過擬合；job 1165519 已由使用者結束，`best.pt` 在 20k。
-  - **Scope:** 新 run `RUN_NAME=tiger-t5x-adafactor-eval2k-v1 TRAIN_ARGS="--eval-every 2000 --steps 40000"`（同 seed、同 SID）找最佳 step；第一次提交 job 1167529 因 Slurm controller 連線失敗沒有開始訓練，需重送。之後再決定對抗過擬合的單一因素（dropout、提早停止）。
+  - **Scope:** 新 run `RUN_NAME=tiger-t5x-adafactor-eval2k-v1 TRAIN_ARGS="--eval-every 2000 --steps 40000"`（同 seed、同 SID）找最佳 step；第一次提交 job 1167529 因 Slurm controller 連線失敗沒有開始訓練；重送為 job 1167955（`2b19879`），進行中（截至 step 16k 最佳為 14k 的 validation Recall@10 0.0779）。之後再決定對抗過擬合的單一因素（dropout、提早停止）。
   - **Acceptance:** 2k 間隔的 validation 曲線記在 TIGER Experiment-log，最佳 step 寫進 H8，並寫下一個實驗。
 - [ ] 逐使用者評估輸出與比較工具
   - **Context:** README「實驗設計與統計檢定」的主要檢定是使用者層級的配對檢定；目前 validation／test 只存整體平均，無法配對。
@@ -28,7 +28,7 @@
   - **Acceptance:** 五個 seed 的 validation 平均 ± 標準差記在各家族 Experiment-log 與 `Recall/INSIGHT.md` 對照表。
 - [ ] Sports_and_Outdoors、Toys_and_Games 資料與三個模型
   - **Context:** TIGER 論文在三個 2014 分類上報告；只看 Beauty 的結論可能不穩。`run.sbatch` 已支援 `CATEGORY`。
-  - **Scope:** `Sports_and_Outdoors` 已準備（README）；`Toys_and_Games` 仍需 `CATEGORY=Toys_and_Games STAGE=prepare`；之後 SASRec、FMRec、TIGER（各自的 SID 版本）用預設 run 名稱訓練，多 seed 依 README。
+  - **Scope:** `Sports_and_Outdoors` 與 `Toys_and_Games` 都已準備（README）；之後 SASRec、FMRec、TIGER（各自的 SID 版本）用預設 run 名稱訓練，多 seed 依 README。
   - **Acceptance:** 兩個分類的切分筆數、商品數與論文資料表對照；三個模型的 validation 分資料集記在各 Experiment-log 與 `Recall/INSIGHT.md`。
 - [ ] 對既有 run 跑分組評估並記錄（冷啟動與長尾）（優先：TIGER 的 test 比 validation 低 31%，item-ID 模型只低 17–22%）
   - **Context:** `Recall/INSIGHT.md` H2、`Recall/TIGER/INSIGHT.md` H7：SASRec／FMRec 的 ID embedding 隨機初始化，對沒學過的商品無能為力；validation 目標有 20.8% 在 train 當目標少於 5 次、0.23% 完全沒出現。整體指標由熱門商品主導。
