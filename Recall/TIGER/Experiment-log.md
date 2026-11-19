@@ -6,6 +6,49 @@
 
 ## 2026-11-19
 
+### Held-out test：`tiger-t5x-adafactor-v1`（20k，seed 42）
+
+#### Motivation
+
+確認 TIGER 與論文 test 的實際差距。job 1165519 已結束，`best.pt`（20k）不會再變，測試它不影響之後的選擇。
+
+#### Details
+
+- **Variant:** `baseline`
+- **Baseline:** 同一 run 的 validation（下方 T5X 式 Adafactor 條目）。
+- **Change:** 無；只對 20k 的 `best.pt` 評估 test 一次。
+- **Data:** 2014 Beauty SID `tiger-paper-v1` 的 test 切分（22,363 筆）。
+- **Environment:** SoC job 1167548（記在 `metrics.json`）。舊平版面在這次 test 時搬進新版面。
+- **Command:** `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-v1 STAGE=test sbatch --export=ALL --exclude='xgpe[0-4,6]' scripts/run.sbatch`
+- **Artifacts:** `Recall/TIGER/baseline/runs/tiger-t5x-adafactor-v1/test/amazon2014-beauty/metrics.json`。
+
+#### Settings
+
+- 與下方 T5X 式 Adafactor 條目相同（`settings.json`）。
+
+#### Expectation
+
+在結果出來前於對話中估計、事後記錄：依 SASRec／FMRec 的 test／validation 比例（−17%／−22%），test Recall@10 約 0.062–0.066、NDCG@10 約 0.034–0.036，與論文（0.0648／0.0384）相當。
+
+#### Key Metrics
+
+- test Recall@5/10、NDCG@5/10；test 相對 validation 的下降幅度，與 SASRec、FMRec 比。
+
+#### Results
+
+| | Recall@5 | Recall@10 | NDCG@5 | NDCG@10 |
+| --- | --- | --- | --- | --- |
+| validation（20k） | 0.05290 | 0.08000 | 0.03467 | 0.04344 |
+| **test** | **0.03564** | **0.05558** | **0.02298** | **0.02942** |
+| TIGER 論文（test） | 0.0454 | 0.0648 | 0.0321 | 0.0384 |
+
+- **Observations:** test Recall@10 比 validation 低 30.5%，NDCG@10 低 32.3%，明顯多於 SASRec CE（−17%）與 FMRec（−22%）；比論文低 0.0092 Recall@10（約 −14%）、0.0094 NDCG@10。invalid_beam_fraction 0.0003，不是無效 SID 造成。Expectation 不成立。
+- **Hypotheses:** test 目標的長尾比例較高（train 出現少於 5 次：test 25.4%、validation 20.8%）；若 TIGER 在冷門目標上比 item-ID 模型差，就會掉得更多，這與 [INSIGHT](INSIGHT.md) H7 的預期相反。20k 是過擬合曲線上的點（H8），細曲線找到的較早 step 可能泛化較好。單一 seed。
+
+#### Conclusion
+
+TIGER 在 test 上仍低於論文約 14%，不是先前以為的「已達論文水準」。下一步：依目標熱門度分組評估（TODO），看 TIGER 掉在哪一組；以及 2k 間隔的細曲線（H8）。
+
 ### T5X 式 Adafactor 步長（H5）
 
 #### Motivation

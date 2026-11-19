@@ -37,9 +37,10 @@
   |---|---|---|---|---|---|---|---|
   | 熱門商品 | train 段落計數前 10 | 0.00729 | 0.01203 | 0.00400 | 0.00552 | — | 本機，2026-11-18 |
   | SASRec baseline | CE、hidden 64、2 heads（`sasrec-beauty-v1`） | 0.05388 | 0.08505 | 0.03124 | 0.04133 | 0.0605／0.0318（TIGER 論文表 3） | [log](SASRec/Experiment-log.md) 2026-11-19 |
+  | TIGER baseline | T5X 式 Adafactor，20k（`tiger-t5x-adafactor-v1`） | 0.03564 | 0.05558 | 0.02298 | 0.02942 | 0.0648／0.0384（TIGER 論文） | [log](TIGER/Experiment-log.md) 2026-11-19 |
   | FMRec baseline | 作者預設（`fmrec-beauty-v1`） | 0.05764 | 0.08036 | 0.04017 | 0.04745 | 0.0827／0.0495（FMRec 論文，另一份資料處理） | [log](FMRec/Experiment-log.md) 2026-11-19 |
 
-  test 比 validation 低 17–22%，與 test 的冷門目標較多相符（上一項）。單一 seed，兩模型的差距不足以排序（README「實驗設計與統計檢定」）。TIGER 跑完並定案後才跑 test。
+  test 比 validation 低 17–22%，與 test 的冷門目標較多相符（上一項）。單一 seed，兩模型的差距不足以排序（README「實驗設計與統計檢定」）。TIGER 從 validation 到 test 掉 31%，多於另外兩個模型。
 
 ## Limitations
 

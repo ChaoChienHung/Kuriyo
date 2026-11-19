@@ -64,7 +64,7 @@ SoC 上的既有 run（`tiger-t5x-adafactor-v1`、`tiger-paper-v1`、`sasrec-bea
 
 ## 2026-11-19 晚：SASRec H1 成立、TIGER 20k 後下降
 
-SASRec 論文設定（BCE）3 個 seed 的 validation Recall@10 0.0602 ± 0.0015，只換 CE 0.1024 ± 0.0006（jobs 1166902–07，程式 `1d5c37c`）；H1 成立。TIGER job 1165519 的 validation 在 20k 最好（0.0800），40k–100k 一路降到 0.0546，無效 beam 升到 1.8%；train loss 同時仍在降（30k 1.29），支持過擬合（TIGER INSIGHT H8）。使用者已結束該 job，`best.pt` 在 20k。下一步：以 `--eval-every 2000 --steps 40000` 跑細曲線找最佳 step（TODO 第一項）。
+SASRec 論文設定（BCE）3 個 seed 的 validation Recall@10 0.0602 ± 0.0015，只換 CE 0.1024 ± 0.0006（jobs 1166902–07，程式 `1d5c37c`）；H1 成立。TIGER job 1165519 的 validation 在 20k 最好（0.0800），40k–100k 一路降到 0.0546，無效 beam 升到 1.8%；train loss 同時仍在降（30k 1.29），支持過擬合（TIGER INSIGHT H8）。使用者已結束該 job，`best.pt` 在 20k；其 test Recall@10 0.0556（job 1167548），比論文低約 14%、比 validation 低 31%。下一步：以 `--eval-every 2000 --steps 40000` 跑細曲線找最佳 step（TODO 第一項）。
 
 ## Logging 與匯入狀態
 

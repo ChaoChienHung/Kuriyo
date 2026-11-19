@@ -30,7 +30,7 @@
   - **Context:** TIGER 論文在三個 2014 分類上報告；只看 Beauty 的結論可能不穩。`run.sbatch` 已支援 `CATEGORY`。
   - **Scope:** 使用者在 SoC 先跑 `CATEGORY=<分類> STAGE=prepare`（一次一個分類），README 補上兩個分類的筆數；之後 SASRec、FMRec、TIGER（各自的 SID 版本）用預設 run 名稱訓練，多 seed 依 README。
   - **Acceptance:** 兩個分類的切分筆數、商品數與論文資料表對照；三個模型的 validation 分資料集記在各 Experiment-log 與 `Recall/INSIGHT.md`。
-- [ ] 依目標商品熱門度分組評估（冷啟動與長尾）
+- [ ] 依目標商品熱門度分組評估（冷啟動與長尾）（優先：TIGER 的 test 比 validation 低 31%，item-ID 模型只低 17–22%）
   - **Context:** `Recall/INSIGHT.md` H2、`Recall/TIGER/INSIGHT.md` H7：SASRec／FMRec 的 ID embedding 隨機初始化，對沒學過的商品無能為力；validation 目標有 20.8% 在 train 當目標少於 5 次、0.23% 完全沒出現。整體指標由熱門商品主導。
   - **Scope:** 在 `Recall/core/` 加依 train 出現次數（0、1–4、5 以上）分組的指標，各模型 validation 一併輸出；不改既有整體指標。
   - **Acceptance:** 有 checkpoint 的 run 可重新評估出分組 Recall@10／NDCG@10，三個家族的結果並列在 `Recall/INSIGHT.md`。
