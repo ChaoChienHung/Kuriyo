@@ -36,8 +36,9 @@
 ## P1 — FMRec 同切分比較
 
 - [x] `Recall/FMRec/baseline/`：依作者程式 `1c39b17` 實作，讀 Kuriyo ASIN 切分（20 件歷史上限），共用指標 full ranking；測試與 CPU smoke 通過。
-- [ ] 在 SoC GPU 以作者預設跑完整訓練（新 RUN_NAME），記錄 validation，與 TIGER 及熱門基線的 validation 比較。
-- [ ] 視結果做單一因素對照：`--mode-scale 0.4`、`--max-history 50`（需另建 50 件歷史的切分）、`--attention causal`。
+- [ ] 在 SoC GPU 以作者預設跑完整訓練：`python -m Recall.FMRec.baseline.train --run-name fmrec-beauty-v1 --device cuda`（以 batch job 包裝，先核對 SoC 資源）；記錄 validation，與 SASRec 0.0938、TIGER 0.0368／0.0342、熱門基線 0.0170（皆 validation Recall@10）比較。
+- [ ] 視結果做單一因素對照，每項新 RUN_NAME：`--mode-scale 0.4`（論文 B.2 的另一個 s）、`--attention causal`、`--sample-steps 1` 對 30（檢驗 `Recall/FMRec/INSIGHT.md` 的 H1）。
+- [ ] 優先度低：50 件歷史對照（FMRec 論文設定），需另建 `--max-history 50` 的切分。
 - [ ] 若要多次跑 FMRec，再為 `scripts/run.sbatch` 加 FMRec 的 STAGE；目前只有手動指令。
 
 ## P1 — SASRec 資料／評估檢查

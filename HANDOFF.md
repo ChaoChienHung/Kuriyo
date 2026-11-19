@@ -94,7 +94,7 @@ SoC 安裝指令在根 requirements.txt 註解與 run.sbatch，明確使用 torc
 2. 新 SID 完整 run `tiger-paper-v1` 已完成（200k Recall@10 0.0368），SID 產生紀錄見 job 1162430（`38b9bcf`）與 `Representations/SID/INSIGHT.md`。
 3. 核對 paper/T5X 與 HF T5 的容量、商品文字、user hash、訓練樣本、optimizer、解碼與評估設定；將事實與猜測分開記錄。
 4. 保留本 run 作比較起點，新增實驗用新 SID_VERSION/RUN_NAME；固定 validation，先建立熱門商品基線。模型定案後才執行一次 held-out test。
-5. 在 SoC GPU 跑 FMRec baseline 完整訓練，與 TIGER validation 比較（見 TODO「FMRec 同切分比較」）。
+5. **FMRec 完整訓練：**在 SoC GPU 以 batch job 執行 `python -m Recall.FMRec.baseline.train --run-name fmrec-beauty-v1 --device cuda`（作者預設，約 257 steps/epoch、最多 500 epochs；約 2,840 萬參數，CPU 不可行）。validation 與 SASRec、TIGER、熱門基線比較；之後的單一因素對照（`--mode-scale 0.4`、`--attention causal`、取樣步數）見 TODO「FMRec 同切分比較」。
 6. 增加 SID checkpoint/resume；有第二個實際模型變體時，於 `Recall/TIGER/<variant-name>/` 新增並視需要建立載入介面。
 
 ## 驗證與限制
