@@ -4,6 +4,7 @@ type: architecture
 created: 2026-11-19
 updated: 2026-11-19
 sources:
+  - code: Recall/core/popularity.py
   - code: core/runs.py
   - code: core/run_logging.py
   - code: core/experiment.py
@@ -39,5 +40,7 @@ SASRec、FMRec 與 TIGER baseline 各自只寫模型與訓練迴圈；run 目錄
 TIGER 的 smoke trainer（`Recall/TIGER/baseline/train_sequence.py`）仍用舊的平版面；SID 產生器只用 `core/run_logging.py`，不經過 `core/runs.py`。
 
 > ⚠️ 預設值改變時（例如 2026-11-19 SASRec 改成論文設定），舊 run 的搬移與 test 也用 `RESUME_KEYS` 核對，所以必須以舊值呼叫（SASRec 舊 run 帶 `--loss ce --hidden 64 --heads 2`）。run 目錄不存在時 `evaluate_test_once` 只會報「best checkpoint missing」並印出路徑：先確認 job 是從放 run 的 repo 提交的；`scripts/run.sbatch` 的 `STAGE=test` 會在啟動 Python 前檢查。
+
+> ⚠️ `--eval-groups`（`core/runs.py` 的 `evaluate_groups`）會再評估一次 test，但只對已經跑過那一次 test 的 run，用來拆解同一個 checkpoint 的結果，不可拿來選模型。分組依「當 train 目標的次數」（`Recall/core/popularity.py`），用的是該 run 實際訓練的 train，所以 `--max-train-examples` 會改變分組。整體數字和原紀錄比對寫在 `max_abs_difference`；FMRec 的評估雜訊以 seed 固定，所以應該是 0，不是 0 時先查 batch size 或裝置是否不同。
 
 相關：[[model-family-layout]]（家族與變體的目錄規則）、[[tiger-training]]、[[sasrec]]、[[fmrec]]。
