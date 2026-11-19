@@ -4,6 +4,11 @@
 
 ## Awaiting review
 
+- [ ] 多資料集、seed 與單一因素旗標；統計規則
+  - **Delivered:** `run.sbatch` 的 `CATEGORY`、`SEED`、`TRAIN_ARGS`（皆驗證字元，train 與 test 共用）；`scripts/ensure_amazon_reviews_2014.py` 處理任一或全部三個 2014 分類，舊的 Beauty 腳本改為 wrapper；SID 生成改傳 `--items` 指定分類的 catalog。README 新增「實驗設計與統計檢定」（seed 數、命名、平均 ± 標準差與 95% CI、使用者配對檢定加 seed 層級 Welch、Holm 校正、只在 validation 選擇），AGENTS.md 規定比較前必讀。TODO 新增逐使用者排名輸出、Beauty 多 seed、SASRec BCE、Sports／Toys 四項。
+  - **Evidence:** 新增 2 項 orchestration 測試（分類、seed、`TRAIN_ARGS` 傳到 train 與 test；TIGER 新分類用自己的 SID 與 run 名稱），並把無效 `CATEGORY`／`SEED`／`TRAIN_ARGS` 加入拒絕測試；完整 unittest discovery 67 項通過。Beauty 預設呼叫除多傳 `--category Beauty --seed 42`（與預設值相同）外不變。
+  - **Review focus:** 預設 run 名稱在 Beauty 以外帶分類（`sasrec-toys_and_games-v1`、`tiger-paper-sports_and_outdoors-v1`）；`TRAIN_ARGS` 只允許英數、`_.=-` 與空白；統計規則的門檻（3／5 個 seed、兩種檢定都要 p < 0.05）是提議，請確認。
+
 - [ ] 共用 run 目錄與訓練零件；Experiment-log 移到家族層
   - **Delivered:** 新增 `core/runs.py`（run 版面、`settings.json`、建立／續訓／只跑一次 test、checkpoint 含 RNG、`Selection` 選最佳與 early stop、共用 CLI 與裝置檢查）與 `Recall/core/evaluation.py`；`AsinSplit`、`load_catalog`、`read_examples` 移入 `Recall/core/data.py`，`experiment.py` 移到 `core/`。三個 baseline 改用它們。run 改成 `settings.json`、`train/`、`checkpoints/`、`validation/<set>/`、`test/<set>/`；舊的平版面在續訓或 test 時核對後搬移。Experiment-log 移到 `Recall/<family>/Experiment-log.md`，條目加 Variant 與資料／前處理。INSIGHT 補上 BCE 與 CE 的機制（SASRec H1）與冷啟動限制（`Recall/INSIGHT.md` H2、TIGER H7）。
   - **Evidence:** 重構前後以固定 seed 跑 SASRec、FMRec（真實資料子集）與 TIGER（合成資料），各含一次續訓與 test，loss、validation、test 指標逐位相同；舊版面 run 的搬移、拒絕與續訓在本機驗證；完整 unittest discovery 65 項通過（新增 `tests/test_runs.py` 3 項）；docs lint 通過。

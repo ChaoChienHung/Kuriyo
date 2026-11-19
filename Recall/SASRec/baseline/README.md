@@ -50,6 +50,12 @@ python -m Recall.SASRec.baseline.train --run-name sasrec-beauty-v1 --device cuda
 MODEL=sasrec RUN_NAME=sasrec-beauty-v1 STAGE=train sbatch --export=ALL --job-name=kuriyo-sasrec scripts/run.sbatch
 ```
 
+原論文的 BCE loss 是同一份程式的設定，不是另一個變體；用自己的 `RUN_NAME`，seed 依 [README 的統計規則](../../../README.md#實驗設計與統計檢定)以 `SEED` 指定：
+
+```bash
+MODEL=sasrec RUN_NAME=sasrec-bce-beauty-v1 TRAIN_ARGS="--loss bce" STAGE=train sbatch --export=ALL --job-name=kuriyo-sasrec scripts/run.sbatch
+```
+
 續訓（從 `checkpoints/latest.pt`，每個 epoch 結束時保存；資料校驗值、seed、batch size、loss、lr 與模型設定必須和 `settings.json` 相同）：
 
 ```bash

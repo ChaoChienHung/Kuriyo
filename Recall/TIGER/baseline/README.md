@@ -99,7 +99,7 @@ export RUN_NAME=tiger-stable-v1
 export SID_DIR="data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/$SID_VERSION"
 
 # 1. 準備原始資料、商品 catalog 與 ASIN splits。
-.venv/bin/python -m scripts.prepare_amazon_reviews_2014_beauty
+.venv/bin/python -m scripts.ensure_amazon_reviews_2014 --category Beauty
 
 # 2. 對完整商品 catalog 生成 SID。
 .venv/bin/python -m Representations.SID.scripts.generate_sids \
@@ -211,7 +211,7 @@ paper baseline 的 run 版面與 `settings.json` 見 [`core/README.md`](../../..
 
 ## 常見問題與目前限制
 
-- **缺少 Beauty catalog：** 更新後的 `STAGE=sid` 會先準備資料；手動流程先執行 `python -m scripts.prepare_amazon_reviews_2014_beauty`。
+- **缺少 Beauty catalog：** 更新後的 `STAGE=sid` 會先準備資料；手動流程先執行 `python -m scripts.ensure_amazon_reviews_2014 --category Beauty`（其他分類以 `CATEGORY` 或 `--category` 指定）。
 - **partial download / split 或校驗失敗：** 準備器會停止，保留既有檔案；檢查錯誤指出的路徑與 manifest，不要直接覆寫或刪除原始資料。
 - **SID split missing：** 完整 SID 生成後先跑 `STAGE=materialize`，確認後續沿用同一個 `SID_VERSION`。
 - **CUDA is unavailable：** 確認執行於 GPU allocation，並檢查該 `.venv` 的 PyTorch/CUDA 與節點驅動。CPU 小樣本可用 `--device cpu`，正式 batch 入口使用 CUDA。

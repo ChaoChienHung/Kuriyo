@@ -39,13 +39,19 @@ case "$2" in
     test "$9" = -r
     test "${10}" = Recall/TIGER/baseline/requirements.txt
     ;;
-  scripts.prepare_amazon_reviews_2014_beauty)
+  scripts.ensure_amazon_reviews_2014)
     if [ "$FAIL_PREPARE" = 1 ]; then exit 17; fi
-    mkdir -p data/amazon_reviews/2014/catalog/Beauty
-    echo '{}' > data/amazon_reviews/2014/catalog/Beauty/items.jsonl
+    test "$3" = --category
+    mkdir -p "data/amazon_reviews/2014/catalog/$4"
+    echo '{}' > "data/amazon_reviews/2014/catalog/$4/items.jsonl"
+    for split in train validation; do
+      mkdir -p "data/amazon_reviews/2014/$split/raw/$4"
+      echo '{}' > "data/amazon_reviews/2014/$split/raw/$4/examples.jsonl"
+    done
     ;;
   Representations.SID.scripts.generate_sids)
-    test -s data/amazon_reviews/2014/catalog/Beauty/items.jsonl
+    test "$3" = --items
+    test -s "$4"
     echo "$*" > "$RUN_TRACE.sid"
     ;;
   Recall.TIGER.baseline.train)
@@ -72,7 +78,7 @@ esac
         result = self.run_job()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.trace.read_text().splitlines(), [
-            "pip", "scripts.prepare_amazon_reviews_2014_beauty",
+            "pip", "scripts.ensure_amazon_reviews_2014",
             "Representations.SID.scripts.generate_sids",
         ])
 
@@ -110,7 +116,7 @@ esac
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Reusing completed SID catalog", result.stdout)
         self.assertEqual(self.trace.read_text().splitlines(), [
-            "pip", "scripts.prepare_amazon_reviews_2014_beauty",
+            "pip", "scripts.ensure_amazon_reviews_2014",
         ])
 
     def test_failed_preparation_stops_before_generation(self):
@@ -118,7 +124,7 @@ esac
         result = self.run_job()
         self.assertEqual(result.returncode, 17)
         self.assertEqual(self.trace.read_text().splitlines(), [
-            "pip", "scripts.prepare_amazon_reviews_2014_beauty",
+            "pip", "scripts.ensure_amazon_reviews_2014",
         ])
 
     def prepare_train_stage(self):
@@ -185,7 +191,33 @@ esac
         self.assertEqual(self.trace.read_text().splitlines(),
                          ["pip", "Recall.SASRec.baseline.train"])
         self.assertEqual(self.model_args("Recall.SASRec.baseline.train")[2:],
-                         ["--run-name", "test-v1", "--device", "cuda"])
+                         ["--category", "Beauty", "--seed", "42", "--run-name", "test-v1",
+                          "--device", "cuda"])
+
+    def test_category_seed_and_train_args_reach_train_and_test(self):
+        self.env.update(MODEL="sasrec", STAGE="all", CATEGORY="Toys_and_Games", SEED="7",
+                        TRAIN_ARGS="--loss bce")
+        del self.env["RUN_NAME"]
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        args = self.model_args("Recall.SASRec.baseline.train")[2:]
+        self.assertEqual(args, ["--category", "Toys_and_Games", "--seed", "7", "--run-name",
+                                "sasrec-toys_and_games-v1", "--device", "cuda", "--loss", "bce"])
+        self.env["STAGE"] = "test"
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.model_args("Recall.SASRec.baseline.train")[2:], args + ["--eval-test-only"])
+
+    def test_tiger_category_uses_its_own_sid_and_run(self):
+        self.env.update(CATEGORY="Sports_and_Outdoors")
+        del self.env["RUN_NAME"]
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        sid_args = Path(str(self.trace) + ".sid").read_text().split()
+        self.assertIn("data/amazon_reviews/2014/catalog/Sports_and_Outdoors/items.jsonl", sid_args)
+        self.assertIn("data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/"
+                      "Sports_and_Outdoors/test-v1", sid_args)
+        self.assertIn("run=tiger-paper-sports_and_outdoors-v1", result.stdout)
 
     def test_fmrec_all_prepares_then_resumes_existing_run(self):
         self.env.update(MODEL="fmrec", STAGE="all")
@@ -196,7 +228,7 @@ esac
         result = self.run_job()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.trace.read_text().splitlines(), [
-            "pip", "scripts.prepare_amazon_reviews_2014_beauty", "Recall.FMRec.baseline.train"])
+            "pip", "scripts.ensure_amazon_reviews_2014", "Recall.FMRec.baseline.train"])
         self.assertIn("--resume", self.model_args("Recall.FMRec.baseline.train"))
 
     def test_model_train_refuses_run_without_checkpoint(self):
@@ -223,6 +255,7 @@ esac
 
     def test_invalid_model_settings_stop_before_work(self):
         for settings in ({"MODEL": "bert4rec"}, {"MODEL": "sasrec", "STAGE": "sid"},
+                         {"CATEGORY": "Books"}, {"SEED": "-1"}, {"TRAIN_ARGS": "--loss bce; rm"},
                          {"MODEL": "fmrec", "STAGE": "train", "ADAFACTOR_SCALE_PARAMETER": "1"}):
             with self.subTest(settings=settings):
                 env = dict(self.env, **settings)

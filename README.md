@@ -66,7 +66,7 @@ python3 -m unittest discover -s . -v
 
 商品 SID 的產生與三個 split 的轉換指令見 [SID README](Representations/SID/README.md)；TIGER 的訓練指令見 [TIGER baseline README](Recall/TIGER/baseline/README.md)。`sentence-t5_rqvae` 的完整 Beauty SID 已由 SoC job 1153307 產生，但碼本使用率偏低，仍需診斷；小樣本 smoke test 的 SID 不用作正式 split 資料。
 
-在 SoC 上的完整 Beauty 準備與 TIGER baseline 入口是 [`scripts/run.sbatch`](scripts/run.sbatch)；本地可先用 `python3 -m scripts.prepare_amazon_reviews_2014_beauty` 檢查或準備共用商品目錄與切分。`run.sbatch` 的預設是長時間 GPU 訓練，提交前須查當前叢集資源與儲存規則；細節見 [SoC skill](skills/nus-soc-slurm/SKILL.md)。
+在 SoC 上的資料準備與訓練入口是 [`scripts/run.sbatch`](scripts/run.sbatch)，以 `CATEGORY` 選分類（預設 `Beauty`）。本地可用 `python3 -m scripts.ensure_amazon_reviews_2014 --category <分類>` 檢查或準備一個分類的商品目錄與切分（下載、切分、校驗，完整的既有資料直接重用）；`--category all` 依序處理論文的三個分類 `Beauty`、`Sports_and_Outdoors`、`Toys_and_Games`。舊指令 `python3 -m scripts.prepare_amazon_reviews_2014_beauty` 等同 `--category Beauty`。三個分類各自切分、各自建立 SID 與 run，不混用；`Sports_and_Outdoors` 與 `Toys_and_Games` 尚未在 SoC 準備。`run.sbatch` 的預設是長時間 GPU 訓練，提交前須查當前叢集資源與儲存規則；細節見 [SoC skill](skills/nus-soc-slurm/SKILL.md)。
 
 若先只生成商品 SID，可從 repo 根目錄執行 `STAGE=sid sbatch --export=ALL scripts/run.sbatch`。這個階段會自動準備 Beauty 原始資料、商品目錄與 ASIN 切分，再生成 SID；完整的既有資料會經檢查後重用。部分下載或不完整的切分會報錯，需先檢查，不會自動覆寫。SID 完成後再以 `STAGE=materialize` 轉換樣本、`STAGE=train` 訓練 TIGER。
 
@@ -133,6 +133,28 @@ Recall/TIGER/
 ```bash
 .venv/bin/python -m unittest discover -s . -v
 ```
+
+## 實驗設計與統計檢定
+
+比較模型或設定之前先讀這一節；Experiment-log 與 INSIGHT 的結論依這裡的規則下。
+
+**雜訊有兩個來源。**訓練隨機性（初始化、取樣、dropout；換 seed 就會變）與評估樣本（是哪 22,363 位使用者）。單一 run 只能看到後者：Beauty validation 的 Recall@10 約 0.10，使用者層級的標準誤約 √(0.1×0.9／22,363) ≈ 0.002，兩個單一 run 相差 0.005 以內就不能說誰較好。前者要靠多個 seed 才看得到。
+
+**Seed 數：**
+- 探索、除錯、找方向：1 個 seed（42），在 Experiment-log 標「單一 seed」，不下優劣結論。
+- 要在 INSIGHT 寫「A 比 B 好」：每個設定至少 **3 個 seed（42、43、44）**。
+- 定案、與論文並列或對外報告：**5 個 seed（42–46）**。
+- 所有被比較的設定用同一組 seed。只有 `run.seed` 不同的 run 以 `-s<seed>` 結尾命名（例如 `sasrec-beauty-s43`）；既有的 `*-v1` run 就是 seed 42。
+
+**報告：**每個指標寫平均 ± 樣本標準差（n 個 seed），以及 t 分佈的 95% 信賴區間（n=3 時半寬 = 4.30·s／√3，n=5 時 2.78·s／√5）。每個資料集分開報告，不跨資料集平均。
+
+**檢定（同一資料集、同一切分）：**
+1. **使用者層級配對檢定（主要）：**同一位使用者在兩個模型下的指標配對比較。對每位使用者先平均各 seed 的 NDCG@10（或 Recall@10 是否命中），再做雙尾 paired bootstrap（10,000 次重抽使用者）或 paired t-test；Recall@10 這種 0／1 指標也可用 McNemar。檢定力高，但只反映評估樣本的雜訊。需要逐使用者的評估輸出（尚未實作，見 [TODO.md](TODO.md)）。
+2. **Seed 層級（確認）：**對兩組 seed 的指標做 Welch t-test。n=3 或 5 時檢定力低，只在差距遠大於 seed 標準差時才會顯著，主要用來確認結論不是某個 seed 的運氣。
+3. 兩者都 p < 0.05，且平均差距大於兩組 seed 標準差的較大者，才寫「顯著較好」；只有其一成立就寫「傾向」並說明。
+4. 同時比較多個模型或資料集時，以 Holm–Bonferroni 校正 p 值。
+
+**Validation 與 test：**模型選擇、早停與上面的檢定都在 validation 上做。設定定案後，每個 seed 的 run 對 test 各跑一次（`STAGE=test`），報告 test 的平均 ± 標準差；不依 test 結果回頭調參。
 
 ## 獨立訓練紀錄
 

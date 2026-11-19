@@ -54,6 +54,10 @@ SASRec、FMRec、TIGER baseline 的 run 改用 `core/runs.py` 的版面：`setti
 
 SoC 上的既有 run（`tiger-t5x-adafactor-v1`、`tiger-paper-v1`、`sasrec-beauty-v1`、`fmrec-beauty-v1` 等）都是舊的平版面。新程式在 `--resume` 或 `--eval-test-only`（`STAGE=train` 續訓或 `STAGE=test`）時先用 `config.json` 核對設定，相符才搬進新版面並寫 `settings.json`。執行中的 job 1165519 已載入舊程式，pull 不影響它；它還在跑時，不要對同一 run 執行新程式。
 
+## 多資料集、多 seed 與統計規則（2026-11-19）
+
+`scripts/run.sbatch` 新增 `CATEGORY`（`Beauty` 預設、`Sports_and_Outdoors`、`Toys_and_Games`）、`SEED`（預設 42）與 `TRAIN_ARGS`（單一因素的訓練旗標，train 與 test 都帶上）。`scripts.ensure_amazon_reviews_2014 --category <分類|all>` 取代只做 Beauty 的準備腳本（舊名保留為 wrapper）。比較與下結論的 seed 數與檢定方式見 README「實驗設計與統計檢定」；逐使用者配對檢定需要的排名輸出還沒做（TODO）。SoC 上兩個新分類尚未準備；既有的 `sasrec-beauty-v1`、`fmrec-beauty-v1` 都是 seed 42、尚未跑 test。
+
 ## Logging 與匯入狀態
 
 新版 `core/run_logging.py` 已接入 paper trainer 和 SID generator：TIGER 每 step 寫 run 的 `train/train.jsonl`、SID 每 epoch 寫 `train.jsonl`，生命週期等事件寫 `events.log`（JSON Lines），含 UTC timestamp、session ID、elapsed_seconds。續訓追加，不抹掉歷史；重跑相同 step 用 session ID 區分。SIGKILL、斷電或 logger 啟動前的錯誤未必留下失敗事件。舊 smoke trainer 尚未接入。

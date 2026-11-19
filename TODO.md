@@ -17,6 +17,22 @@
   - **Context:** `Recall/TIGER/INSIGHT.md` H5 已強烈支持（20k Recall@10 0.0800 對 0.0132）；SoC job 1165519 繼續訓練。
   - **Scope:** 使用者推 log 後，更新 TIGER baseline Experiment-log、TIGER INSIGHT、`Recall/INSIGHT.md` 對照表。
   - **Acceptance:** 每 20k 的 validation 曲線與最佳 step 記錄完成，並與 SASRec 0.1023、FMRec 0.1031 比較。
+- [ ] 逐使用者評估輸出與比較工具
+  - **Context:** README「實驗設計與統計檢定」的主要檢定是使用者層級的配對檢定；目前 validation／test 只存整體平均，無法配對。
+  - **Scope:** `Recall/core/evaluation.py` 另存每位使用者的目標排名（`validation/<set>/` 與 `test/<set>/` 旁的小檔，不改既有指標 JSON）；`core/` 或 `scripts/` 加比較指令：讀多個 run（多 seed），輸出平均 ± 標準差、95% CI、paired bootstrap／paired t、Welch t 與 Holm 校正後的 p 值。TIGER 的 beam 結果同樣輸出排名或 miss。
+  - **Acceptance:** 合成資料測試驗證 bootstrap 與 t 檢定的數值；既有整體指標逐位不變（共用程式的回歸規則）；有 checkpoint 的 run 可重新評估補出排名檔。
+- [ ] Beauty 多 seed：SASRec、FMRec 各補 seed 43–46
+  - **Context:** README 規定定案結果要 5 個 seed；既有 `sasrec-beauty-v1`、`fmrec-beauty-v1` 即 seed 42。
+  - **Scope:** agent 準備指令（`SEED=43 RUN_NAME=sasrec-beauty-s43 ...`），使用者提交；每個 job 一張 GPU，先查配額。
+  - **Acceptance:** 五個 seed 的 validation 平均 ± 標準差記在各家族 Experiment-log 與 `Recall/INSIGHT.md` 對照表。
+- [ ] SASRec 原論文 BCE（`--loss bce`），3 個 seed
+  - **Context:** `Recall/SASRec/INSIGHT.md` H1：隨機負例太容易，預期明顯低於 CE、接近論文 0.06。BCE 是同一變體的設定，不另開變體。負例只避開目標本身，原論文排除使用者看過的商品，差異寫進 Experiment-log。
+  - **Scope:** `MODEL=sasrec RUN_NAME=sasrec-bce-beauty-v1 TRAIN_ARGS="--loss bce"`，再以 `SEED=43／44`、`-s43／-s44` 補兩個 seed；先寫 Expectation。
+  - **Acceptance:** SASRec Experiment-log 有完整條目，H1 狀態更新；依 README 的檢定判斷 CE 與 BCE 的差距。
+- [ ] Sports_and_Outdoors、Toys_and_Games 資料與三個模型
+  - **Context:** TIGER 論文在三個 2014 分類上報告；只看 Beauty 的結論可能不穩。`run.sbatch` 已支援 `CATEGORY`。
+  - **Scope:** 使用者在 SoC 先跑 `CATEGORY=<分類> STAGE=prepare`（一次一個分類），README 補上兩個分類的筆數；之後 SASRec、FMRec、TIGER（各自的 SID 版本）用預設 run 名稱訓練，多 seed 依 README。
+  - **Acceptance:** 兩個分類的切分筆數、商品數與論文資料表對照；三個模型的 validation 分資料集記在各 Experiment-log 與 `Recall/INSIGHT.md`。
 - [ ] 依目標商品熱門度分組評估（冷啟動與長尾）
   - **Context:** `Recall/INSIGHT.md` H2、`Recall/TIGER/INSIGHT.md` H7：SASRec／FMRec 的 ID embedding 隨機初始化，對沒學過的商品無能為力；validation 目標有 20.8% 在 train 當目標少於 5 次、0.23% 完全沒出現。整體指標由熱門商品主導。
   - **Scope:** 在 `Recall/core/` 加依 train 出現次數（0、1–4、5 以上）分組的指標，各模型 validation 一併輸出；不改既有整體指標。
@@ -47,7 +63,7 @@
   - **Acceptance:** 中斷後以同一 SID_VERSION 續訓，結果與不中斷一致（小資料測試）。
 - [ ] 單一因素對照（各自新 RUN_NAME，等主要問題釐清後）
   - **Context:** `Recall/FMRec/INSIGHT.md` H1、`Recall/SASRec/INSIGHT.md` H1。
-  - **Scope:** FMRec `--mode-scale 0.4`、`--attention causal`、`--sample-steps 1` 對 30；SASRec `--loss bce`（H1：隨機負例太容易，預期明顯低於 CE、接近論文 0.06）、hidden 50／1 head。
+  - **Scope:** FMRec `--mode-scale 0.4`、`--attention causal`、`--sample-steps 1` 對 30；SASRec hidden 50／1 head（BCE 另列上方）。以 `TRAIN_ARGS` 傳旗標；要下結論時依 README 至少 3 個 seed。
   - **Acceptance:** 每項在對應的 Experiment-log 有一條完整紀錄，並更新假設狀態。
 - [ ] 完整環境 lock 與 GPU preflight
   - **Context:** 現有 Torch pin 不是完整 lockfile；壞節點要等 Python 啟動後才發現。

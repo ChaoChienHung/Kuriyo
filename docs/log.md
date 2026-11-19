@@ -60,3 +60,8 @@ Append-only. Newest entries at the bottom.
 - 新增 `core/runs.py`（run 版面、`settings.json`、續訓與 test 檢查、checkpoint、選最佳）、`Recall/core/evaluation.py`，`AsinSplit` 等移入 `Recall/core/data.py`，`experiment.py` 從 `Recall/core/` 移到 `core/`。SASRec、FMRec、TIGER baseline 改用它們；固定 seed 的小 run 在重構前後 loss 與指標逐位相同。
 - run 改成 `settings.json`、`train/`、`checkpoints/`、`validation/<set>/`、`test/<set>/`；舊的平版面在續訓或 test 時核對後搬移。新頁 [[run-directory]]。
 - Experiment-log 從 `Recall/<family>/baseline/` 移到 `Recall/<family>/`，條目加 Variant 與資料／前處理；[[model-family-layout]]、[[sasrec]]、[[fmrec]]、[[tiger-training]] 更新出處與行號。
+
+## 2026-11-19 — run.sbatch 的 CATEGORY／SEED／TRAIN_ARGS
+
+- [[model-family-layout]]：預設 run 名稱依分類、`SEED`／`TRAIN_ARGS` 傳給 train 與 test；準備腳本改為 `scripts.ensure_amazon_reviews_2014`；`run.sbatch` 行號更新。
+- [[sid-rqvae-training]]：`run.sbatch` 行號更新（內容不變）。

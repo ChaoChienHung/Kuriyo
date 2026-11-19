@@ -35,12 +35,15 @@ One stage-selectable script covers every Recall family. Submit from the reposito
 | `STAGE` | `prepare`, `sid`, `materialize`, `train`, `test`, `all` | `all` excludes the held-out `test` |
 | `RUN_NAME` | new name per experiment | an existing run with `checkpoints/latest.pt` (or a flat pre-2026-11-19 `latest.pt`, moved into the new layout on resume) resumes; a run directory without a checkpoint is refused |
 | `SID_RECIPE`, `SID_VERSION` | TIGER only | an existing SID version is reused only if its manifest records the same recipe |
+| `CATEGORY` | `Beauty` (default), `Sports_and_Outdoors`, `Toys_and_Games` | the 2014 dataset; splits, SID versions and default run names are per category |
+| `SEED` | integer, default `42` | passed to train and test; repeated seeds follow the README section "實驗設計與統計檢定" (name runs `-s<seed>`) |
+| `TRAIN_ARGS` | trainer flags, e.g. `--loss bce` | one changed factor per `RUN_NAME`; passed to train and test alike |
 | `ADAFACTOR_SCALE_PARAMETER` | `1` (default, T5X-style) or `0` | TIGER only; `0` is needed only to resume runs from before 2026-11-19; resume refuses a changed value |
 
 Use `--job-name=kuriyo-<model>` so the log is `slurm-kuriyo-<model>-<jobid>.out`. The script's `#SBATCH` defaults (partition `gpu-long`, 2 days, 1 GPU, 8 CPUs, 32 GB) were chosen for TIGER; override with `sbatch` flags when the live cluster differs.
 
-- **Several jobs at once:** submit each `MODEL` as its own job with `STAGE=train` after the Beauty split exists. `STAGE=all` or `prepare` makes every job rewrite the same split concurrently. Each job requests its own GPU; check the user's GPU quota first.
-- The first log line echoes `job=`, `commit=`, `model=`, `stage=`, and `run=`. Check it before reading any metric.
+- **Several jobs at once:** submit each `MODEL` (or seed) as its own job with `STAGE=train` after the category's split exists. `STAGE=all` or `prepare` makes every job rewrite the same split concurrently. Each job requests its own GPU; check the user's GPU quota first.
+- The first log line echoes `job=`, `commit=`, `model=`, `category=`, `seed=`, `train_args=`, `stage=`, and `run=`. Check it before reading any metric.
 - `pip install` runs at the start of every job and should print only "Requirement already satisfied"; filter it with `grep -v "Requirement already"` when reading logs.
 
 ## Monitoring and reading results
