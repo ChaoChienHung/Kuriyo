@@ -66,7 +66,7 @@ python3 -m unittest discover -s . -v
 
 商品 SID 的產生與三個 split 的轉換指令見 [SID README](Representations/SID/README.md)；TIGER 的訓練指令見 [TIGER baseline README](Recall/TIGER/baseline/README.md)。`sentence-t5_rqvae` 的完整 Beauty SID 已由 SoC job 1153307 產生，但碼本使用率偏低，仍需診斷；小樣本 smoke test 的 SID 不用作正式 split 資料。
 
-在 SoC 上的資料準備與訓練入口是 [`scripts/run.sbatch`](scripts/run.sbatch)，以 `CATEGORY` 選分類（預設 `Beauty`）。本地可用 `python3 -m scripts.ensure_amazon_reviews_2014 --category <分類>` 檢查或準備一個分類的商品目錄與切分（下載、切分、校驗，完整的既有資料直接重用）；`--category all` 依序處理論文的三個分類 `Beauty`、`Sports_and_Outdoors`、`Toys_and_Games`。舊指令 `python3 -m scripts.prepare_amazon_reviews_2014_beauty` 等同 `--category Beauty`。三個分類各自切分、各自建立 SID 與 run，不混用；`Sports_and_Outdoors` 與 `Toys_and_Games` 尚未在 SoC 準備。`run.sbatch` 的預設是長時間 GPU 訓練，提交前須查當前叢集資源與儲存規則；細節見 [SoC skill](skills/nus-soc-slurm/SKILL.md)。
+在 SoC 上的資料準備與訓練入口是 [`scripts/run.sbatch`](scripts/run.sbatch)，以 `CATEGORY` 選分類（預設 `Beauty`）。本地可用 `python3 -m scripts.ensure_amazon_reviews_2014 --category <分類>` 檢查或準備一個分類的商品目錄與切分（下載、切分、校驗，完整的既有資料直接重用）；`--category all` 依序處理論文的三個分類 `Beauty`、`Sports_and_Outdoors`、`Toys_and_Games`。舊指令 `python3 -m scripts.prepare_amazon_reviews_2014_beauty` 等同 `--category Beauty`。三個分類各自切分、各自建立 SID 與 run，不混用。`Sports_and_Outdoors` 已在 SoC 準備（job 1166748，程式 `4f6594d`）：296,337 筆 5-core 評論、35,598 位使用者、18,357 件商品，**189,543 train**、**35,598 validation**、**35,598 test**；使用者與商品數與 TIGER 論文的 Sports 資料表一致。`Toys_and_Games` 尚未準備。`run.sbatch` 的預設是長時間 GPU 訓練，提交前須查當前叢集資源與儲存規則；細節見 [SoC skill](skills/nus-soc-slurm/SKILL.md)。
 
 若先只生成商品 SID，可從 repo 根目錄執行 `STAGE=sid sbatch --export=ALL scripts/run.sbatch`。這個階段會自動準備 Beauty 原始資料、商品目錄與 ASIN 切分，再生成 SID；完整的既有資料會經檢查後重用。部分下載或不完整的切分會報錯，需先檢查，不會自動覆寫。SID 完成後再以 `STAGE=materialize` 轉換樣本、`STAGE=train` 訓練 TIGER。
 

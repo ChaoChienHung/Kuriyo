@@ -68,7 +68,7 @@ SASRec 論文設定（BCE）3 個 seed 的 validation Recall@10 0.0602 ± 0.0015
 
 ## 分組評估（2026-11-19）
 
-`STAGE=groups` 把既有 run 的 `best.pt` 依目標熱門度（train 當目標 0、1–4、5 以上次）重新評估，不訓練；有 test 的 run 一併拆解 test。下一步是對 SASRec、FMRec、TIGER 的既有 run 執行並記錄（TODO）。
+`STAGE=groups` 把既有 run 的 `best.pt` 依目標熱門度（train 當目標 0、1–4、5 以上次）重新評估，不訓練；有 test 的 run 一併拆解 test。下一步是對 SASRec、FMRec、TIGER 的既有 run 執行並記錄（TODO）；第一批 job 1167705–13 用舊程式提交、未執行，需 pull 後重送。TIGER 細曲線 job 1167529 因 Slurm controller 連線失敗沒有訓練，也需重送。Slurm log 已整理進紀錄後從工作目錄移除，可用 `git show 5963e3f:<檔名>` 取回。
 
 ## Logging 與匯入狀態
 
