@@ -4,6 +4,60 @@
 
 所有 run 都用 2014 Beauty 切分（131,413 train／22,363 validation，歷史上限 20）、seed 42（`train.py` 預設），validation 以全 catalog 的 unconstrained beam search（beam 10）評估。2026-11-19 以前的條目是事後依 log 補記；Expectation 依當時的動機補寫，不參考後來的結果。
 
+## 2026-11-20
+
+### 2k 間隔的細曲線：`tiger-t5x-adafactor-eval2k-v1`（H8）
+
+#### Motivation
+
+job 1165519 每 20k 才評估一次，只知道 20k（0.0800）比 40k（0.0713）好。用 2k 間隔找出最佳 step，並確認 20k 後的下降是過擬合（[INSIGHT](INSIGHT.md) H8）。
+
+#### Details
+
+- **Variant:** `baseline`
+- **Baseline:** `tiger-t5x-adafactor-v1`（job 1165519，同 seed、同 SID，每 20k 評估）。
+- **Change:** 只改評估間隔與總步數（`--eval-every 2000 --steps 40000`）；模型、optimizer、學習率排程不變。
+- **Data:** 2014 Beauty SID `tiger-paper-v1`；validation 22,363 筆。
+- **Environment:** SoC job 1167955，程式 `2b19879`（記在 `settings.json` 與 `events.log`）；第一次提交 job 1167529 因 Slurm controller 連線失敗沒有訓練。
+- **Command:** `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-eval2k-v1 TRAIN_ARGS="--eval-every 2000 --steps 40000" STAGE=train sbatch --export=ALL scripts/run.sbatch`
+- **Artifacts:** `Recall/TIGER/baseline/runs/tiger-t5x-adafactor-eval2k-v1/`（`validation/amazon2014-beauty/step-*.json` 含分組指標）；train loss 取自 Slurm log，`git show 9eca60c:slurm-kuriyo-tiger-1167955.out`。
+
+#### Settings
+
+- 與 `tiger-t5x-adafactor-v1` 相同（T5X 式 Adafactor、lr 0.01 前 10k 固定後 inverse sqrt、batch 256、seed 42），**不同**：`evaluation.every_steps` 2,000、`training.steps` 40,000。學習率排程與總步數無關，所以前 40k 的訓練與 baseline 相同。
+
+#### Expectation
+
+事後記錄：TODO 寫的是「找出最佳 step」，沒有寫數值預期；run 進行到 16k 時在對話中估計最佳點在 14k–22k 之間。
+
+#### Key Metrics
+
+- 各 step 的 validation Recall@10／NDCG@10、無效 beam 比例；train loss；目標熱門度分組（train 當目標 1–4 次、5 次以上）的 Recall@10。
+
+#### Results
+
+| step | Recall@10 | NDCG@10 | 無效 beam | 1–4 組 R@10 | 5+ 組 R@10 | train loss |
+| --- | --- | --- | --- | --- | --- | --- |
+| 4k | 0.06028 | 0.02983 | 0.00% | 0.0011 | 0.0758 | 1.82 |
+| 8k | 0.07190 | 0.03659 | 0.02% | 0.0053 | 0.0894 | 1.70 |
+| 12k | 0.07401 | 0.03915 | 0.03% | 0.0083 | 0.0913 | 1.61 |
+| 16k | 0.07749 | 0.04131 | 0.04% | 0.0092 | 0.0954 | 1.50 |
+| **20k（best）** | **0.08000** | **0.04344** | 0.06% | 0.0134 | 0.0975 | 1.42 |
+| 24k | 0.07562 | 0.04194 | 0.05% | 0.0123 | 0.0923 | 1.42 |
+| 28k | 0.07647 | 0.04167 | 0.11% | 0.0131 | 0.0931 | 1.37 |
+| 32k | 0.07307 | 0.03985 | 0.15% | 0.0149 | 0.0884 | 1.29 |
+| 36k | 0.07021 | 0.03834 | 0.21% | 0.0123 | 0.0854 | 1.21 |
+| 40k | 0.07132 | 0.03910 | 0.22% | 0.0162 | 0.0858 | 1.16 |
+
+train loss 是 Slurm log 該 step 的單一 batch 值。從未當過 train 目標的 81 筆在每個 step 都是 0。
+
+- **Observations:** 最佳 step 是 20k，Recall@10 0.08000、NDCG@10 0.04344，與 job 1165519 的 20k 逐位相同（同 seed 可重現）；40k 為 0.07132，也與 job 1165519 的 40k（0.0713）一致。14k–22k 是平台（0.0775–0.0800），之後下降，train loss 從 1.42 持續降到 1.16，無效 beam 從 0.06% 升到 0.22%。分組走向不同：5+ 組在 20k 最高後下降（0.0975 → 0.0858），1–4 組大致持續上升（0.0134 → 0.0162，34k 為 0.0167）。
+- **Hypotheses:** 20k 之後 5+ 組下降、train loss 下降，是對熱門商品的過擬合；1–4 組仍在學，代表冷門商品需要更多步數，過擬合不是全面的。單一 seed，1–4 組 4,564 筆，相鄰 step 的差距（約 0.002）在雜訊內。
+
+#### Conclusion
+
+H8 的最佳 step 確定在 20k（平台 14k–22k），20k 後是過擬合。以 NDCG@10 選擇時，`tiger-t5x-adafactor-v1` 的 20k 就是最佳點，不必重跑 test。下一步的單一因素是正則化（dropout 0.1 → 0.2，或 weight decay），看能否同時保住 5+ 組並讓 1–4 組繼續上升；改設定用新 RUN_NAME。
+
 ## 2026-11-19
 
 ### Held-out test：`tiger-t5x-adafactor-v1`（20k，seed 42）

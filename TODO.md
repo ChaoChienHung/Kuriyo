@@ -13,11 +13,10 @@
 
 依優先順序。
 
-- [ ] 找出 T5X 式 Adafactor TIGER 的最佳 step 與 20k 後下降的原因（H8）
-  - **Context:** `Recall/TIGER/INSIGHT.md` H8：job 1165519 的 validation 在 20k 最好（0.0800），到 100k 降到 0.0546，無效 beam 增加。
-  - **Context（更新）：**train loss 在 validation 下降時仍在降，支持過擬合；job 1165519 已由使用者結束，`best.pt` 在 20k。
-  - **Scope:** 新 run `RUN_NAME=tiger-t5x-adafactor-eval2k-v1 TRAIN_ARGS="--eval-every 2000 --steps 40000"`（同 seed、同 SID）找最佳 step；第一次提交 job 1167529 因 Slurm controller 連線失敗沒有開始訓練；重送為 job 1167955（`2b19879`），進行中（截至 step 16k 最佳為 14k 的 validation Recall@10 0.0779）。之後再決定對抗過擬合的單一因素（dropout、提早停止）。
-  - **Acceptance:** 2k 間隔的 validation 曲線記在 TIGER Experiment-log，最佳 step 寫進 H8，並寫下一個實驗。
+- [ ] TIGER 20k 後的過擬合：正則化單一因素（H8）
+  - **Context:** `Recall/TIGER/INSIGHT.md` H8：2k 間隔曲線（job 1167955）最佳在 20k（平台 14k–22k），之後熱門目標組下降、1–4 組仍上升，train loss 持續下降。
+  - **Scope:** 新 RUN_NAME，同 seed、同 SID，一次只改一個：T5 dropout 0.1 → 0.2（需新增 opt-in 旗標，預設不變），或 weight decay；`--eval-every 2000 --steps 40000`。單一 seed 先找方向，要下結論再補 3 個 seed。
+  - **Acceptance:** 與 `tiger-t5x-adafactor-eval2k-v1` 的曲線與分組並列在 TIGER Experiment-log，更新 H8。
 - [ ] Beauty 多 seed：SASRec 兩個設定、FMRec 各補 seed 43–46
   - **Context:** README 規定定案結果要 5 個 seed；既有 `sasrec-beauty-v1`（CE 設定）、`fmrec-beauty-v1` 即 seed 42。
   - **Scope:** agent 準備指令，使用者提交；SASRec CE 設定 `SEED=43 RUN_NAME=sasrec-ce-beauty-s43 TRAIN_ARGS="--loss ce --hidden 64 --heads 2"`，FMRec `SEED=43 RUN_NAME=fmrec-beauty-s43`；每個 job 一張 GPU，先查配額。
