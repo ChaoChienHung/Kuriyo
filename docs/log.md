@@ -40,3 +40,8 @@ Append-only. Newest entries at the bottom.
 ## [2026-11-19] update | run.sbatch 的 MODEL 選擇
 
 - [[model-family-layout]]：`scripts/run.sbatch` 新增 `MODEL=sasrec|fmrec`，記錄同時提交多個 job 時用 `STAGE=train` 的坑；[[sid-rqvae-training]] 行號更新。
+
+## [2026-11-19] update | 規則改以 AGENTS.md 為主
+
+- wiki 規則從 `docs/CLAUDE.md` 移到 `docs/AGENTS.md`，四個 `/docs-*` 指令的步驟也併入其 Procedures 一節，任何 agent 都可直接照做；`docs/CLAUDE.md` 只剩 `@AGENTS.md` 匯入，`.claude/commands/` 只剩指向。
+- 根 `AGENTS.md` 新增 Agent instruction files 一節；`.agents/`（自動轉換的副本）加入 `.gitignore`。

@@ -28,3 +28,6 @@ data/amazon_reviews/eval/
 data/amazon_reviews/validation/
 data/amazon_reviews/test/
 *.swp
+
+# Auto-converted agent skill copies; rules live in AGENTS.md files.
+.agents/

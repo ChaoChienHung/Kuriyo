@@ -3,7 +3,7 @@
 Kuriyo 是推薦模型研究 repo（Recall、Ranking、SID 表示與端到端流程）。專案總覽與執行方式見根目錄 `README.md`、`AGENTS.md`、`HANDOFF.md`；本 wiki 只記錄這些文件沒寫到的結構說明與踩過的坑，會隨工作逐步擴充。
 
 This directory is a wiki maintained by an LLM: linked markdown pages, nothing outside the
-repository. The rules are in [`CLAUDE.md`](CLAUDE.md).
+repository. The rules and procedures are in [`AGENTS.md`](AGENTS.md).
 
 ## Start here
 

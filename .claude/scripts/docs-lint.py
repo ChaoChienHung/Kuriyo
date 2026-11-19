@@ -25,7 +25,7 @@ from pathlib import Path
 LINT_VERSION = "4"
 
 REQUIRED_FM = ("title", "type", "verified_at")
-META_PAGES = {"index", "log", "CLAUDE", "README"}
+META_PAGES = {"index", "log", "AGENTS", "CLAUDE", "README"}
 DEFAULT_EXCLUDE_DIRS = ["raw"]
 
 # Extensions treated as code citations. Kept wide because it varies by project;

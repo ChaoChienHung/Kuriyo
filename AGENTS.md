@@ -52,4 +52,8 @@ The 2014 Beauty split is produced by `python3 -m scripts.prepare_amazon_reviews_
 
 ## docs
 
-`docs/` is a wiki maintained by an LLM. Page format, which page to update, and the `/docs-sync` workflow all live in [`docs/CLAUDE.md`](docs/CLAUDE.md). Start at [`docs/index.md`](docs/index.md).
+`docs/` is a wiki maintained by an LLM. Page format, which page to update, and the `/docs-sync` workflow all live in [`docs/AGENTS.md`](docs/AGENTS.md). Start at [`docs/index.md`](docs/index.md).
+
+## Agent instruction files
+
+`AGENTS.md` files (this one and `docs/AGENTS.md`) are the single source of rules and procedures for every agent, whatever the tool. Put new rules there. A `CLAUDE.md` may exist only as a one-line `@AGENTS.md` import so Claude Code loads the same text (`docs/CLAUDE.md` is one, and the docs plugin requires that file name); slash commands in `.claude/commands/` only point to procedures in `docs/AGENTS.md`. Never put rules only in `CLAUDE.md`, `.claude/`, or another tool's folder, and do not commit automatically converted copies such as `.agents/skills/source-command-*` (`.agents/` is Git-ignored); they drift and their search-and-replace rewrites paths and exclusions incorrectly.
