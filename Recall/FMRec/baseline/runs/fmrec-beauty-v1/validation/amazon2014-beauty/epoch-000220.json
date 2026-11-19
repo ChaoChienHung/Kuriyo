@@ -1,0 +1,13 @@
+{
+  "recall@5": 0.07297768635692886,
+  "recall@10": 0.1027143048785941,
+  "ndcg@5": 0.05069872288253313,
+  "ndcg@10": 0.060294442067279894,
+  "examples": 22363,
+  "ranking": "full catalog, inner product with item embeddings; history items not filtered",
+  "sample_steps": 30,
+  "eval_seed": 42,
+  "split": "validation",
+  "epoch": 220,
+  "step": 56540
+}

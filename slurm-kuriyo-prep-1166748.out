@@ -46,19 +46,21 @@ Requirement already satisfied: charset_normalizer<4,>=2 in ./.venv/lib/python3.1
 Requirement already satisfied: idna<4,>=2.5 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (3.20)
 Requirement already satisfied: urllib3<3,>=1.26 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2.8.0)
 Requirement already satisfied: certifi>=2023.5.7 in ./.venv/lib/python3.12/site-packages (from requests->transformers<5,>=4.44->-r Representations/SID/requirements.txt (line 5)) (2026.10.23)
-job=1165548 commit=6c4d2339ea83563039bb9d86d54f5562f76e538d model=sasrec stage=train sid_version=tiger-paper-v1 sid_recipe=stable adafactor_scale_parameter=0 run=sasrec-beauty-v1
-/home/c/chaoch/Kuriyo/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:174: UserWarning: CUDA initialization: CUDA unknown error - this may be due to an incorrectly set up environment, e.g. changing env variable CUDA_VISIBLE_DEVICES after program start. Setting the available devices to be zero. (Triggered internally at /pytorch/c10/cuda/CUDAFunctions.cpp:109.)
-  return torch._C._cuda_getDeviceCount() > 0
-usage: train.py [-h] [--data-root DATA_ROOT] [--category CATEGORY] --run-name
-                RUN_NAME [--runs-dir RUNS_DIR] [--epochs EPOCHS]
-                [--batch-size BATCH_SIZE] [--eval-batch-size EVAL_BATCH_SIZE]
-                [--eval-every EVAL_EVERY] [--patience PATIENCE]
-                [--loss {ce,bce}] [--lr LR] [--weight-decay WEIGHT_DECAY]
-                [--hidden HIDDEN] [--heads HEADS] [--layers LAYERS]
-                [--dropout DROPOUT] [--max-history MAX_HISTORY]
-                [--max-train-examples MAX_TRAIN_EXAMPLES]
-                [--max-validation-examples MAX_VALIDATION_EXAMPLES]
-                [--seed SEED] [--device {cpu,cuda,mps}] [--resume]
-                [--eval-test-only]
-train.py: error: CUDA is unavailable
-srun: error: xgpe6: task 0: Exited with exit code 2
+job=1166748 commit=4f6594d6161fbd49ca01bd05796bba7ce811a947 model=sasrec category=Sports_and_Outdoors seed=42 train_args=[] stage=prepare sid_version=tiger-paper-v1 sid_recipe=stable adafactor_scale_parameter=0 run=sasrec-sports_and_outdoors-v1
+Downloading reviews: https://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Sports_and_Outdoors_5.json.gz
+Validated 296337 rows in /home/c/chaoch/Kuriyo/data/amazon_reviews/2014/raw/Sports_and_Outdoors/reviews_Sports_and_Outdoors_5.json.gz
+Downloading metadata: https://snap.stanford.edu/data/amazon/productGraph/categoryFiles/meta_Sports_and_Outdoors.json.gz
+Validated 532197 rows in /home/c/chaoch/Kuriyo/data/amazon_reviews/2014/raw/Sports_and_Outdoors/meta_Sports_and_Outdoors.json.gz
+Wrote /home/c/chaoch/Kuriyo/data/amazon_reviews/2014/raw/Sports_and_Outdoors/manifest.json
+Reading reviews from /home/c/chaoch/Kuriyo/data/amazon_reviews/2014/raw/Sports_and_Outdoors/reviews_Sports_and_Outdoors_5.json.gz
+{
+  "source_reviews": 296337,
+  "source_users": 35598,
+  "eligible_users": 35598,
+  "catalog_items": 18357,
+  "train_examples": 189543,
+  "validation_examples": 35598,
+  "test_examples": 35598
+}
+Wrote train/validation/test under /home/c/chaoch/Kuriyo/data/amazon_reviews/2014
+Sports_and_Outdoors ready: 18357 items, 189543 train, 35598 validation, 35598 test
