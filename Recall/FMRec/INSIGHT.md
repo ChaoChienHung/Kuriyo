@@ -20,7 +20,7 @@ FMRec 家族的研究筆記。事實與假設分開，每個結果都註明資�
 - 論文 Beauty 結果（HR@5 5.84%、HR@10 8.27%、NDCG@5 4.16%、NDCG@10 4.95%）使用 50 件歷史、ICLRec／DuoRec 處理的資料（22,361 users、12,101 items），論文沒有和 TIGER 比較。
 - Kuriyo 的 20 件歷史上限來自 TIGER 論文 Appendix C（套用在訓練）；FMRec 論文用 50。Kuriyo 2014 Beauty 切分：22,363 users、12,101 items。
 - Kuriyo baseline 28,388,038 參數（SoC job 1165520 log），其中約 2,480 萬在重建 MLP 最後一層（2048 × 12,102）。
-- CPU smoke `fmrec-smoke-cpu-20261118` 只證明流程可執行（[baseline Experiment-log](baseline/Experiment-log.md) 2026-11-18）；完整訓練 `fmrec-beauty-v1` 在 SoC 進行中（同檔 2026-11-19）。
+- 完整訓練 `fmrec-beauty-v1` 在 SoC 進行中（[baseline Experiment-log](baseline/Experiment-log.md) 2026-11-19）。
 
 ## Limitations
 

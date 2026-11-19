@@ -207,7 +207,7 @@ SID 完成後有 `semantic_ids.jsonl`、`manifest.json`、`embeddings.npz`、`rq
   --batch-size 32 --device cpu
 ```
 
-小樣本 SID 不能用來轉換完整 splits 或訓練正式 baseline。先前 64 商品、1 epoch 的 smoke run 三層碼本使用碼數僅 3、1、1（每層容量 16），顯示 collapse；只能證明流程可執行，不能推論推薦品質。
+小樣本 SID 不能用來轉換完整 splits 或訓練正式 baseline；smoke 只證明流程可執行，不能推論推薦品質。
 
 ## 常見問題與目前限制
 

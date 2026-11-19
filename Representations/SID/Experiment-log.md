@@ -2,7 +2,7 @@
 
 與模型無關的商品 SID 產生（`Representations/SID/`）的實驗日誌，最新的日期在最上面。超出單一 run 的結論整理到 [INSIGHT.md](INSIGHT.md)；SID 對 TIGER 指標的影響記在 [TIGER baseline Experiment-log](../../Recall/TIGER/baseline/Experiment-log.md)。
 
-所有實驗都用 2014 Beauty 的完整商品目錄（12,101 件，`catalog/Beauty/items.jsonl`），三層 RQ-VAE、每層 256 碼。2026-11-18 以前的條目是事後依 log 補記。
+所有實驗都用 2014 Beauty 的完整商品目錄（12,101 件，`catalog/Beauty/items.jsonl`），三層 RQ-VAE、每層 256 碼。2026-11-18 以前的條目是事後依 log 補記；Expectation 依當時的動機補寫，不參考後來的結果。
 
 ## 2026-11-18
 
@@ -98,7 +98,7 @@ job 1153307 的 SID 第一個 epoch loss 8.7e9，三層只用 6/26/25 碼。找�
 
 #### Expectation
 
-未在執行前寫下；目標是定位發散與塌縮。
+A 應重現 SoC 的第一 epoch 發散與塌縮。若主因是 Adagrad accumulator 從 0 開始，B（accumulator 0.1）應消除發散並恢復三層碼使用；若 B 仍有某層塌縮，代表還有第二個原因，標準化（D）或重設未使用碼（E）應能補上。換成 AdamW（C）若同樣塌縮，問題就不只是 optimizer。
 
 #### Key Metrics
 
@@ -142,7 +142,7 @@ job 1153307 的 SID 第一個 epoch loss 8.7e9，三層只用 6/26/25 碼。找�
 
 #### Expectation
 
-未在執行前寫下數值預期。
+依論文設定，12,101 件商品對三層各 256 碼應有足夠的多樣性，大部分碼都會被使用，三碼 SID 碰撞少；loss 從初始值平穩下降，不出現數量級的跳動。
 
 #### Key Metrics
 
@@ -156,35 +156,3 @@ job 1153307 的 SID 第一個 epoch loss 8.7e9，三層只用 6/26/25 碼。找�
 #### Conclusion
 
 SID 塌縮，列為 TIGER 差距的主要嫌疑並安排診斷。
-
-### 本機 smoke
-
-#### Motivation
-
-確認 SID 生成流程能跑通。
-
-#### Details
-
-- **Baseline:** 無。
-- **Change:** 兩個小跑：Sentence-T5 base、64 件商品、1 epoch、每層 16 碼；TF-IDF/SVD、完整 12,101 件、1 epoch、每層 32 碼。
-- **Data:** 2014 Beauty 商品目錄（全部或前 64 件）。
-- **Environment:** 本機。
-- **Command:** `python -m Representations.SID.scripts.generate_sids`（確切參數未記錄）
-- **Artifacts:** `Recall/TIGER/baseline/runs/sentence-t5-smoke-64/`、`Recall/TIGER/baseline/runs/smoke-beauty-final/`（Git 忽略）。
-
-#### Expectation
-
-只預期流程跑通。
-
-#### Key Metrics
-
-- 使用碼數、碰撞。
-
-#### Results
-
-- **Observations:** Sentence-T5 64 件：三層使用 3/1/1 碼（容量 16），塌縮。TF-IDF 完整 12,101 件：使用 27/25/15 碼（容量 32），546 組三碼 SID 碰撞，附加第四碼後每件唯一。
-- **Hypotheses:** 無。
-
-#### Conclusion
-
-流程可執行；小跑的塌縮要等完整訓練確認（後由 job 1153307 確認）。實際執行日未記錄，依產物路徑歸在 2026-11-17。

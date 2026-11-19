@@ -43,37 +43,3 @@ validation Recall@10 高於 TIGER 的 0.0342／0.0368；作為成熟的 item-ID 
 #### Conclusion
 
 進行中。
-
-## 2026-11-18
-
-### CPU smoke `fmrec-smoke-cpu-20261118`
-
-#### Motivation
-
-確認 baseline 的訓練、評估與 checkpoint 流程能在小資料上跑通，再送 GPU 完整訓練。
-
-#### Details
-
-- **Baseline:** 無。
-- **Change:** 只取 4,096 筆 train、1,024 筆 validation，2 epochs。
-- **Data:** 2014 Beauty ASIN 切分的子集。
-- **Environment:** 本機 CPU，約 8.5 分鐘（與完整測試同時跑）。
-- **Command:** `python -m Recall.FMRec.baseline.train --run-name fmrec-smoke-cpu-20261118 --epochs 2 --eval-every 1 --max-train-examples 4096 --max-validation-examples 1024`
-- **Artifacts:** 本機 `Recall/FMRec/baseline/runs/fmrec-smoke-cpu-20261118/`（Git 忽略）。
-
-#### Expectation
-
-loss 有限、流程跑完；不預期有意義的指標。
-
-#### Key Metrics
-
-- loss 是否有限、評估是否完成。
-
-#### Results
-
-- **Observations:** loss 有限，指標接近 0。
-- **Hypotheses:** 無。
-
-#### Conclusion
-
-流程可執行，可以送 GPU 完整訓練；此數字不代表推薦品質。

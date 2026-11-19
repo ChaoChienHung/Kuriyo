@@ -18,7 +18,7 @@ Kuriyo 是推薦模型研究 repo，預計包含 Recall、Ranking、其他推薦
 - `scripts/`：資料下載／準備／轉換、Slurm orchestration、舊 log 匯入；兩個 `train_tiger_*` 是保留的相容入口。
 - `tests/`：跨階段與資料元件；`Recall/tests/`：共用 Recall 行為；`Recall/TIGER/baseline/tests/`：baseline 的解碼、資料載入與訓練／續訓／test 整合。
 - `Ranking/`、`pipelines/` 尚為規劃／說明，不是已完成模型。
-- 原始資料、SID、checkpoints、環境與 cache 不入 Git。不刪除前次實驗來「整理」目錄；小型 smoke 產物雖舊，仍有研究追溯價值。
+- 原始資料、SID、checkpoints、環境與 cache 不入 Git。不刪除前次正式實驗來「整理」目錄；smoke 產物只用來確認流程，看完結果就可刪除，也不寫進 Experiment-log。
 
 ## 資料與切分
 

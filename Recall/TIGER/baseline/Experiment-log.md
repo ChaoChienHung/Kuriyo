@@ -2,7 +2,7 @@
 
 `Recall/TIGER/baseline/` 的實驗日誌，最新的日期在最上面。超出單一 run 的結論整理到家族的 [INSIGHT.md](../INSIGHT.md)；SID 本身的實驗記在 [SID Experiment-log](../../../Representations/SID/Experiment-log.md)。
 
-所有 run 都用 2014 Beauty 切分（131,413 train／22,363 validation，歷史上限 20）、seed 42（`train.py` 預設），validation 以全 catalog 的 unconstrained beam search（beam 10）評估。2026-11-19 以前的條目是事後依 log 補記，Expectation 寫的是當時文件裡記下的預期。
+所有 run 都用 2014 Beauty 切分（131,413 train／22,363 validation，歷史上限 20）、seed 42（`train.py` 預設），validation 以全 catalog 的 unconstrained beam search（beam 10）評估。2026-11-19 以前的條目是事後依 log 補記；Expectation 依當時的動機補寫，不參考後來的結果。
 
 ## 2026-11-19
 
@@ -112,7 +112,7 @@
 
 #### Expectation
 
-未在執行前寫下數值預期；目標是先取得可執行的完整 run 與 validation 曲線。
+依論文公開設定實作，validation Recall@10 應與論文 Beauty 的 0.0648 同一量級（validation 與 test 同協定、只差最後一筆），至少明顯高於熱門商品基線。若遠低於論文，代表實作或設定和論文有落差，需要逐項排查。
 
 #### Key Metrics
 
@@ -131,35 +131,3 @@
 #### Conclusion
 
 取得第一個可比較的 baseline，validation Recall@10 0.0342，約為熱門商品基線（0.0170）的 2 倍，遠低於論文。下一步先查 SID。沒有跑 test。
-
-### 序列 smoke test
-
-#### Motivation
-
-確認 smoke sequence trainer 的訓練與指標流程能跑通。
-
-#### Details
-
-- **Baseline:** 無。
-- **Change:** —
-- **Data:** 128 筆 train、3 筆 validation，SID 來自本機 smoke SID。
-- **Environment:** 本機，1 epoch。
-- **Command:** `python -m Recall.TIGER.baseline.train_sequence`（確切參數未記錄；入口說明見 [baseline README](README.md)）
-- **Artifacts:** `Recall/TIGER/baseline/runs/smoke-sequence-from-final-sid/`（Git 忽略）。
-
-#### Expectation
-
-只預期流程跑通，不預期有意義的指標。
-
-#### Key Metrics
-
-- 程式能完成訓練與評估、指標可計算。
-
-#### Results
-
-- **Observations:** Recall@5/10 與 NDCG@5/10 都是 0。
-- **Hypotheses:** 無。
-
-#### Conclusion
-
-流程可執行；此數字不代表推薦品質。日期以該產物路徑整理進 `baseline/` 的 2026-11-17 為準，實際執行日未記錄。
