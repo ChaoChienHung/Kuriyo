@@ -15,8 +15,9 @@
 
 - [ ] 找出 T5X 式 Adafactor TIGER 的最佳 step 與 20k 後下降的原因（H8）
   - **Context:** `Recall/TIGER/INSIGHT.md` H8：job 1165519 的 validation 在 20k 最好（0.0800），到 100k 降到 0.0546，無效 beam 增加。
-  - **Scope:** 使用者從 job 1165519 的 Slurm log 取 train loss（`grep "^step" slurm-kuriyo-tiger-1165519.out | awk 'NR%50==0'`）；新 run `RUN_NAME=tiger-t5x-adafactor-eval2k-v1 TRAIN_ARGS="--eval-every 2000 --steps 40000"`（同 seed、同 SID）。是否提前結束 job 1165519 由使用者決定。
-  - **Acceptance:** 2k 間隔的 validation 曲線與 train loss 記在 TIGER Experiment-log，H8 判斷為過擬合或步長問題，並寫下一個實驗。
+  - **Context（更新）：**train loss 在 validation 下降時仍在降，支持過擬合；job 1165519 已由使用者結束，`best.pt` 在 20k。
+  - **Scope:** 新 run `RUN_NAME=tiger-t5x-adafactor-eval2k-v1 TRAIN_ARGS="--eval-every 2000 --steps 40000"`（同 seed、同 SID）找最佳 step；之後再決定對抗過擬合的單一因素（dropout、提早停止）。
+  - **Acceptance:** 2k 間隔的 validation 曲線記在 TIGER Experiment-log，最佳 step 寫進 H8，並寫下一個實驗。
 - [ ] 逐使用者評估輸出與比較工具
   - **Context:** README「實驗設計與統計檢定」的主要檢定是使用者層級的配對檢定；目前 validation／test 只存整體平均，無法配對。
   - **Scope:** `Recall/core/evaluation.py` 另存每位使用者的目標排名（`validation/<set>/` 與 `test/<set>/` 旁的小檔，不改既有指標 JSON）；`core/` 或 `scripts/` 加比較指令：讀多個 run（多 seed），輸出平均 ± 標準差、95% CI、paired bootstrap／paired t、Welch t 與 Holm 校正後的 p 值。TIGER 的 beam 結果同樣輸出排名或 miss。
