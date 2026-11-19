@@ -183,8 +183,10 @@ def evaluate_test_once(layout, settings, keys, legacy_keys, model, evaluate, tes
     resume keys used to migrate a flat run first."""
     if layout.is_legacy:
         migrate_legacy(layout, settings, legacy_keys)
-    if not layout.best.is_file() or layout.test_metrics.exists():
-        raise RunError("best checkpoint missing or test already evaluated")
+    if layout.test_metrics.exists():
+        raise RunError("test already evaluated: {}".format(layout.test_metrics))
+    if not layout.best.is_file():
+        raise RunError("best checkpoint missing: {}".format(layout.best))
     previous = json.loads(layout.settings.read_text())
     check_settings(previous, settings, keys, "test settings")
     model.load_state_dict(torch.load(layout.best, map_location="cpu", weights_only=True))

@@ -144,7 +144,7 @@ Recall/TIGER/
 - 探索、除錯、找方向：1 個 seed（42），在 Experiment-log 標「單一 seed」，不下優劣結論。
 - 要在 INSIGHT 寫「A 比 B 好」：每個設定至少 **3 個 seed（42、43、44）**。
 - 定案、與論文並列或對外報告：**5 個 seed（42–46）**。
-- 所有被比較的設定用同一組 seed。只有 `run.seed` 不同的 run 以 `-s<seed>` 結尾命名（例如 `sasrec-beauty-s43`）；既有的 `*-v1` run 就是 seed 42。
+- 所有被比較的設定用同一組 seed。只有 `run.seed` 不同的 run 以 `-s<seed>` 結尾命名（例如 `sasrec-paper-beauty-s43`）；既有的 `*-v1` run 就是 seed 42。
 
 **報告：**每個指標寫平均 ± 樣本標準差（n 個 seed），以及 t 分佈的 95% 信賴區間（n=3 時半寬 = 4.30·s／√3，n=5 時 2.78·s／√5）。每個資料集分開報告，不跨資料集平均。
 

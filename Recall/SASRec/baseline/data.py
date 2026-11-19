@@ -58,6 +58,31 @@ def collate_windows(batch, max_history):
     return inputs, targets
 
 
+def pad_sequences(sequences):
+    """(B, S) item tensor, right-padded with 0; the items each row must not sample."""
+    seen = torch.zeros(len(sequences), max(map(len, sequences)), dtype=torch.long)
+    for index, sequence in enumerate(sequences):
+        seen[index, :len(sequence)] = torch.as_tensor(sequence)
+    return seen
+
+
+def sample_negatives(targets, seen, num_items, generator):
+    """One negative per position, uniform over items 1..num_items not in that row's seen.
+
+    As in the original SASRec code (random_neq over the user's train items): rejection
+    sampling, so each negative is uniform over the user's unseen items. targets is
+    (B, L); seen is (B, S) from pad_sequences and must leave at least one item unseen.
+    """
+    if (seen.ne(0).sum(1) >= num_items).any():
+        raise ValueError("a user has seen every item; no negative can be sampled")
+    negatives = torch.randint(1, num_items + 1, targets.shape, generator=generator)
+    clash = negatives[..., None].eq(seen[:, None, :]).any(-1)
+    while clash.any():
+        negatives[clash] = torch.randint(1, num_items + 1, (int(clash.sum()),), generator=generator)
+        clash = negatives[..., None].eq(seen[:, None, :]).any(-1)
+    return negatives
+
+
 def collate_histories(rows, max_history):
     """Left-pad the most recent max_history items; the last position is the newest item."""
     inputs = torch.zeros(len(rows), max_history, dtype=torch.long)

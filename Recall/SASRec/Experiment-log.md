@@ -2,6 +2,8 @@
 
 `Recall/SASRec/` 家族所有變體的實驗日誌，最新的日期在最上面；每個條目的 Details 以 **Variant** 標明變體，放在一起方便跨變體比較。超出單一 run 的結論整理到家族的 [INSIGHT.md](INSIGHT.md)；跨家族比較在 [Recall INSIGHT](../INSIGHT.md)。
 
+2026-11-19 起 baseline 的預設值改成原論文設定（BCE、負例排除使用者看過的商品、hidden 50／1 head）。以下的既有條目都是改動前的預設，也就是 `--loss ce --hidden 64 --heads 2` 這組設定；新條目在 Settings 寫明用了哪組設定。
+
 所有 run 都用 2014 Beauty ASIN 切分（131,413 train／22,363 validation，歷史上限 20），validation 對全 catalog 12,101 件排名、不過濾歷史，以 NDCG@10 選最佳。
 
 ## 2026-11-19

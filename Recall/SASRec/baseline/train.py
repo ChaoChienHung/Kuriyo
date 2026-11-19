@@ -17,7 +17,8 @@ ROOT = Path(__file__).resolve().parents[3]
 if __package__ in (None, ""):
     sys.path.insert(0, str(ROOT))
 
-from Recall.SASRec.baseline.data import collate_histories, collate_windows, user_sequences, windows
+from Recall.SASRec.baseline.data import (collate_histories, collate_windows, pad_sequences,
+                                         sample_negatives, user_sequences, windows)
 from Recall.SASRec.baseline.model import LOSSES, SASRec
 from Recall.core.data import AsinSplit
 from Recall.core.evaluation import rank_full_catalog
@@ -62,12 +63,13 @@ def build_parser():
     parser.add_argument("--eval-every", type=int, default=5, help="epochs between validations")
     parser.add_argument("--patience", type=int, default=5,
                         help="stop after this many validations without NDCG@10 gain; 0 disables")
-    parser.add_argument("--loss", choices=LOSSES, default="ce",
-                        help="ce: full softmax over items; bce: one sampled negative (original paper)")
+    parser.add_argument("--loss", choices=LOSSES, default="bce",
+                        help="bce (paper): one negative per position from the user's unseen items; "
+                             "ce: full softmax over items")
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--weight-decay", type=float, default=0.0)
-    parser.add_argument("--hidden", type=int, default=64)
-    parser.add_argument("--heads", type=int, default=2)
+    parser.add_argument("--hidden", type=int, default=50)
+    parser.add_argument("--heads", type=int, default=1)
     parser.add_argument("--layers", type=int, default=2)
     parser.add_argument("--dropout", type=float, default=0.5)
     parser.add_argument("--max-history", type=int, default=20)
@@ -104,7 +106,10 @@ def main():
                  "training_examples": "per-user train sequences rebuilt from prefix examples, split "
                                       "into windows of max_history + 1; loss at every real position"},
         "model": {"config": model_config},
-        "training": {"loss": args.loss, "optimizer": "Adam(betas=(0.9, 0.98))", "lr": args.lr,
+        "training": {"loss": args.loss,
+                     "negatives": ("one per position, uniform over items not in the user's train "
+                                   "sequence" if args.loss == "bce" else None),
+                     "optimizer": "Adam(betas=(0.9, 0.98))", "lr": args.lr,
                      "weight_decay": args.weight_decay, "epochs": args.epochs,
                      "batch_size": args.batch_size},
         "evaluation": {"set": split.eval_set, "every_epochs": args.eval_every,
@@ -130,8 +135,12 @@ def main():
         return
 
     train_rows = split.read("train", args.max_train_examples)
-    train = [window for sequence in user_sequences(train_rows, args.max_history)
-             for window in windows(sequence, args.max_history)]
+    sequences = user_sequences(train_rows, args.max_history)
+    train, owners = [], []
+    for user, sequence in enumerate(sequences):
+        for window in windows(sequence, args.max_history):
+            train.append(window)
+            owners.append(user)
     validation = split.read("validation", args.max_validation_examples)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.98),
                                  weight_decay=args.weight_decay)
@@ -169,10 +178,14 @@ def main():
             permutation = torch.randperm(len(train), generator=sampler).tolist()
             for start in range(0, len(train), args.batch_size):
                 step += 1
-                inputs, targets = collate_windows([train[i] for i in permutation[start:start + args.batch_size]],
-                                                  args.max_history)
+                batch = permutation[start:start + args.batch_size]
+                inputs, targets = collate_windows([train[i] for i in batch], args.max_history)
+                negatives = None
+                if args.loss == "bce":
+                    negatives = sample_negatives(targets, pad_sequences([sequences[owners[i]] for i in batch]),
+                                                 len(asins), sampler)
                 optimizer.zero_grad()
-                loss = model.loss(inputs.to(args.device), targets.to(args.device), args.loss, sampler)
+                loss = model.loss(inputs.to(args.device), targets.to(args.device), args.loss, negatives)
                 if not torch.isfinite(loss):
                     raise RuntimeError("non-finite loss at step {}".format(step))
                 loss.backward()

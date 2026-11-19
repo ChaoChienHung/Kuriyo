@@ -24,7 +24,7 @@ def attention_allowed(sequence):
 
 
 class SASRec(nn.Module):
-    def __init__(self, num_items, max_history=20, hidden=64, heads=2, layers=2, dropout=0.5):
+    def __init__(self, num_items, max_history=20, hidden=50, heads=1, layers=2, dropout=0.5):
         super().__init__()
         if hidden % heads:
             raise ValueError("hidden must be divisible by heads")
@@ -58,7 +58,8 @@ class SASRec(nn.Module):
         """Inner product with every real item; column j is item j + 1."""
         return hidden @ self.item_embedding.weight[1:].T
 
-    def loss(self, inputs, targets, kind="ce", generator=None):
+    def loss(self, inputs, targets, kind="bce", negatives=None):
+        """bce needs negatives shaped like targets (see data.sample_negatives); ce ignores them."""
         hidden = self.forward(inputs)
         real = targets.ne(0)
         hidden, targets = hidden[real], targets[real]
@@ -66,9 +67,9 @@ class SASRec(nn.Module):
             return F.cross_entropy(self.scores(hidden), targets - 1)
         if kind != "bce":
             raise ValueError("loss must be one of {}".format(LOSSES))
-        negatives = torch.randint(1, self.num_items + 1, targets.shape, generator=generator).to(targets.device)
-        clash = negatives.eq(targets)
-        negatives[clash] = negatives[clash] % self.num_items + 1
+        if negatives is None:
+            raise ValueError("bce loss needs sampled negatives")
+        negatives = negatives.to(targets.device)[real]
         positive = (hidden * self.item_embedding(targets)).sum(-1)
         negative = (hidden * self.item_embedding(negatives)).sum(-1)
         return (F.binary_cross_entropy_with_logits(positive, torch.ones_like(positive))

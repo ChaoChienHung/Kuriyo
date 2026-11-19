@@ -7,7 +7,8 @@ TORCH = importlib.util.find_spec("torch") is not None
 if TORCH:
     import torch
 
-    from Recall.SASRec.baseline.data import collate_histories, collate_windows, user_sequences, windows
+    from Recall.SASRec.baseline.data import (collate_histories, collate_windows, pad_sequences,
+                                             sample_negatives, user_sequences, windows)
     from Recall.SASRec.baseline.model import SASRec, attention_allowed
 
 
@@ -52,7 +53,9 @@ class SASRecModelTests(unittest.TestCase):
         for kind in ("ce", "bce"):
             model = small_model().train()
             inputs, targets = collate_windows([[1, 2, 3, 4], [5, 6]], 6)
-            loss = model.loss(inputs, targets, kind, torch.Generator().manual_seed(0))
+            negatives = sample_negatives(targets, pad_sequences([[1, 2, 3, 4], [5, 6]]), 12,
+                                         torch.Generator().manual_seed(0))
+            loss = model.loss(inputs, targets, kind, negatives)
             loss.backward()
             self.assertTrue(torch.isfinite(loss))
             for name, parameter in model.named_parameters():
@@ -91,6 +94,21 @@ class SASRecDataTests(unittest.TestCase):
         self.assertEqual(targets.tolist(), [[0, 0, 2, 3]])
         history, target = collate_histories([{"history": [1, 2, 3, 4, 5], "target": 6}], 4)
         self.assertEqual((history.tolist(), target.tolist()), ([[2, 3, 4, 5]], [6]))
+
+    def test_negatives_avoid_every_item_the_user_has_seen(self):
+        seen = pad_sequences([[1, 2, 3, 4, 5, 6, 7, 8, 9], [10]])
+        targets = torch.ones(2, 50, dtype=torch.long)
+        negatives = sample_negatives(targets, seen, 10, torch.Generator().manual_seed(0))
+        self.assertTrue(negatives[0].eq(10).all(), "only item 10 is unseen by user 0")
+        self.assertFalse(negatives[1].eq(10).any())
+        self.assertTrue(((negatives >= 1) & (negatives <= 10)).all())
+        self.assertEqual(len(negatives[1].unique()), 9, "every unseen item can be drawn")
+        with self.assertRaises(ValueError):
+            sample_negatives(targets[:1], pad_sequences([list(range(1, 11))]), 10, torch.Generator())
+
+    def test_paper_defaults(self):
+        model = SASRec(num_items=12)
+        self.assertEqual((model.heads, model.item_embedding.embedding_dim), (1, 50))
 
 
 if __name__ == "__main__":

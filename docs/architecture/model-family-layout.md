@@ -18,7 +18,7 @@ sources:
   - code: Recall/FMRec/README.md
   - code: Recall/SASRec/README.md
   - code: .gitignore
-verified_at: a71575e
+verified_at: 4f6594d
 ---
 
 # 模型家族與變體目錄結構
@@ -36,7 +36,7 @@ Kuriyo 以「模型家族」組織同一類模型的不同實作，**每個變�
 - **變體之間不互相 import**，只可 import `Recall/core/`、`core/`、`Representations/` 等跨模型共用元件。這樣修改 baseline 不會悄悄改變其他變體的結果；代價是新變體通常要從複製 `baseline/` 開始。
 - `.gitignore` 以 `Recall/**/runs/` 涵蓋所有變體的 runs。
 
-`scripts/run.sbatch` 以 `MODEL`（tiger／sasrec／fmrec，預設 tiger）選擇家族，每個家族目前都跑 `baseline/` 變體的 `train.py`，runs 寫在 `Recall/<Family>/baseline/runs/<RUN_NAME>/`（`scripts/run.sbatch:98` 起）。SASRec 與 FMRec 不用 SID，只接受 `STAGE=prepare|train|test|all`；`CATEGORY`（預設 `Beauty`）選資料集，`RUN_NAME` 預設為 `sasrec-<分類小寫>-v1`、`fmrec-<分類小寫>-v1`（Beauty 為 `sasrec-beauty-v1`、`fmrec-beauty-v1`），TIGER 在 Beauty 以外是 `tiger-paper-<分類小寫>-v1`。`SEED` 與 `TRAIN_ARGS` 會同時傳給 train 與 test。
+`scripts/run.sbatch` 以 `MODEL`（tiger／sasrec／fmrec，預設 tiger）選擇家族，每個家族目前都跑 `baseline/` 變體的 `train.py`，runs 寫在 `Recall/<Family>/baseline/runs/<RUN_NAME>/`（`scripts/run.sbatch:98` 起）。SASRec 與 FMRec 不用 SID，只接受 `STAGE=prepare|train|test|all`；`CATEGORY`（預設 `Beauty`）選資料集，`RUN_NAME` 預設為 `sasrec-paper-<分類小寫>-v1`、`fmrec-<分類小寫>-v1`（既有的 `sasrec-beauty-v1` 是舊預設的 CE 設定），TIGER 在 Beauty 以外是 `tiger-paper-<分類小寫>-v1`。`SEED` 與 `TRAIN_ARGS` 會同時傳給 train 與 test。
 
 > ⚠️ 同時提交多個 job（不同 `MODEL`）時用 `STAGE=train`。`STAGE=all`／`prepare` 會讓每個 job 都執行 `scripts.ensure_amazon_reviews_2014`，同時寫同一份分類切分，沒有鎖保護。`STAGE=train` 只檢查切分存在（`tests/test_run_sbatch.py` 有對應測試）。
 

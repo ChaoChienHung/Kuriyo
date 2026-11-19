@@ -109,7 +109,8 @@ class SASRecTrainTests(unittest.TestCase):
             self.assertEqual((test_metrics["split"], test_metrics["examples"]), ("test", 4))
             settings = json.loads((run_dir / "settings.json").read_text())
             self.assertEqual((settings["training"]["loss"], settings["model"]["config"]["max_history"]),
-                             ("ce", 4))
+                             ("bce", 4))
+            self.assertIn("not in the user's train sequence", settings["training"]["negatives"])
             self.assertEqual(settings["run"]["seed"], 42)
             self.assertEqual(settings["data"]["max_history"], 4)
             self.assertIn("splits", settings["data"])

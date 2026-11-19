@@ -4,6 +4,11 @@
 
 ## Awaiting review
 
+- [ ] SASRec baseline 預設改成論文設定；`STAGE=test` 先檢查 checkpoint
+  - **Delivered:** 預設 `--loss bce`、hidden 50、1 head；BCE 負例改成從使用者 train 序列沒出現過的商品中均勻抽（`sample_negatives`，同原始程式 `random_neq`），原本只避開目標。AGENTS.md：baseline 的預設值是家族論文的設定，其他設定是同一份程式不同參數的 run，以 `settings.json` 比對。`run.sbatch` 的 SASRec 預設 RUN_NAME 改為 `sasrec-paper-<分類>-v1`；`STAGE=test` 在找不到 best checkpoint 時先停並印出路徑；`evaluate_test_once` 把兩種拒絕原因分開。
+  - **Evidence:** 改動前後以固定 seed（3,000 train／500 validation，2 epochs）跑 `--loss ce --hidden 64 --heads 2`：loss 與 validation 逐位相同。新增負例抽樣與預設值測試；SASRec 整合測試改用 BCE 預設，續訓與不中斷訓練的 loss 相同。用本機做出的平版面 run 驗證：不帶參數會被拒絕（模型設定不符），帶 `--loss ce --hidden 64 --heads 2` 會搬移並完成 test。完整 unittest discovery 69 項通過。
+  - **Review focus:** 舊 BCE（只避開目標）沒有任何記錄過的 run，所以沒保留選項；負例只排除 train 序列中的商品，不含 validation／test 目標（原始程式同樣只看 train）；FMRec 的預設沿用作者程式，論文另提的 s=0.4 沒改。
+
 - [ ] 多資料集、seed 與單一因素旗標；統計規則
   - **Delivered:** `run.sbatch` 的 `CATEGORY`、`SEED`、`TRAIN_ARGS`（皆驗證字元，train 與 test 共用）；`scripts/ensure_amazon_reviews_2014.py` 處理任一或全部三個 2014 分類，舊的 Beauty 腳本改為 wrapper；SID 生成改傳 `--items` 指定分類的 catalog。README 新增「實驗設計與統計檢定」（seed 數、命名、平均 ± 標準差與 95% CI、使用者配對檢定加 seed 層級 Welch、Holm 校正、只在 validation 選擇），AGENTS.md 規定比較前必讀。TODO 新增逐使用者排名輸出、Beauty 多 seed、SASRec BCE、Sports／Toys 四項。
   - **Evidence:** 新增 2 項 orchestration 測試（分類、seed、`TRAIN_ARGS` 傳到 train 與 test；TIGER 新分類用自己的 SID 與 run 名稱），並把無效 `CATEGORY`／`SEED`／`TRAIN_ARGS` 加入拒絕測試；完整 unittest discovery 67 項通過。Beauty 預設呼叫除多傳 `--category Beauty --seed 42`（與預設值相同）外不變。

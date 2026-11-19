@@ -53,7 +53,7 @@ sid_version="${SID_VERSION:-tiger-paper-v1}"
 case "$model" in
   tiger) if [[ "$category" == Beauty ]]; then default_run=tiger-paper-v1; else default_run="tiger-paper-$category_slug-v1"; fi
          run_name="${RUN_NAME:-$default_run}" ;;
-  sasrec) run_name="${RUN_NAME:-sasrec-$category_slug-v1}" ;;
+  sasrec) run_name="${RUN_NAME:-sasrec-paper-$category_slug-v1}" ;;
   fmrec) run_name="${RUN_NAME:-fmrec-$category_slug-v1}" ;;
 esac
 seed="${SEED:-42}"
@@ -124,6 +124,9 @@ if [[ "$model" != tiger ]]; then
     srun .venv/bin/python -m "$module" "${args[@]}"
   fi
   if [[ "$stage" == test ]]; then
+    test -f "$run_dir/checkpoints/best.pt" || test -f "$run_dir/best.pt" || {
+      echo "No best checkpoint for STAGE=test: $PWD/$run_dir (submit from the repository that holds the run)" >&2; exit 2;
+    }
     srun .venv/bin/python -m "$module" "${common[@]}" --eval-test-only
   fi
   exit 0
@@ -200,6 +203,10 @@ if [[ "$stage" == all || "$stage" == train ]]; then
 fi
 
 if [[ "$stage" == test ]]; then
+  run_dir="Recall/TIGER/baseline/runs/$run_name"
+  test -f "$run_dir/checkpoints/best.pt" || test -f "$run_dir/best.pt" || {
+    echo "No best checkpoint for STAGE=test: $PWD/$run_dir (submit from the repository that holds the run)" >&2; exit 2;
+  }
   args=("${common[@]}")
   if [[ "$adafactor_scale" == 0 ]]; then args+=(--no-adafactor-scale-parameter); fi
   srun .venv/bin/python -m Recall.TIGER.baseline.train "${args[@]}" --eval-test-only

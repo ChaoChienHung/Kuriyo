@@ -15,7 +15,7 @@ sources:
   - code: Recall/TIGER/baseline/train.py
   - code: scripts/run.sbatch
   - code: tests/test_runs.py
-verified_at: 6b9097b
+verified_at: 4f6594d
 ---
 
 # Run 目錄與共用訓練零件
@@ -37,5 +37,7 @@ SASRec、FMRec 與 TIGER baseline 各自只寫模型與訓練迴圈；run 目錄
 > ⚠️ `rank_full_catalog` 用 `index_offset` 把分數欄對回 ASIN：SASRec 的第 0 欄就是第一件商品（offset 0），FMRec 的第 0 欄是 padding（offset 1）。給錯 offset 不會報錯，只會讓所有命中錯開一件。
 
 TIGER 的 smoke trainer（`Recall/TIGER/baseline/train_sequence.py`）仍用舊的平版面；SID 產生器只用 `core/run_logging.py`，不經過 `core/runs.py`。
+
+> ⚠️ 預設值改變時（例如 2026-11-19 SASRec 改成論文設定），舊 run 的搬移與 test 也用 `RESUME_KEYS` 核對，所以必須以舊值呼叫（SASRec 舊 run 帶 `--loss ce --hidden 64 --heads 2`）。run 目錄不存在時 `evaluate_test_once` 只會報「best checkpoint missing」並印出路徑：先確認 job 是從放 run 的 repo 提交的；`scripts/run.sbatch` 的 `STAGE=test` 會在啟動 Python 前檢查。
 
 相關：[[model-family-layout]]（家族與變體的目錄規則）、[[tiger-training]]、[[sasrec]]、[[fmrec]]。

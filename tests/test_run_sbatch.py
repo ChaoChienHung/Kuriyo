@@ -202,8 +202,11 @@ esac
         self.assertEqual(result.returncode, 0, result.stderr)
         args = self.model_args("Recall.SASRec.baseline.train")[2:]
         self.assertEqual(args, ["--category", "Toys_and_Games", "--seed", "7", "--run-name",
-                                "sasrec-toys_and_games-v1", "--device", "cuda", "--loss", "bce"])
+                                "sasrec-paper-toys_and_games-v1", "--device", "cuda", "--loss", "bce"])
         self.env["STAGE"] = "test"
+        checkpoints = self.root / "Recall/SASRec/baseline/runs/sasrec-paper-toys_and_games-v1/checkpoints"
+        checkpoints.mkdir(parents=True, exist_ok=True)
+        (checkpoints / "best.pt").write_text("")
         result = self.run_job()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.model_args("Recall.SASRec.baseline.train")[2:], args + ["--eval-test-only"])
@@ -249,6 +252,12 @@ esac
 
     def test_model_test_stage_evaluates_once(self):
         self.env.update(MODEL="sasrec", STAGE="test")
+        result = self.run_job()
+        self.assertEqual(result.returncode, 2, "no run directory here")
+        self.assertIn("No best checkpoint for STAGE=test", result.stderr)
+        run = self.root / "Recall/SASRec/baseline/runs/test-v1"
+        run.mkdir(parents=True)
+        (run / "best.pt").write_text("")  # flat run from before 2026-11-19
         result = self.run_job()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("--eval-test-only", self.model_args("Recall.SASRec.baseline.train"))

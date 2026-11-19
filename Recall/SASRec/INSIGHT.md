@@ -30,7 +30,7 @@ SASRec 家族的研究筆記。事實與假設分開，每個結果都註明資�
 
 待驗證的主張。編號固定；跨檔引用寫 `Recall/SASRec/INSIGHT.md` H[n]。
 
-- **H1 — 高於論文來自 CE loss：**validation 高於 TIGER 論文表 3 的 SASRec（0.0605），主要來自 full-softmax CE。原始 SASRec 用 BCE，每個正例只配一個隨機負例；TIGER 表中的 SASRec 數字很可能沿用這類設定的早期文獻（尚未對照原文確認）。機制：隨機抽到的負例大多是冷門、與使用者無關的商品，模型很快就能把它們分開，loss 與梯度隨之變小，學到的界線只區分「目標」與「隨便一件商品」；評估卻是在全部 12,101 件中排名，真正的對手是和目標相似、分數也高的商品。full-softmax CE 每一步都和所有商品比較，每個負例的梯度與它的 softmax 機率成正比，所以分數高、難分的負例被推得最多，直接對應全商品排名。文獻也觀察到 CE 訓練的 SASRec 明顯強於 BCE 版本（Klenitskiy & Vasilev, RecSys 2023；Petrov & Macdonald 的 gSASRec, RecSys 2023 指出負例抽樣造成的過度自信）。驗證：`--loss bce` 開新 RUN_NAME，其他設定不變；預期 validation Recall@10 明顯低於 0.10，接近論文的 0.06。
+- **H1 — 高於論文來自 CE loss：**validation 高於 TIGER 論文表 3 的 SASRec（0.0605），主要來自 full-softmax CE。原始 SASRec 用 BCE，每個正例只配一個隨機負例；TIGER 表中的 SASRec 數字很可能沿用這類設定的早期文獻（尚未對照原文確認）。機制：隨機抽到的負例大多是冷門、與使用者無關的商品，模型很快就能把它們分開，loss 與梯度隨之變小，學到的界線只區分「目標」與「隨便一件商品」；評估卻是在全部 12,101 件中排名，真正的對手是和目標相似、分數也高的商品。full-softmax CE 每一步都和所有商品比較，每個負例的梯度與它的 softmax 機率成正比，所以分數高、難分的負例被推得最多，直接對應全商品排名。文獻也觀察到 CE 訓練的 SASRec 明顯強於 BCE 版本（Klenitskiy & Vasilev, RecSys 2023；Petrov & Macdonald 的 gSASRec, RecSys 2023 指出負例抽樣造成的過度自信）。驗證：2026-11-19 起 baseline 預設就是論文的 BCE 設定（hidden 50／1 head，負例排除看過的商品）；對照只加 `--loss ce`，兩邊各 3 個 seed。預期論文設定的 validation Recall@10 明顯低於 0.10，接近論文的 0.06。目前 0.10 的數字來自 `--loss ce --hidden 64 --heads 2` 設定。
 
 ## Discussion
 
@@ -42,4 +42,4 @@ SASRec 家族的研究筆記。事實與假設分開，每個結果都註明資�
 
 具體的阻礙或未知；排入工作後在 `TODO.md` 追蹤。
 
-- 尚無阻礙；`--loss bce` 對照與最終 test 已列在 `TODO.md`。
+- 尚無阻礙；論文設定與 CE 的對照、多 seed 與最終 test 已列在 `TODO.md`。
