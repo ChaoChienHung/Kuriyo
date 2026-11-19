@@ -1,0 +1,26 @@
+{
+  "recall@5": 0.03563922550641685,
+  "recall@10": 0.05558288243974422,
+  "ndcg@5": 0.022978519288325838,
+  "ndcg@10": 0.02941783526528791,
+  "beam_size": 10,
+  "invalid_beam_fraction": 0.00031301703707016054,
+  "decoding": "unconstrained beam search; invalid IDs count as misses",
+  "test_examples": 22363,
+  "split": "test",
+  "set": "amazon2014-beauty",
+  "test_sha256": "ecb6694b9791765392e3cc3a8c1232e442ae0816bdc005d0fc92d58b521a85a0",
+  "selected_validation": {
+    "recall@5": 0.05289987926485713,
+    "recall@10": 0.07999821133121675,
+    "ndcg@5": 0.03467194609665689,
+    "ndcg@10": 0.043435166678032947,
+    "validation_examples": 22363,
+    "beam_size": 10,
+    "invalid_beam_fraction": 0.0005679023386844341,
+    "decoding": "unconstrained beam search; invalid IDs count as misses",
+    "step": 20000
+  },
+  "git_revision": "bddbd5794f03fcf1cd3fa49638e0282ce9f37aae",
+  "slurm_job_id": "1167548"
+}

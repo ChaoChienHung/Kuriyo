@@ -1,0 +1,11 @@
+{
+  "recall@5": 0.05289987926485713,
+  "recall@10": 0.07999821133121675,
+  "ndcg@5": 0.03467194609665689,
+  "ndcg@10": 0.043435166678032947,
+  "validation_examples": 22363,
+  "beam_size": 10,
+  "invalid_beam_fraction": 0.0005679023386844341,
+  "decoding": "unconstrained beam search; invalid IDs count as misses",
+  "step": 20000
+}
