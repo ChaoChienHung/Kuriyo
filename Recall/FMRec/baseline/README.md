@@ -66,7 +66,11 @@ python -m Recall.FMRec.baseline.train --run-name fmrec-smoke-$(date +%Y%m%d) \
 python -m Recall.FMRec.baseline.train --run-name fmrec-beauty-v1 --device cuda
 ```
 
-在 SoC 上請以 batch job 執行上面那行，資源與 partition 先依 [SoC 操作說明](../../../skills/nus-soc-slurm/SKILL.md) 核對。`scripts/run.sbatch` 目前只支援 TIGER，**沒有** FMRec 的 `STAGE`。
+在 SoC 上用 [`scripts/run.sbatch`](../../../scripts/run.sbatch) 的 `MODEL=fmrec` 提交，資源與 partition 先依 [SoC 操作說明](../../../skills/nus-soc-slurm/SKILL.md) 核對。`STAGE=train` 只檢查 Beauty 切分存在就訓練；run 目錄已有 `latest.pt` 時自動續訓；`STAGE=test` 做一次 held-out test：
+
+```bash
+MODEL=fmrec RUN_NAME=fmrec-beauty-v1 STAGE=train sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch
+```
 
 續訓（從 `latest.pt`，每個 epoch 結束時保存）：
 

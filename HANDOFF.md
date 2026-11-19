@@ -68,7 +68,7 @@ python3 -m scripts.import_slurm_training_log .tmp/slurm-kuriyo-tiger-1153307.out
 
 ## SoC 操作與 Git 注意事項
 
-`run.sbatch` 支援 prepare / sid / materialize / train / test / all；all 不含最終 test。SID 階段自動準備輸入，完整產物可重用，部分產物拒絕覆寫。TIGER 可從 latest.pt 續訓；RQ-VAE 尚無中途 checkpoint／resume。
+`run.sbatch` 支援 prepare / sid / materialize / train / test / all；all 不含最終 test。`MODEL=sasrec|fmrec` 改跑該家族 baseline（只接受 prepare / train / test / all，不用 SID）；同時提交多個 job 時用 `STAGE=train`，避免同時準備資料。SID 階段自動準備輸入，完整產物可重用，部分產物拒絕覆寫。TIGER 可從 latest.pt 續訓；RQ-VAE 尚無中途 checkpoint／resume。
 
 目前 script 預設 gpu-long、1 GPU、32G、2 天；每次提交仍需依 [SoC skill](skills/nus-soc-slurm/SKILL.md) 確認 live 資源。除非使用者要求，不提交遠端作業或 push。
 
@@ -78,7 +78,7 @@ SoC 安裝指令在根 requirements.txt 註解與 run.sbatch，明確使用 torc
 
 ## FMRec baseline（2026-11-18 新增）
 
-`Recall/FMRec/baseline/` 依作者程式（FengLiu-1/FMRec `1c39b17`）重新實作，直接讀 2014 Beauty ASIN 切分、20 件歷史上限，以 `Recall/core/metrics.py` 做 full-ranking Recall／NDCG@5/10，可與 TIGER 同切分比較。時間取樣 s 預設 1.0（作者程式預設；論文 B.2 另提 0.4，可用 `--mode-scale`）。與作者程式的差異（padding key 遮罩、排除 padding 商品、以 NDCG@10 選模型等）列在其 README。完整 unittest discovery 43 項通過；本機 CPU smoke `fmrec-smoke-cpu-20261118`（4,096 train／1,024 validation、2 epochs）loss 有限，指標接近 0，不代表品質。尚未在 GPU 完整訓練；`run.sbatch` 沒有 FMRec STAGE，指令見其 README。
+`Recall/FMRec/baseline/` 依作者程式（FengLiu-1/FMRec `1c39b17`）重新實作，直接讀 2014 Beauty ASIN 切分、20 件歷史上限，以 `Recall/core/metrics.py` 做 full-ranking Recall／NDCG@5/10，可與 TIGER 同切分比較。時間取樣 s 預設 1.0（作者程式預設；論文 B.2 另提 0.4，可用 `--mode-scale`）。與作者程式的差異（padding key 遮罩、排除 padding 商品、以 NDCG@10 選模型等）列在其 README。完整 unittest discovery 43 項通過；本機 CPU smoke `fmrec-smoke-cpu-20261118`（4,096 train／1,024 validation、2 epochs）loss 有限，指標接近 0，不代表品質。尚未在 GPU 完整訓練；`run.sbatch` 以 `MODEL=fmrec` 提交，指令見其 README。
 
 ## SASRec 基準與 TIGER 新 SID（2026-11-19）
 
@@ -89,12 +89,13 @@ SoC 安裝指令在根 requirements.txt 註解與 run.sbatch，明確使用 torc
 ## 下一步（依優先順序）
 
 1. **驗證 Adafactor 假設（H5）：**在 SoC 執行
-   `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-v1 ADAFACTOR_SCALE_PARAMETER=1 STAGE=train sbatch --export=ALL scripts/run.sbatch`，
+   `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-v1 ADAFACTOR_SCALE_PARAMETER=1 STAGE=train sbatch --export=ALL scripts/run.sbatch`。
+   第一次提交 job 1165195 落在節點 xgpe2，CUDA 初始化失敗（`CUDA unknown error`），train.py 在建立 run 目錄前以 exit 2 結束，沒有訓練；重送時加 `--exclude=xgpe2`，同一 RUN_NAME 可用。
    比較 20k／40k validation 與 `tiger-paper-v1`（Recall@10 0.0132／0.0174）。明顯較高就跑滿 200k；否則依 `Recall/TIGER/INSIGHT.md` Problems 2 繼續查。
 2. 新 SID 完整 run `tiger-paper-v1` 已完成（200k Recall@10 0.0368），SID 產生紀錄見 job 1162430（`38b9bcf`）與 `Representations/SID/INSIGHT.md`。
 3. 核對 paper/T5X 與 HF T5 的容量、商品文字、user hash、訓練樣本、optimizer、解碼與評估設定；將事實與猜測分開記錄。
 4. 保留本 run 作比較起點，新增實驗用新 SID_VERSION/RUN_NAME；固定 validation，先建立熱門商品基線。模型定案後才執行一次 held-out test。
-5. **FMRec 完整訓練：**在 SoC GPU 以 batch job 執行 `python -m Recall.FMRec.baseline.train --run-name fmrec-beauty-v1 --device cuda`（作者預設，約 257 steps/epoch、最多 500 epochs；約 2,840 萬參數，CPU 不可行）。validation 與 SASRec、TIGER、熱門基線比較；之後的單一因素對照（`--mode-scale 0.4`、`--attention causal`、取樣步數）見 TODO「FMRec 同切分比較」。
+5. **FMRec 完整訓練：**在 SoC GPU 執行 `MODEL=fmrec RUN_NAME=fmrec-beauty-v1 STAGE=train sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch`（作者預設，約 257 steps/epoch、最多 500 epochs；約 2,840 萬參數，CPU 不可行）。validation 與 SASRec、TIGER、熱門基線比較；之後的單一因素對照（`--mode-scale 0.4`、`--attention causal`、取樣步數）見 TODO「FMRec 同切分比較」。
 6. 增加 SID checkpoint/resume；有第二個實際模型變體時，於 `Recall/TIGER/<variant-name>/` 新增並視需要建立載入介面。
 
 ## 驗證與限制

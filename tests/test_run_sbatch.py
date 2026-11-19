@@ -51,6 +51,9 @@ case "$2" in
   Recall.TIGER.baseline.train)
     echo "$*" > "$RUN_TRACE.train"
     ;;
+  Recall.SASRec.baseline.train|Recall.FMRec.baseline.train)
+    echo "$*" > "$RUN_TRACE.$2"
+    ;;
   *) exit 99 ;;
 esac
 ''')
@@ -158,6 +161,70 @@ esac
         self.assertEqual(result.returncode, 2)
         self.assertIn("legacy path", result.stderr)
         self.assertEqual(self.trace.read_text().splitlines(), ["pip"])
+
+    def prepare_raw_split(self):
+        base = self.root / "data/amazon_reviews/2014"
+        for name in ("catalog/Beauty/items.jsonl", "train/raw/Beauty/examples.jsonl",
+                     "validation/raw/Beauty/examples.jsonl"):
+            (base / name).parent.mkdir(parents=True, exist_ok=True)
+            (base / name).write_text("{}\n")
+
+    def model_args(self, module):
+        return Path(f"{self.trace}.{module}").read_text().split()
+
+    def test_sasrec_train_runs_its_variant_without_sid_or_preparation(self):
+        self.env.update(MODEL="sasrec", STAGE="train")
+        self.prepare_raw_split()
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.trace.read_text().splitlines(),
+                         ["pip", "Recall.SASRec.baseline.train"])
+        self.assertEqual(self.model_args("Recall.SASRec.baseline.train")[2:],
+                         ["--run-name", "test-v1", "--device", "cuda"])
+
+    def test_fmrec_all_prepares_then_resumes_existing_run(self):
+        self.env.update(MODEL="fmrec", STAGE="all")
+        self.prepare_raw_split()
+        run = self.root / "Recall/FMRec/baseline/runs/test-v1"
+        run.mkdir(parents=True)
+        (run / "latest.pt").write_text("")
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.trace.read_text().splitlines(), [
+            "pip", "scripts.prepare_amazon_reviews_2014_beauty", "Recall.FMRec.baseline.train"])
+        self.assertIn("--resume", self.model_args("Recall.FMRec.baseline.train"))
+
+    def test_model_train_refuses_run_without_checkpoint(self):
+        self.env.update(MODEL="fmrec", STAGE="train")
+        self.prepare_raw_split()
+        (self.root / "Recall/FMRec/baseline/runs/test-v1").mkdir(parents=True)
+        result = self.run_job()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("without checkpoint", result.stderr)
+        self.assertEqual(self.trace.read_text().splitlines(), ["pip"])
+
+    def test_model_train_stops_when_split_is_missing(self):
+        self.env.update(MODEL="sasrec", STAGE="train")
+        result = self.run_job()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("STAGE=prepare", result.stderr)
+        self.assertEqual(self.trace.read_text().splitlines(), ["pip"])
+
+    def test_model_test_stage_evaluates_once(self):
+        self.env.update(MODEL="sasrec", STAGE="test")
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--eval-test-only", self.model_args("Recall.SASRec.baseline.train"))
+
+    def test_invalid_model_settings_stop_before_work(self):
+        for settings in ({"MODEL": "bert4rec"}, {"MODEL": "sasrec", "STAGE": "sid"},
+                         {"MODEL": "fmrec", "STAGE": "train", "ADAFACTOR_SCALE_PARAMETER": "1"}):
+            with self.subTest(settings=settings):
+                env = dict(self.env, **settings)
+                result = subprocess.run(["bash", str(SCRIPT)], cwd=self.root, env=env,
+                                        text=True, capture_output=True)
+                self.assertEqual(result.returncode, 2)
+                self.assertFalse(self.trace.exists())
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ sources:
   - code: Recall/FMRec/README.md
   - code: Recall/SASRec/README.md
   - code: .gitignore
-verified_at: f2c3c28
+verified_at: b595511
 ---
 
 # 模型家族與變體目錄結構
@@ -35,6 +35,10 @@ Kuriyo 以「模型家族」組織同一類模型的不同實作，**每個變�
 - **變體之間不互相 import**，只可 import `Recall/core/`、`core/`、`Representations/` 等跨模型共用元件。這樣修改 baseline 不會悄悄改變其他變體的結果；代價是新變體通常要從複製 `baseline/` 開始。
 - `.gitignore` 以 `Recall/**/runs/` 涵蓋所有變體的 runs。
 
+`scripts/run.sbatch` 以 `MODEL`（tiger／sasrec／fmrec，預設 tiger）選擇家族，每個家族目前都跑 `baseline/` 變體的 `train.py`，runs 寫在 `Recall/<Family>/baseline/runs/<RUN_NAME>/`（`scripts/run.sbatch:76` 起）。SASRec 與 FMRec 不用 SID，只接受 `STAGE=prepare|train|test|all`；`RUN_NAME` 預設分別是 `sasrec-beauty-v1`、`fmrec-beauty-v1`。
+
+> ⚠️ 同時提交多個 job（不同 `MODEL`）時用 `STAGE=train`。`STAGE=all`／`prepare` 會讓每個 job 都執行 `scripts.prepare_amazon_reviews_2014_beauty`，同時寫同一份 Beauty 切分，沒有鎖保護。`STAGE=train` 只檢查切分存在（`tests/test_run_sbatch.py` 有對應測試）。
+
 只有超參數不同時，在既有變體加具名設定；確實需要不同實作時，才新增與 `baseline/` 同層的目錄，名稱描述差異（例如 `constrained-decoding/`），不用 `variant1/`、`v2/`，並加入家族 README 的變體表。
 
 ## 歷史
@@ -43,7 +47,7 @@ Kuriyo 以「模型家族」組織同一類模型的不同實作，**每個變�
 
 > ⚠️ 變體的程式在 repo 根目錄下第三層，所以 `Recall/TIGER/baseline/train.py:18` 用 `parents[3]` 取得 repo 根目錄；但變體的 `tests/` 多一層，要用 `parents[4]`（`Recall/TIGER/baseline/tests/test_train.py:13`）。同理，變體 `requirements.txt` 引用根目錄依賴要用 `../../../`。搬移或複製變體時若沒有一起調整，subprocess 會在錯誤的 cwd 下執行，pip 也會找不到根目錄 requirements。
 
-> ⚠️ 改變某個變體的 runs 位置時，`scripts/run.sbatch` 必須拒絕「舊路徑有 run、新路徑沒有」的情況（`scripts/run.sbatch:109` 起），否則 `STAGE=train` 會在新路徑從頭開一個同名 run，而不是續訓。對應測試在 `tests/test_run_sbatch.py`。SoC 上的舊 run 需手動執行 `mv Recall/TIGER/runs/<RUN_NAME> Recall/TIGER/baseline/runs/`。
+> ⚠️ 改變某個變體的 runs 位置時，`scripts/run.sbatch` 必須拒絕「舊路徑有 run、新路徑沒有」的情況（`scripts/run.sbatch:159` 起），否則 `STAGE=train` 會在新路徑從頭開一個同名 run，而不是續訓。對應測試在 `tests/test_run_sbatch.py`。SoC 上的舊 run 需手動執行 `mv Recall/TIGER/runs/<RUN_NAME> Recall/TIGER/baseline/runs/`。
 
 > ⚠️ 複製 `baseline/` 建立新變體時，要把新目錄裡所有 `Recall.TIGER.baseline.` 的 import 改成新變體自己的模組名稱。漏改的話新變體仍會執行 baseline 的程式，違反「變體不互相 import」，而且測試照樣會通過，不容易發現。
 

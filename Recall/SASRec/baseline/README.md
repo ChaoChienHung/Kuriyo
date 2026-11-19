@@ -44,7 +44,11 @@ python -m pip install -r Recall/SASRec/baseline/requirements.txt
 python -m Recall.SASRec.baseline.train --run-name sasrec-beauty-v1 --device cuda
 ```
 
-資料放在其他位置時加 `--data-root <path>/data/amazon_reviews`。`scripts/run.sbatch` 目前只支援 TIGER，**沒有** SASRec 的 `STAGE`；在 SoC 上請以 batch job 執行上面那行，資源先依 [SoC 操作說明](../../../skills/nus-soc-slurm/SKILL.md) 核對。
+資料放在其他位置時加 `--data-root <path>/data/amazon_reviews`。在 SoC 上用 [`scripts/run.sbatch`](../../../scripts/run.sbatch) 的 `MODEL=sasrec` 提交（資源先依 [SoC 操作說明](../../../skills/nus-soc-slurm/SKILL.md) 核對）。`STAGE=train` 只檢查 Beauty 切分存在就訓練；run 目錄已有 `latest.pt` 時自動續訓，有目錄但沒有 `latest.pt` 會拒絕；`STAGE=test` 做一次 held-out test：
+
+```bash
+MODEL=sasrec RUN_NAME=sasrec-beauty-v1 STAGE=train sbatch --export=ALL --job-name=kuriyo-sasrec scripts/run.sbatch
+```
 
 續訓（從 `latest.pt`，每個 epoch 結束時保存；資料校驗值、seed、batch size、loss、lr 與模型設定必須和 `config.json` 相同）：
 

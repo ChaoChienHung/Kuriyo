@@ -17,18 +17,31 @@
 # reused only when its manifest records the same recipe. ADAFACTOR_SCALE_PARAMETER=1
 # trains TIGER with T5X-style Adafactor (steps scaled by parameter RMS); the
 # default 0 keeps the behaviour of earlier runs. Resume refuses a changed value.
+# MODEL (default tiger) selects the Recall family. MODEL=sasrec|fmrec trains on
+# the raw ASIN split and accepts STAGE=prepare|train|test|all only (all runs
+# prepare -> train); SID settings do not apply. Submit several MODEL jobs at once
+# with STAGE=train after the Beauty split exists, so they do not prepare it concurrently.
 
 set -euo pipefail
 cd "${SLURM_SUBMIT_DIR:?submit from the Kuriyo repository root}"
 test -f AGENTS.md && test -f README.md
 
+model="${MODEL:-tiger}"
+case "$model" in
+  tiger|sasrec|fmrec) ;;
+  *) echo "MODEL must be tiger, sasrec, or fmrec" >&2; exit 2 ;;
+esac
 stage="${STAGE:-all}"
 case "$stage" in
   all|prepare|sid|materialize|train|test) ;;
   *) echo "STAGE must be all, prepare, sid, materialize, train, or test" >&2; exit 2 ;;
 esac
 sid_version="${SID_VERSION:-tiger-paper-v1}"
-run_name="${RUN_NAME:-tiger-paper-v1}"
+case "$model" in
+  tiger) run_name="${RUN_NAME:-tiger-paper-v1}" ;;
+  sasrec) run_name="${RUN_NAME:-sasrec-beauty-v1}" ;;
+  fmrec) run_name="${RUN_NAME:-fmrec-beauty-v1}" ;;
+esac
 sid_recipe="${SID_RECIPE:-stable}"
 adafactor_scale="${ADAFACTOR_SCALE_PARAMETER:-0}"
 [[ "$adafactor_scale" == 0 || "$adafactor_scale" == 1 ]] || { echo "ADAFACTOR_SCALE_PARAMETER must be 0 or 1" >&2; exit 2; }
@@ -37,6 +50,12 @@ case "$sid_recipe" in
   *) echo "SID_RECIPE must be paper-pytorch, paper-tf-adagrad, or stable" >&2; exit 2 ;;
 esac
 [[ "$sid_version" =~ ^[A-Za-z0-9][A-Za-z0-9_-]*$ ]] || { echo "Invalid SID_VERSION" >&2; exit 2; }
+if [[ "$model" != tiger ]]; then
+  [[ "$stage" == all || "$stage" == prepare || "$stage" == train || "$stage" == test ]] || {
+    echo "MODEL=$model supports STAGE=all, prepare, train, or test" >&2; exit 2;
+  }
+  [[ "$adafactor_scale" == 0 ]] || { echo "ADAFACTOR_SCALE_PARAMETER applies only to MODEL=tiger" >&2; exit 2; }
+fi
 [[ "$run_name" =~ ^[A-Za-z0-9][A-Za-z0-9_-]*$ ]] || { echo "Invalid RUN_NAME" >&2; exit 2; }
 
 export TMPDIR="${TMPDIR:-$PWD/.tmp}"
@@ -53,7 +72,38 @@ fi
   "torch==2.7.1+cu126" \
   -r Representations/SID/requirements.txt -r Recall/TIGER/baseline/requirements.txt
 
-echo "job=${SLURM_JOB_ID:-local} commit=$(git rev-parse HEAD) stage=$stage sid_version=$sid_version sid_recipe=$sid_recipe adafactor_scale_parameter=$adafactor_scale run=$run_name"
+echo "job=${SLURM_JOB_ID:-local} commit=$(git rev-parse HEAD) model=$model stage=$stage sid_version=$sid_version sid_recipe=$sid_recipe adafactor_scale_parameter=$adafactor_scale run=$run_name"
+if [[ "$model" != tiger ]]; then
+  case "$model" in
+    sasrec) family=SASRec ;;
+    fmrec) family=FMRec ;;
+  esac
+  module="Recall.$family.baseline.train"
+  run_dir="Recall/$family/baseline/runs/$run_name"
+  if [[ "$stage" == all || "$stage" == prepare ]]; then
+    srun .venv/bin/python -m scripts.prepare_amazon_reviews_2014_beauty
+  fi
+  if [[ "$stage" == all || "$stage" == train ]]; then
+    for input in catalog/Beauty/items.jsonl train/raw/Beauty/examples.jsonl validation/raw/Beauty/examples.jsonl; do
+      test -f "data/amazon_reviews/2014/$input" || {
+        echo "Beauty input missing: $input; run STAGE=prepare first" >&2; exit 2;
+      }
+    done
+    args=(--run-name "$run_name" --device cuda)
+    if [[ -e "$run_dir" ]]; then
+      test -f "$run_dir/latest.pt" || {
+        echo "Incomplete run without checkpoint: $run_name" >&2; exit 2;
+      }
+      args+=(--resume)
+    fi
+    srun .venv/bin/python -m "$module" "${args[@]}"
+  fi
+  if [[ "$stage" == test ]]; then
+    srun .venv/bin/python -m "$module" --run-name "$run_name" --device cuda --eval-test-only
+  fi
+  exit 0
+fi
+
 sid_dir="data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/$sid_version"
 split_dir="data/amazon_reviews/2014/train/sids/sentence-t5_rqvae/Beauty/$sid_version"
 

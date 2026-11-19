@@ -36,3 +36,7 @@ Append-only. Newest entries at the bottom.
 ## [2026-11-19] add | TIGER 訓練與 Adafactor 步長
 
 - 新增 [[tiger-training]]：HF Adafactor `scale_parameter=False` 讓 lr 成為絕對步長，與 T5X 預設不同；新增 `--adafactor-scale-parameter` 與續訓檢查。
+
+## [2026-11-19] update | run.sbatch 的 MODEL 選擇
+
+- [[model-family-layout]]：`scripts/run.sbatch` 新增 `MODEL=sasrec|fmrec`，記錄同時提交多個 job 時用 `STAGE=train` 的坑；[[sid-rqvae-training]] 行號更新。
