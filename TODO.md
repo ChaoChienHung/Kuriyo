@@ -30,10 +30,14 @@
   - **Context:** TIGER 論文在三個 2014 分類上報告；只看 Beauty 的結論可能不穩。`run.sbatch` 已支援 `CATEGORY`。
   - **Scope:** 使用者在 SoC 先跑 `CATEGORY=<分類> STAGE=prepare`（一次一個分類），README 補上兩個分類的筆數；之後 SASRec、FMRec、TIGER（各自的 SID 版本）用預設 run 名稱訓練，多 seed 依 README。
   - **Acceptance:** 兩個分類的切分筆數、商品數與論文資料表對照；三個模型的 validation 分資料集記在各 Experiment-log 與 `Recall/INSIGHT.md`。
-- [ ] 依目標商品熱門度分組評估（冷啟動與長尾）（優先：TIGER 的 test 比 validation 低 31%，item-ID 模型只低 17–22%）
+- [ ] 對既有 run 跑分組評估並記錄（冷啟動與長尾）（優先：TIGER 的 test 比 validation 低 31%，item-ID 模型只低 17–22%）
   - **Context:** `Recall/INSIGHT.md` H2、`Recall/TIGER/INSIGHT.md` H7：SASRec／FMRec 的 ID embedding 隨機初始化，對沒學過的商品無能為力；validation 目標有 20.8% 在 train 當目標少於 5 次、0.23% 完全沒出現。整體指標由熱門商品主導。
-  - **Scope:** 在 `Recall/core/` 加依 train 出現次數（0、1–4、5 以上）分組的指標，各模型 validation 一併輸出；不改既有整體指標。
-  - **Acceptance:** 有 checkpoint 的 run 可重新評估出分組 Recall@10／NDCG@10，三個家族的結果並列在 `Recall/INSIGHT.md`。
+  - **Scope:** 程式已完成（`Recall/core/popularity.py`、`--eval-groups`／`STAGE=groups`）。使用者在 SoC 對 `sasrec-beauty-v1`、`sasrec-paper-beauty-*`、`sasrec-paperce-beauty-*`、`fmrec-beauty-v1`、`tiger-t5x-adafactor-v1` 執行 `STAGE=groups` 並推上紀錄。
+  - **Acceptance:** 各 run 的 `best-groups.json`（有 test 的另有 `test/<set>/groups.json`）`max_abs_difference` 為 0 或接近 0；分組 Recall@10／NDCG@10 並列在 `Recall/INSIGHT.md`，更新 H2 與 TIGER H7。
+- [ ] 以各論文自己的協定重現（確認沒有低估模型）
+  - **Context:** 共用切分與全 catalog 評估適合比較模型，但無法和論文數字直接對照。原始 SASRec 論文用 50 件歷史、每位使用者 1 個正例 + 100 個未互動過的隨機商品排名；TIGER test 比論文低 14%。
+  - **Scope:** 在 `--eval-groups` 的重新評估框架加「抽樣負例」協定（100 個、排除使用者看過的商品、固定 seed），各模型都能跑；之後視結果建立 50 件歷史的切分（另一個資料版本，結果分開報告）並用論文設定重訓。
+  - **Acceptance:** 各模型在論文協定下的數字與論文並列；差距在合理範圍即確認實作正確，否則記下差異來源。
 - [ ] 若 TIGER 跑滿後仍明顯落後 item-ID 模型，找剩下的差距
   - **Context:** 20k 時與 SASRec CE／FMRec 仍差約 0.02；但已高於 SASRec 論文設定（0.060）。
   - **Scope:** 容量（H4）、訓練樣本、token 排列、解碼；每項新 RUN_NAME。

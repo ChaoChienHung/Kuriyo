@@ -4,6 +4,11 @@
 
 ## Awaiting review
 
+- [ ] 依目標熱門度分組評估（`--eval-groups`／`STAGE=groups`）
+  - **Delivered:** `Recall/core/popularity.py`（依目標在 train 當目標的次數分 0、1–4、5 以上）；`ranking_metrics` 與 `rank_full_catalog` 可帶分組標籤，結果多一個 `groups`；三個 trainer 的 validation 與 test 指標都帶分組。`core/runs.py` 的 `evaluate_groups` 不訓練，只把 `best.pt` 再評估一次，寫 `validation/<set>/best-groups.json`，以及（只在已跑過 test 時）`test/<set>/groups.json`，並記錄整體數字與原紀錄的最大差 `max_abs_difference`。`run.sbatch` 新增 `STAGE=groups`。TODO 新增「以各論文自己的協定重現」。
+  - **Evidence:** 改動前後以固定 seed 跑 SASRec、FMRec（真實資料子集，含續訓與 test）與 TIGER（合成資料）：loss、validation、test 整體指標逐位相同。新增分組指標、`STAGE=groups` 的測試；SASRec 整合測試確認重新評估的 `max_abs_difference` 為 0、不可覆寫。
+  - **Review focus:** 分組依「當 train 目標的次數」，只出現在歷史裡的商品算 0；用的是該 run 實際訓練的 train（`--max-train-examples` 會影響分組）。test 的分組只對已跑過 test 的 run 做，避免變相多跑 test；它仍是同一 checkpoint 對 test 的第二次評估，只用來拆解，不用來選擇。
+
 - [ ] SASRec／FMRec held-out test 紀錄；run 小型紀錄進 Git
   - **Delivered:** 兩個 Experiment-log 各加 Held-out test 條目（Expectation 標明事後補記），`Recall/INSIGHT.md` 加 test 對照表，SASRec／FMRec INSIGHT 加 test 事實。`.gitignore` 對 `Recall/**/runs/*/` 改成白名單：只追蹤 `settings.json`、`events.log`、`validation/`、`test/`；移除已無必要的「小型 run summary 匯出」TODO。
   - **Evidence:** 數字取自使用者貼上的 SoC `test/amazon2014-beauty/metrics.json`；`git check-ignore` 確認 checkpoint、`train/`、平版面 `config.json`／`latest.pt`、`hf-cache/` 仍被忽略，四種紀錄會被追蹤。

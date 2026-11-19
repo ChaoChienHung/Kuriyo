@@ -66,6 +66,10 @@ SoC 上的既有 run（`tiger-t5x-adafactor-v1`、`tiger-paper-v1`、`sasrec-bea
 
 SASRec 論文設定（BCE）3 個 seed 的 validation Recall@10 0.0602 ± 0.0015，只換 CE 0.1024 ± 0.0006（jobs 1166902–07，程式 `1d5c37c`）；H1 成立。TIGER job 1165519 的 validation 在 20k 最好（0.0800），40k–100k 一路降到 0.0546，無效 beam 升到 1.8%；train loss 同時仍在降（30k 1.29），支持過擬合（TIGER INSIGHT H8）。使用者已結束該 job，`best.pt` 在 20k；其 test Recall@10 0.0556（job 1167548），比論文低約 14%、比 validation 低 31%。下一步：以 `--eval-every 2000 --steps 40000` 跑細曲線找最佳 step（TODO 第一項）。
 
+## 分組評估（2026-11-19）
+
+`STAGE=groups` 把既有 run 的 `best.pt` 依目標熱門度（train 當目標 0、1–4、5 以上次）重新評估，不訓練；有 test 的 run 一併拆解 test。下一步是對 SASRec、FMRec、TIGER 的既有 run 執行並記錄（TODO）。
+
 ## Logging 與匯入狀態
 
 新版 `core/run_logging.py` 已接入 paper trainer 和 SID generator：TIGER 每 step 寫 run 的 `train/train.jsonl`、SID 每 epoch 寫 `train.jsonl`，生命週期等事件寫 `events.log`（JSON Lines），含 UTC timestamp、session ID、elapsed_seconds。續訓追加，不抹掉歷史；重跑相同 step 用 session ID 區分。SIGKILL、斷電或 logger 啟動前的錯誤未必留下失敗事件。舊 smoke trainer 尚未接入。

@@ -24,9 +24,10 @@ from Recall.TIGER.baseline.train_sequence import read_examples
 from Recall.TIGER.baseline.sequence import SIDTokenizer
 from Recall.core.data import pad_token_sequences, preprocessing_summary
 from Recall.core.metrics import ranking_metrics
+from Recall.core.popularity import GROUPING, popularity_groups, target_counts
 from core.experiment import file_sha256, seed_everything
 from core.runs import (RunError, RunLayout, Selection, add_run_arguments, check_run_arguments,
-                       configure_threads, display_path, eval_set_name, evaluate_test_once,
+                       configure_threads, display_path, eval_set_name, evaluate_groups, evaluate_test_once,
                        load_checkpoint, open_run, run_section, save_checkpoint)
 
 # Must match to resume; keys are the flat config.json names of runs before 2026-11-19, which
@@ -65,7 +66,7 @@ def build_model(tokenizer):
 
 
 @torch.no_grad()
-def evaluate(model, tokenizer, examples, max_history, device, batch_size, beam_size):
+def evaluate(model, tokenizer, examples, max_history, device, batch_size, beam_size, groups=None):
     model.eval()
     requests = []
     invalid = 0
@@ -96,7 +97,7 @@ def evaluate(model, tokenizer, examples, max_history, device, batch_size, beam_s
                     seen.add(item)
                     items.append(item)
             requests.append((items, row["target_asin"]))
-    return {**ranking_metrics(requests, ks=(5, 10)),
+    return {**ranking_metrics(requests, ks=(5, 10), groups=groups),
             "validation_examples": len(examples), "beam_size": beam_size,
             "invalid_beam_fraction": invalid / total_beams,
             "decoding": "unconstrained beam search; invalid IDs count as misses"}
@@ -206,19 +207,28 @@ def main():
         "evaluation": {"set": eval_set, "every_steps": args.eval_every,
                        "batch_size": args.eval_batch_size, "beam_size": args.beam_size,
                        "selection": "best validation NDCG@10", "ks": [5, 10],
-                       "decoding": "unconstrained beam search; invalid IDs count as misses"}}
-    if args.eval_test_only:
-        test = read_examples(paths["test"], None, tokenizer)
+                       "decoding": "unconstrained beam search; invalid IDs count as misses",
+                       "groups": GROUPING}}
+    counts = target_counts(row["target_asin"] for row in train)
 
-        def evaluate_test():
-            metrics = evaluate(model, tokenizer, test, args.max_history, args.device,
-                               args.eval_batch_size, args.beam_size)
+    def evaluate_rows(rows, split="validation"):
+        metrics = evaluate(model, tokenizer, rows, args.max_history, args.device,
+                           args.eval_batch_size, args.beam_size,
+                           groups=popularity_groups([row["target_asin"] for row in rows], counts))
+        if split == "test":
             metrics["test_examples"] = metrics.pop("validation_examples")
-            return metrics
+        return metrics
 
+    if args.eval_test_only or args.eval_groups:
+        rows = {"validation": validation, "test": read_examples(paths["test"], None, tokenizer)}
         try:
-            evaluate_test_once(layout, settings, TEST_KEYS, RESUME_KEYS, model, evaluate_test,
-                               settings["data"]["splits"]["test"]["sha256"])
+            if args.eval_test_only:
+                evaluate_test_once(layout, settings, TEST_KEYS, RESUME_KEYS, model,
+                                   lambda: evaluate_rows(rows["test"], "test"),
+                                   settings["data"]["splits"]["test"]["sha256"])
+            else:
+                evaluate_groups(layout, settings, TEST_KEYS, RESUME_KEYS, model,
+                                lambda name: evaluate_rows(rows[name], name))
         except RunError as error:
             parser.error(str(error))
         return
@@ -276,8 +286,7 @@ def main():
                 print("step {}/{} loss={:.6f} lr={:.6g}".format(
                     step, args.steps, loss.item(), learning_rate), flush=True)
             if step % args.eval_every == 0 or step == args.steps:
-                metrics = evaluate(model, tokenizer, validation, args.max_history,
-                                   args.device, args.eval_batch_size, args.beam_size)
+                metrics = evaluate_rows(validation)
                 metrics.update(split="validation", set=eval_set, step=step)
                 selection.record(layout, logger, model, metrics, "step", step)
             if step % args.save_every == 0 or step == args.steps:

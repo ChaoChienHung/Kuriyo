@@ -22,9 +22,10 @@ from Recall.SASRec.baseline.data import (collate_histories, collate_windows, pad
 from Recall.SASRec.baseline.model import LOSSES, SASRec
 from Recall.core.data import AsinSplit
 from Recall.core.evaluation import rank_full_catalog
+from Recall.core.popularity import GROUPING, popularity_groups, target_counts
 from core.experiment import seed_everything
 from core.runs import (RunError, RunLayout, Selection, add_run_arguments, check_run_arguments,
-                       configure_threads, evaluate_test_once, load_checkpoint, open_run,
+                       configure_threads, evaluate_groups, evaluate_test_once, load_checkpoint, open_run,
                        run_section, save_checkpoint)
 
 MODEL_KEYS = ("max_history", "hidden", "heads", "layers", "dropout")
@@ -40,7 +41,7 @@ TEST_KEYS = {key: RESUME_KEYS[key] for key in
              ("catalog_sha256", "train_sha256", "validation_sha256", "model")}
 
 
-def evaluate(model, rows, asins, max_history, device, batch_size, ks=(5, 10)):
+def evaluate(model, rows, asins, max_history, device, batch_size, ks=(5, 10), groups=None):
     """Full ranking over every catalog item from the newest position."""
     model.eval()
 
@@ -49,7 +50,7 @@ def evaluate(model, rows, asins, max_history, device, batch_size, ks=(5, 10)):
         return model.scores(model(sequence.to(device))[:, -1])
 
     with torch.no_grad():
-        return rank_full_catalog(rows, asins, score, batch_size, model.num_items, ks)
+        return rank_full_catalog(rows, asins, score, batch_size, model.num_items, ks, groups=groups)
 
 
 def build_parser():
@@ -116,25 +117,34 @@ def main():
                        "batch_size": args.eval_batch_size, "patience": args.patience,
                        "selection": "best validation NDCG@10", "ks": [5, 10],
                        "ranking": "full catalog, inner product with item embeddings; "
-                                  "history items not filtered"}}
+                                  "history items not filtered", "groups": GROUPING}}
 
     seed_everything(args.seed)
     configure_threads(args.device)
     model = SASRec(len(asins), **model_config).to(args.device)
     settings["model"]["parameters"] = sum(parameter.numel() for parameter in model.parameters())
 
-    if args.eval_test_only:
-        test = split.read("test")
+    train_rows = split.read("train", args.max_train_examples)
+    counts = target_counts(row["target"] for row in train_rows)
+
+    def evaluate_rows(rows):
+        return evaluate(model, rows, asins, args.max_history, args.device, args.eval_batch_size,
+                        groups=popularity_groups([row["target"] for row in rows], counts))
+
+    if args.eval_test_only or args.eval_groups:
+        rows = {"validation": split.read("validation", args.max_validation_examples),
+                "test": split.read("test")}
         try:
-            evaluate_test_once(layout, settings, TEST_KEYS, RESUME_KEYS, model,
-                               lambda: evaluate(model, test, asins, args.max_history, args.device,
-                                                args.eval_batch_size),
-                               split.sha256["test"])
+            if args.eval_test_only:
+                evaluate_test_once(layout, settings, TEST_KEYS, RESUME_KEYS, model,
+                                   lambda: evaluate_rows(rows["test"]), split.sha256["test"])
+            else:
+                evaluate_groups(layout, settings, TEST_KEYS, RESUME_KEYS, model,
+                                lambda name: evaluate_rows(rows[name]))
         except RunError as error:
             parser.error(str(error))
         return
 
-    train_rows = split.read("train", args.max_train_examples)
     sequences = user_sequences(train_rows, args.max_history)
     train, owners = [], []
     for user, sequence in enumerate(sequences):
@@ -194,8 +204,7 @@ def main():
                 if step == 1 or step % 100 == 0:
                     print("epoch {} step {} loss={:.5f}".format(epoch, step, loss.item()), flush=True)
             if epoch % args.eval_every == 0 or epoch == args.epochs:
-                metrics = evaluate(model, validation, asins, args.max_history, args.device,
-                                   args.eval_batch_size)
+                metrics = evaluate_rows(validation)
                 metrics.update(split="validation", set=layout.eval_set, epoch=epoch, step=step)
                 selection.record(layout, logger, model, metrics, "epoch", epoch)
             save_checkpoint(layout.latest, {"model": model.state_dict(), "optimizer": optimizer.state_dict(),

@@ -10,6 +10,8 @@
 # Verify the live SoC partition, GPU and limits before submitting. Override
 # these example directives with sbatch flags when the cluster configuration differs.
 # STAGE=all runs prepare -> SID -> materialize -> TIGER; STAGE=test is separate.
+# STAGE=groups re-evaluates checkpoints/best.pt per target-popularity group (validation,
+# and test only if the run already has its one test); it never trains.
 # STAGE=sid also prepares/verifies the category's inputs before generating SIDs.
 # CATEGORY (default Beauty; also Sports_and_Outdoors, Toys_and_Games) selects the 2014
 # dataset; SID versions and run directories are kept apart by category. SEED (default
@@ -40,8 +42,8 @@ case "$model" in
 esac
 stage="${STAGE:-all}"
 case "$stage" in
-  all|prepare|sid|materialize|train|test) ;;
-  *) echo "STAGE must be all, prepare, sid, materialize, train, or test" >&2; exit 2 ;;
+  all|prepare|sid|materialize|train|test|groups) ;;
+  *) echo "STAGE must be all, prepare, sid, materialize, train, test, or groups" >&2; exit 2 ;;
 esac
 category="${CATEGORY:-Beauty}"
 case "$category" in
@@ -70,8 +72,8 @@ case "$sid_recipe" in
 esac
 [[ "$sid_version" =~ ^[A-Za-z0-9][A-Za-z0-9_-]*$ ]] || { echo "Invalid SID_VERSION" >&2; exit 2; }
 if [[ "$model" != tiger ]]; then
-  [[ "$stage" == all || "$stage" == prepare || "$stage" == train || "$stage" == test ]] || {
-    echo "MODEL=$model supports STAGE=all, prepare, train, or test" >&2; exit 2;
+  [[ "$stage" == all || "$stage" == prepare || "$stage" == train || "$stage" == test || "$stage" == groups ]] || {
+    echo "MODEL=$model supports STAGE=all, prepare, train, test, or groups" >&2; exit 2;
   }
   [[ "$adafactor_scale" != 1 ]] || { echo "ADAFACTOR_SCALE_PARAMETER applies only to MODEL=tiger" >&2; exit 2; }
 fi
@@ -123,11 +125,12 @@ if [[ "$model" != tiger ]]; then
     fi
     srun .venv/bin/python -m "$module" "${args[@]}"
   fi
-  if [[ "$stage" == test ]]; then
+  if [[ "$stage" == test || "$stage" == groups ]]; then
     test -f "$run_dir/checkpoints/best.pt" || test -f "$run_dir/best.pt" || {
-      echo "No best checkpoint for STAGE=test: $PWD/$run_dir (submit from the repository that holds the run)" >&2; exit 2;
+      echo "No best checkpoint for STAGE=$stage: $PWD/$run_dir (submit from the repository that holds the run)" >&2; exit 2;
     }
-    srun .venv/bin/python -m "$module" "${common[@]}" --eval-test-only
+    if [[ "$stage" == test ]]; then flag=--eval-test-only; else flag=--eval-groups; fi
+    srun .venv/bin/python -m "$module" "${common[@]}" "$flag"
   fi
   exit 0
 fi
@@ -202,12 +205,13 @@ if [[ "$stage" == all || "$stage" == train ]]; then
   srun .venv/bin/python -m Recall.TIGER.baseline.train "${args[@]}"
 fi
 
-if [[ "$stage" == test ]]; then
+if [[ "$stage" == test || "$stage" == groups ]]; then
   run_dir="Recall/TIGER/baseline/runs/$run_name"
   test -f "$run_dir/checkpoints/best.pt" || test -f "$run_dir/best.pt" || {
-    echo "No best checkpoint for STAGE=test: $PWD/$run_dir (submit from the repository that holds the run)" >&2; exit 2;
+    echo "No best checkpoint for STAGE=$stage: $PWD/$run_dir (submit from the repository that holds the run)" >&2; exit 2;
   }
   args=("${common[@]}")
   if [[ "$adafactor_scale" == 0 ]]; then args+=(--no-adafactor-scale-parameter); fi
-  srun .venv/bin/python -m Recall.TIGER.baseline.train "${args[@]}" --eval-test-only
+  if [[ "$stage" == test ]]; then args+=(--eval-test-only); else args+=(--eval-groups); fi
+  srun .venv/bin/python -m Recall.TIGER.baseline.train "${args[@]}"
 fi

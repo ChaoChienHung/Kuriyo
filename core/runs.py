@@ -10,7 +10,9 @@ Layout of ``runs/<RUN_NAME>/``::
     checkpoints/best.pt              weights selected on validation
     validation/<set>/<unit>-<n>.json one file per evaluation, e.g. epoch-000005.json
     validation/<set>/best.json       metrics of checkpoints/best.pt
+    validation/<set>/best-groups.json  --eval-groups: best.pt again, split by target popularity
     test/<set>/metrics.json          written once, only by --eval-test-only
+    test/<set>/groups.json           --eval-groups, only after that one test
 
 Runs written before 2026-11-19 are flat (``config.json``, ``latest.pt``,
 ``validation-epoch-5.json`` ...). ``open_run`` and ``open_for_test`` move them into this
@@ -56,6 +58,8 @@ class RunLayout:
         self.best_metrics = self.validation / "best.json"
         self.test = self.root / "test" / eval_set
         self.test_metrics = self.test / "metrics.json"
+        self.best_groups = self.validation / "best-groups.json"
+        self.test_groups = self.test / "groups.json"
 
     def validation_file(self, unit, value):
         return self.validation / "{}-{:06d}.json".format(unit, value)
@@ -203,6 +207,44 @@ def evaluate_test_once(layout, settings, keys, legacy_keys, model, evaluate, tes
     return metrics
 
 
+def evaluate_groups(layout, settings, keys, legacy_keys, model, evaluate):
+    """--eval-groups: evaluate checkpoints/best.pt again with metrics per target-popularity group.
+
+    Runs validation, and test only when the run already has its one test, so no new test
+    result is created. evaluate(split) returns metrics with "groups"; the overall numbers
+    are compared with the recorded ones (max_abs_difference, 0 when evaluation is
+    deterministic). Writes validation/<set>/best-groups.json and test/<set>/groups.json."""
+    if layout.is_legacy:
+        migrate_legacy(layout, settings, legacy_keys)
+    if not layout.best.is_file():
+        raise RunError("best checkpoint missing: {}".format(layout.best))
+    jobs = [(split, recorded, output) for split, recorded, output in
+            (("validation", layout.best_metrics, layout.best_groups),
+             ("test", layout.test_metrics, layout.test_groups)) if recorded.is_file()]
+    for _, _, output in jobs:
+        if output.exists():
+            raise RunError("groups already evaluated: {}".format(output))
+    previous = json.loads(layout.settings.read_text())
+    check_settings(previous, settings, keys, "evaluation settings")
+    model.load_state_dict(torch.load(layout.best, map_location="cpu", weights_only=True))
+    results = {}
+    with layout.logger() as logger:
+        for split, recorded_path, output in jobs:
+            metrics = evaluate(split)
+            recorded = json.loads(recorded_path.read_text())
+            overall = [key for key in metrics if key.startswith(("recall@", "ndcg@")) and key in recorded]
+            metrics.update(split=split, set=layout.eval_set, checkpoint="checkpoints/best.pt",
+                           max_abs_difference=max(abs(metrics[key] - recorded[key]) for key in overall),
+                           git_revision=settings["run"]["git_revision"],
+                           slurm_job_id=os.environ.get("SLURM_JOB_ID"))
+            write_json(output, metrics)
+            logger.event("groups_evaluated", split=split, path=str(output.relative_to(layout.root)),
+                         max_abs_difference=metrics["max_abs_difference"])
+            print(json.dumps(metrics), flush=True)
+            results[split] = metrics
+    return results
+
+
 def save_checkpoint(path, state):
     """Atomically save state plus the global torch (and CUDA) RNG state."""
     state = dict(state, torch_rng_state=torch.get_rng_state())
@@ -263,12 +305,17 @@ def add_run_arguments(parser, runs_dir):
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--eval-test-only", action="store_true",
                         help="evaluate checkpoints/best.pt on held-out test once")
+    parser.add_argument("--eval-groups", action="store_true",
+                        help="evaluate checkpoints/best.pt again per target-popularity group "
+                             "(validation, and test only if it already ran)")
 
 
 def check_run_arguments(args):
     """Return an error message for invalid shared arguments, or None."""
     if Path(args.run_name).name != args.run_name or args.run_name in ("", ".", ".."):
         return "--run-name must be one directory name"
+    if args.resume + args.eval_test_only + args.eval_groups > 1:
+        return "use only one of --resume, --eval-test-only, --eval-groups"
     for limit in (getattr(args, "max_train_examples", None), getattr(args, "max_validation_examples", None)):
         if limit is not None and limit < 1:
             return "example limits must be positive"

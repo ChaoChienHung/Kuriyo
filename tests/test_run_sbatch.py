@@ -262,6 +262,22 @@ esac
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("--eval-test-only", self.model_args("Recall.SASRec.baseline.train"))
 
+    def test_groups_stage_reevaluates_without_training(self):
+        self.env.update(MODEL="fmrec", STAGE="groups")
+        checkpoints = self.root / "Recall/FMRec/baseline/runs/test-v1/checkpoints"
+        checkpoints.mkdir(parents=True)
+        (checkpoints / "best.pt").write_text("")
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.trace.read_text().splitlines(), ["pip", "Recall.FMRec.baseline.train"])
+        args = self.model_args("Recall.FMRec.baseline.train")
+        self.assertIn("--eval-groups", args)
+        self.assertNotIn("--eval-test-only", args)
+        self.env.update(MODEL="tiger", RUN_NAME="tiger-none")
+        result = self.run_job()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("No best checkpoint for STAGE=groups", result.stderr)
+
     def test_invalid_model_settings_stop_before_work(self):
         for settings in ({"MODEL": "bert4rec"}, {"MODEL": "sasrec", "STAGE": "sid"},
                          {"CATEGORY": "Books"}, {"SEED": "-1"}, {"TRAIN_ARGS": "--loss bce; rm"},

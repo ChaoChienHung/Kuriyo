@@ -86,6 +86,9 @@ class SASRecTrainTests(unittest.TestCase):
             tested = run("--eval-test-only")
             self.assertEqual(tested.returncode, 0, tested.stderr[-2000:])
             self.assertNotEqual(run("--eval-test-only").returncode, 0, "test must run once")
+            grouped = run("--eval-groups")
+            self.assertEqual(grouped.returncode, 0, grouped.stderr[-2000:])
+            self.assertNotEqual(run("--eval-groups").returncode, 0, "groups must not be overwritten")
 
             run_dir = base / "runs/smoke"
             history = [json.loads(line) for line in (run_dir / "train/train.jsonl").read_text().splitlines()]
@@ -109,6 +112,12 @@ class SASRecTrainTests(unittest.TestCase):
             self.assertEqual((test_metrics["split"], test_metrics["examples"]), ("test", 4))
             self.assertIn("git_revision", test_metrics)
             self.assertIn("slurm_job_id", test_metrics)
+            self.assertEqual(sum(group["examples"] for group in test_metrics["groups"].values()), 4)
+            for name in ("validation/amazon2014-beauty/best-groups.json", "test/amazon2014-beauty/groups.json"):
+                regrouped = json.loads((run_dir / name).read_text())
+                self.assertEqual(regrouped["max_abs_difference"], 0.0, name)
+                self.assertIn("groups", regrouped)
+            self.assertIn("groups_evaluated", events)
             settings = json.loads((run_dir / "settings.json").read_text())
             self.assertEqual((settings["training"]["loss"], settings["model"]["config"]["max_history"]),
                              ("bce", 4))
