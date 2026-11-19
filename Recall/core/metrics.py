@@ -50,3 +50,28 @@ def ranking_metrics(recommendations_and_targets, ks=(5, 10), groups=None):
                                     "examples": by_group[label][2][0]}
                             for label in sorted(by_group)}
     return result
+
+
+def target_ranks(recommendations_and_targets, max_rank):
+    """1-based rank of each target among the first max_rank recommendations, 0 when absent.
+
+    Uses the same first-match rule as ranking_metrics, so Recall@K and NDCG@K for any
+    K <= max_rank can be recomputed per request from these ranks."""
+    if max_rank < 1:
+        raise ValueError("max_rank must be positive")
+    ranks = []
+    for recommendations, target in recommendations_and_targets:
+        try:
+            ranks.append(recommendations[:max_rank].index(target) + 1)
+        except ValueError:
+            ranks.append(0)
+    return ranks
+
+
+def per_user(users, requests, max_rank):
+    """The per-user record kept beside metrics: one rank per request, in request order."""
+    users = list(users)
+    ranks = target_ranks(requests, max_rank)
+    if len(users) != len(ranks):
+        raise ValueError("one user per request is required")
+    return {"max_rank": max_rank, "users": users, "ranks": ranks}

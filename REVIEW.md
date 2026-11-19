@@ -4,6 +4,11 @@
 
 ## Awaiting review
 
+- [ ] 逐使用者排名輸出與 `python -m core.compare`
+  - **Delivered:** `Recall/core/metrics.py` 的 `target_ranks`／`per_user`；`rank_full_catalog` 與 TIGER `evaluate` 回傳每位使用者的目標排名（前 10 名內的名次，否則 0）。`core/runs.py` 把它從指標取出另存 `validation/<set>/best-ranks.json`（best 更新時）與 `test/<set>/ranks.json`；`--eval-groups` 改成補齊缺的分組檔與排名檔（已有的不覆寫，全有才拒絕），讓既有 run 也能補排名。新增 `core/stats.py`（t 分佈、Welch、paired t、paired bootstrap、Holm，只用標準函式庫與 NumPy）與 `core/compare.py`（每個設定的平均 ± 標準差與 t 95% CI；對第一個設定做使用者配對檢定與 seed 層級 Welch，Holm 校正，依 README 規則給判定）。README 統計一節、`core/README.md`、docs [[run-directory]] 更新；TODO 移除此項，分組評估項目加上用排名做 SASRec H1 的配對檢定。
+  - **Evidence:** 改動前後以固定 seed 跑 SASRec、FMRec（真實資料子集，含續訓與 test）與 TIGER（合成資料）：loss、validation、test 整體指標逐位相同；三個模型的排名檔以 Recall@10 重算與記錄值差 0。新增 `tests/test_compare.py`（t 分佈對照表值、Welch／paired t 公式、bootstrap、Holm、判定、拒絕不同使用者）；SASRec 整合測試檢查排名檔、指標 JSON 不含 `per_user`、刪掉排名檔後 `--eval-groups` 補回且分組檔不變；完整 unittest discovery 80 項通過；docs lint 通過。
+  - **Review focus:** 排名檔每個約數百 KB，在 Git 白名單內（Beauty 每個 run 兩個）；配對檢定先對每位使用者平均各 seed 再配對，README 寫的 McNemar 沒實作；判定的「配對 p」取 paired t 與 bootstrap 兩者 Holm 後較大者；只比較使用者清單完全相同且同序的 run。
+
 - [ ] 依目標熱門度分組評估（`--eval-groups`／`STAGE=groups`）
   - **Delivered:** `Recall/core/popularity.py`（依目標在 train 當目標的次數分 0、1–4、5 以上）；`ranking_metrics` 與 `rank_full_catalog` 可帶分組標籤，結果多一個 `groups`；三個 trainer 的 validation 與 test 指標都帶分組。`core/runs.py` 的 `evaluate_groups` 不訓練，只把 `best.pt` 再評估一次，寫 `validation/<set>/best-groups.json`，以及（只在已跑過 test 時）`test/<set>/groups.json`，並記錄整體數字與原紀錄的最大差 `max_abs_difference`。`run.sbatch` 新增 `STAGE=groups`。TODO 新增「以各論文自己的協定重現」。
   - **Evidence:** 改動前後以固定 seed 跑 SASRec、FMRec（真實資料子集，含續訓與 test）與 TIGER（合成資料）：loss、validation、test 整體指標逐位相同。新增分組指標、`STAGE=groups` 的測試；SASRec 整合測試確認重新評估的 `max_abs_difference` 為 0、不可覆寫。

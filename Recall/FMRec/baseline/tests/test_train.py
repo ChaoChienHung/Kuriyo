@@ -56,13 +56,15 @@ class FixedRanker:
 class FMRecTrainTests(unittest.TestCase):
     def test_evaluate_wires_full_ranking_into_shared_metrics(self):
         asins = ["A", "B", "C", "D"]
-        rows = [{"history": [1], "target": 3}, {"history": [2], "target": 2},
-                {"history": [1], "target": 4}]
+        rows = [{"user_id": "U1", "history": [1], "target": 3}, {"user_id": "U2", "history": [2], "target": 2},
+                {"user_id": "U3", "history": [1], "target": 4}]
         metrics = evaluate(FixedRanker(), rows, asins, 20, "cpu", 2, seed=0, ks=(1, 3))
         self.assertAlmostEqual(metrics["recall@1"], 1 / 3)
         self.assertAlmostEqual(metrics["recall@3"], 2 / 3)
         self.assertAlmostEqual(metrics["ndcg@3"], (1 + 1 / math.log2(4)) / 3)
         self.assertEqual(metrics["examples"], 3)
+        self.assertEqual(metrics["per_user"]["users"], ["U1", "U2", "U3"])
+        self.assertEqual(sorted(metrics["per_user"]["ranks"]), [0, 1, 3])
 
     def test_train_resume_and_held_out_test(self):
         with TemporaryDirectory() as temporary:

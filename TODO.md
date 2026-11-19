@@ -18,10 +18,6 @@
   - **Context（更新）：**train loss 在 validation 下降時仍在降，支持過擬合；job 1165519 已由使用者結束，`best.pt` 在 20k。
   - **Scope:** 新 run `RUN_NAME=tiger-t5x-adafactor-eval2k-v1 TRAIN_ARGS="--eval-every 2000 --steps 40000"`（同 seed、同 SID）找最佳 step；第一次提交 job 1167529 因 Slurm controller 連線失敗沒有開始訓練；重送為 job 1167955（`2b19879`），進行中（截至 step 16k 最佳為 14k 的 validation Recall@10 0.0779）。之後再決定對抗過擬合的單一因素（dropout、提早停止）。
   - **Acceptance:** 2k 間隔的 validation 曲線記在 TIGER Experiment-log，最佳 step 寫進 H8，並寫下一個實驗。
-- [ ] 逐使用者評估輸出與比較工具
-  - **Context:** README「實驗設計與統計檢定」的主要檢定是使用者層級的配對檢定；目前 validation／test 只存整體平均，無法配對。
-  - **Scope:** `Recall/core/evaluation.py` 另存每位使用者的目標排名（`validation/<set>/` 與 `test/<set>/` 旁的小檔，不改既有指標 JSON）；`core/` 或 `scripts/` 加比較指令：讀多個 run（多 seed），輸出平均 ± 標準差、95% CI、paired bootstrap／paired t、Welch t 與 Holm 校正後的 p 值。TIGER 的 beam 結果同樣輸出排名或 miss。
-  - **Acceptance:** 合成資料測試驗證 bootstrap 與 t 檢定的數值；既有整體指標逐位不變（共用程式的回歸規則）；有 checkpoint 的 run 可重新評估補出排名檔。
 - [ ] Beauty 多 seed：SASRec 兩個設定、FMRec 各補 seed 43–46
   - **Context:** README 規定定案結果要 5 個 seed；既有 `sasrec-beauty-v1`（CE 設定）、`fmrec-beauty-v1` 即 seed 42。
   - **Scope:** agent 準備指令，使用者提交；SASRec CE 設定 `SEED=43 RUN_NAME=sasrec-ce-beauty-s43 TRAIN_ARGS="--loss ce --hidden 64 --heads 2"`，FMRec `SEED=43 RUN_NAME=fmrec-beauty-s43`；每個 job 一張 GPU，先查配額。
@@ -32,7 +28,7 @@
   - **Acceptance:** 兩個分類的切分筆數、商品數與論文資料表對照；三個模型的 validation 分資料集記在各 Experiment-log 與 `Recall/INSIGHT.md`。
 - [ ] 對既有 run 跑分組評估並記錄（冷啟動與長尾）（優先：TIGER 的 test 比 validation 低 31%，item-ID 模型只低 17–22%）
   - **Context:** `Recall/INSIGHT.md` H2、`Recall/TIGER/INSIGHT.md` H7：SASRec／FMRec 的 ID embedding 隨機初始化，對沒學過的商品無能為力；validation 目標有 20.8% 在 train 當目標少於 5 次、0.23% 完全沒出現。整體指標由熱門商品主導。
-  - **Scope:** 程式已完成（`Recall/core/popularity.py`、`--eval-groups`／`STAGE=groups`）；第一批 9 個 job（1167705–13）用 pull 前的程式提交，全部在 stage 檢查就結束，需重送。使用者在 SoC 對 `sasrec-beauty-v1`、`sasrec-paper-beauty-*`、`sasrec-paperce-beauty-*`、`fmrec-beauty-v1`、`tiger-t5x-adafactor-v1` 執行 `STAGE=groups` 並推上紀錄。
+  - **Scope:** 程式已完成（`Recall/core/popularity.py`、`--eval-groups`／`STAGE=groups`）；第一批 9 個 job（1167705–13）用 pull 前的程式提交，全部在 stage 檢查就結束，需重送。使用者在 SoC 對 `sasrec-beauty-v1`、`sasrec-paper-beauty-*`、`sasrec-paperce-beauty-*`、`fmrec-beauty-v1`、`tiger-t5x-adafactor-v1` 執行 `STAGE=groups` 並推上紀錄；同一個 job 也補出逐使用者排名（`best-ranks.json`、`test/<set>/ranks.json`），之後用 `python -m core.compare` 對 SASRec 兩個設定的 3 個 seed 做配對檢定，補進 SASRec H1。
   - **Acceptance:** 各 run 的 `best-groups.json`（有 test 的另有 `test/<set>/groups.json`）`max_abs_difference` 為 0 或接近 0；分組 Recall@10／NDCG@10 並列在 `Recall/INSIGHT.md`，更新 H2 與 TIGER H7。
 - [ ] 以各論文自己的協定重現（確認沒有低估模型）
   - **Context:** 共用切分與全 catalog 評估適合比較模型，但無法和論文數字直接對照。原始 SASRec 論文用 50 件歷史、每位使用者 1 個正例 + 100 個未互動過的隨機商品排名；TIGER test 比論文低 14%。

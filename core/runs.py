@@ -11,7 +11,9 @@ Layout of ``runs/<RUN_NAME>/``::
     validation/<set>/<unit>-<n>.json one file per evaluation, e.g. epoch-000005.json
     validation/<set>/best.json       metrics of checkpoints/best.pt
     validation/<set>/best-groups.json  --eval-groups: best.pt again, split by target popularity
+    validation/<set>/best-ranks.json   each user's target rank under best.pt (paired tests)
     test/<set>/metrics.json          written once, only by --eval-test-only
+    test/<set>/ranks.json            each user's target rank in that one test
     test/<set>/groups.json           --eval-groups, only after that one test
 
 Runs written before 2026-11-19 are flat (``config.json``, ``latest.pt``,
@@ -60,6 +62,8 @@ class RunLayout:
         self.test_metrics = self.test / "metrics.json"
         self.best_groups = self.validation / "best-groups.json"
         self.test_groups = self.test / "groups.json"
+        self.best_ranks = self.validation / "best-ranks.json"
+        self.test_ranks = self.test / "ranks.json"
 
     def validation_file(self, unit, value):
         return self.validation / "{}-{:06d}.json".format(unit, value)
@@ -180,6 +184,20 @@ def open_run(layout, settings, keys, resume):
     return settings
 
 
+PER_USER = "per_user"
+
+
+def write_ranks(path, per_user, **context):
+    """Write the per-user ranks an evaluator returned under "per_user" (compact JSON)."""
+    if per_user is None:
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as output:
+        json.dump({**context, **per_user}, output, ensure_ascii=False, separators=(",", ":"))
+        output.write("\n")
+    return True
+
+
 def evaluate_test_once(layout, settings, keys, legacy_keys, model, evaluate, test_sha256):
     """Load checkpoints/best.pt, evaluate held-out test once, and write test/<set>/metrics.json.
 
@@ -196,12 +214,15 @@ def evaluate_test_once(layout, settings, keys, legacy_keys, model, evaluate, tes
     model.load_state_dict(torch.load(layout.best, map_location="cpu", weights_only=True))
     with layout.logger() as logger:
         metrics = evaluate()
+        ranks = metrics.pop(PER_USER, None)
         metrics.update(split="test", set=layout.eval_set, test_sha256=test_sha256,
                        selected_validation=json.loads(layout.best_metrics.read_text()),
                        git_revision=settings["run"]["git_revision"],
                        slurm_job_id=os.environ.get("SLURM_JOB_ID"))
         layout.test.mkdir(parents=True, exist_ok=True)
         write_json(layout.test_metrics, metrics)
+        write_ranks(layout.test_ranks, ranks, split="test", set=layout.eval_set,
+                    checkpoint="checkpoints/best.pt", test_sha256=test_sha256)
         logger.event("test_completed", metrics=metrics)
         print(json.dumps(metrics), flush=True)
     return metrics
@@ -211,34 +232,45 @@ def evaluate_groups(layout, settings, keys, legacy_keys, model, evaluate):
     """--eval-groups: evaluate checkpoints/best.pt again with metrics per target-popularity group.
 
     Runs validation, and test only when the run already has its one test, so no new test
-    result is created. evaluate(split) returns metrics with "groups"; the overall numbers
-    are compared with the recorded ones (max_abs_difference, 0 when evaluation is
-    deterministic). Writes validation/<set>/best-groups.json and test/<set>/groups.json."""
+    result is created. evaluate(split) returns metrics with "groups" (and "per_user"); the
+    overall numbers are compared with the recorded ones (max_abs_difference, 0 when
+    evaluation is deterministic). Writes whichever of validation/<set>/best-groups.json,
+    best-ranks.json, test/<set>/groups.json and ranks.json is missing, so runs evaluated
+    before per-user ranks existed can be completed; refuses when nothing is missing."""
     if layout.is_legacy:
         migrate_legacy(layout, settings, legacy_keys)
     if not layout.best.is_file():
         raise RunError("best checkpoint missing: {}".format(layout.best))
-    jobs = [(split, recorded, output) for split, recorded, output in
-            (("validation", layout.best_metrics, layout.best_groups),
-             ("test", layout.test_metrics, layout.test_groups)) if recorded.is_file()]
-    for _, _, output in jobs:
-        if output.exists():
-            raise RunError("groups already evaluated: {}".format(output))
+    jobs = [(split, recorded, groups, ranks) for split, recorded, groups, ranks in
+            (("validation", layout.best_metrics, layout.best_groups, layout.best_ranks),
+             ("test", layout.test_metrics, layout.test_groups, layout.test_ranks))
+            if recorded.is_file() and not (groups.exists() and ranks.exists())]
+    if not jobs:
+        raise RunError("groups and ranks already evaluated: {}".format(layout.validation))
     previous = json.loads(layout.settings.read_text())
     check_settings(previous, settings, keys, "evaluation settings")
     model.load_state_dict(torch.load(layout.best, map_location="cpu", weights_only=True))
     results = {}
     with layout.logger() as logger:
-        for split, recorded_path, output in jobs:
+        for split, recorded_path, output, ranks_path in jobs:
             metrics = evaluate(split)
+            ranks = metrics.pop(PER_USER, None)
             recorded = json.loads(recorded_path.read_text())
             overall = [key for key in metrics if key.startswith(("recall@", "ndcg@")) and key in recorded]
             metrics.update(split=split, set=layout.eval_set, checkpoint="checkpoints/best.pt",
                            max_abs_difference=max(abs(metrics[key] - recorded[key]) for key in overall),
                            git_revision=settings["run"]["git_revision"],
                            slurm_job_id=os.environ.get("SLURM_JOB_ID"))
-            write_json(output, metrics)
-            logger.event("groups_evaluated", split=split, path=str(output.relative_to(layout.root)),
+            written = []
+            if not output.exists():
+                write_json(output, metrics)
+                written.append(output)
+            if not ranks_path.exists() and write_ranks(
+                    ranks_path, ranks, split=split, set=layout.eval_set, checkpoint="checkpoints/best.pt",
+                    max_abs_difference=metrics["max_abs_difference"]):
+                written.append(ranks_path)
+            logger.event("groups_evaluated", split=split,
+                         paths=[str(path.relative_to(layout.root)) for path in written],
                          max_abs_difference=metrics["max_abs_difference"])
             print(json.dumps(metrics), flush=True)
             results[split] = metrics
@@ -282,7 +314,8 @@ class Selection:
                 "stopped_early": self.stopped}
 
     def record(self, layout, logger, model, metrics, unit, value):
-        """Write one validation result; save best.pt when NDCG@10 improves."""
+        """Write one validation result; save best.pt (and its per-user ranks) when NDCG@10 improves."""
+        ranks = metrics.pop(PER_USER, None)
         layout.validation.mkdir(parents=True, exist_ok=True)
         write_json(layout.validation_file(unit, value), metrics)
         logger.event("validation", metrics=metrics)
@@ -292,6 +325,8 @@ class Selection:
             layout.checkpoints.mkdir(parents=True, exist_ok=True)
             torch.save(model.state_dict(), layout.best)
             write_json(layout.best_metrics, metrics)
+            write_ranks(layout.best_ranks, ranks, split="validation", set=layout.eval_set,
+                        checkpoint="checkpoints/best.pt", **{unit: value})
         else:
             self.bad_evals += 1
         self.stopped = bool(self.patience) and self.bad_evals >= self.patience

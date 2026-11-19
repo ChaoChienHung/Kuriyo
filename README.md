@@ -149,7 +149,7 @@ Recall/TIGER/
 **報告：**每個指標寫平均 ± 樣本標準差（n 個 seed），以及 t 分佈的 95% 信賴區間（n=3 時半寬 = 4.30·s／√3，n=5 時 2.78·s／√5）。每個資料集分開報告，不跨資料集平均。
 
 **檢定（同一資料集、同一切分）：**
-1. **使用者層級配對檢定（主要）：**同一位使用者在兩個模型下的指標配對比較。對每位使用者先平均各 seed 的 NDCG@10（或 Recall@10 是否命中），再做雙尾 paired bootstrap（10,000 次重抽使用者）或 paired t-test；Recall@10 這種 0／1 指標也可用 McNemar。檢定力高，但只反映評估樣本的雜訊。需要逐使用者的評估輸出（尚未實作，見 [TODO.md](TODO.md)）。
+1. **使用者層級配對檢定（主要）：**同一位使用者在兩個模型下的指標配對比較。對每位使用者先平均各 seed 的 NDCG@10（或 Recall@10 是否命中），再做雙尾 paired bootstrap（10,000 次重抽使用者）或 paired t-test；Recall@10 這種 0／1 指標也可用 McNemar。檢定力高，但只反映評估樣本的雜訊。逐使用者排名由評估自動寫出（`best-ranks.json`、`test/<set>/ranks.json`；之前的 run 用 `STAGE=groups` 補），比較用 `python -m core.compare`（見 [core/README.md](core/README.md)），它一併做下面第 2–4 項。
 2. **Seed 層級（確認）：**對兩組 seed 的指標做 Welch t-test。n=3 或 5 時檢定力低，只在差距遠大於 seed 標準差時才會顯著，主要用來確認結論不是某個 seed 的運氣。
 3. 兩者都 p < 0.05，且平均差距大於兩組 seed 標準差的較大者，才寫「顯著較好」；只有其一成立就寫「傾向」並說明。
 4. 同時比較多個模型或資料集時，以 Holm–Bonferroni 校正 p 值。

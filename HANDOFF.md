@@ -68,7 +68,9 @@ SASRec 論文設定（BCE）3 個 seed 的 validation Recall@10 0.0602 ± 0.0015
 
 ## 分組評估（2026-11-19）
 
-`STAGE=groups` 把既有 run 的 `best.pt` 依目標熱門度（train 當目標 0、1–4、5 以上次）重新評估，不訓練；有 test 的 run 一併拆解 test。下一步是對 SASRec、FMRec、TIGER 的既有 run 執行並記錄（TODO）；第一批 job 1167705–13 用舊程式提交、未執行，需 pull 後重送。TIGER 細曲線 job 1167529 因 Slurm controller 連線失敗沒有訓練，也需重送。Slurm log 已整理進紀錄後從工作目錄移除，可用 `git show 5963e3f:<檔名>` 取回。
+`STAGE=groups` 把既有 run 的 `best.pt` 依目標熱門度（train 當目標 0、1–4、5 以上次）重新評估，不訓練；有 test 的 run 一併拆解 test。下一步是對 SASRec、FMRec、TIGER 的既有 run 執行並記錄（TODO）；第一批 job 1167705–13 用舊程式提交、未執行，需 pull 後重送。TIGER 細曲線重送為 job 1167955（`2b19879`），截至 26k 最佳在 20k（validation Recall@10 0.0800，與 job 1165519 的 20k 相同）；跑完再寫 Experiment-log 與 H8。Toys_and_Games 已準備（job 1167956）。Slurm log 已整理進紀錄後從工作目錄移除，可用 `git show 5963e3f:<檔名>` 取回。
+
+評估現在另存逐使用者排名（`validation/<set>/best-ranks.json`、`test/<set>/ranks.json`），`python -m core.compare` 依 README 規則做配對與 seed 層級檢定。之前的 run 沒有排名檔，`STAGE=groups` 會補上（已有的分組檔不覆寫），所以分組 job 請用含此改動的程式提交；已用舊程式跑完分組的 run 再跑一次 `STAGE=groups` 即可補排名。
 
 ## Logging 與匯入狀態
 

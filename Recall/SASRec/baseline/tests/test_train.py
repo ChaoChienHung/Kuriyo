@@ -53,13 +53,15 @@ class FixedRanker(torch.nn.Module if TORCH else object):
 class SASRecTrainTests(unittest.TestCase):
     def test_evaluate_wires_full_ranking_into_shared_metrics(self):
         asins = ["A", "B", "C", "D"]
-        rows = [{"history": [1], "target": 3}, {"history": [2], "target": 2},
-                {"history": [1], "target": 4}]
+        rows = [{"user_id": "U1", "history": [1], "target": 3}, {"user_id": "U2", "history": [2], "target": 2},
+                {"user_id": "U3", "history": [1], "target": 4}]
         metrics = evaluate(FixedRanker(), rows, asins, 20, "cpu", 2, ks=(1, 3))
         self.assertAlmostEqual(metrics["recall@1"], 1 / 3)
         self.assertAlmostEqual(metrics["recall@3"], 2 / 3)
         self.assertAlmostEqual(metrics["ndcg@3"], (1 + 1 / math.log2(4)) / 3)
         self.assertEqual(metrics["examples"], 3)
+        self.assertEqual(metrics["per_user"]["users"], ["U1", "U2", "U3"])
+        self.assertEqual(sorted(metrics["per_user"]["ranks"]), [0, 1, 3])
 
     def test_train_resume_and_held_out_test(self):
         with TemporaryDirectory() as temporary:
@@ -118,7 +120,23 @@ class SASRecTrainTests(unittest.TestCase):
                 self.assertEqual(regrouped["max_abs_difference"], 0.0, name)
                 self.assertIn("groups", regrouped)
             self.assertIn("groups_evaluated", events)
-            settings = json.loads((run_dir / "settings.json").read_text())
+            for name, recorded in (("validation/amazon2014-beauty/best-ranks.json", "validation/amazon2014-beauty/best.json"),
+                                   ("test/amazon2014-beauty/ranks.json", "test/amazon2014-beauty/metrics.json")):
+                ranks = json.loads((run_dir / name).read_text())
+                metrics = json.loads((run_dir / recorded).read_text())
+                self.assertNotIn("per_user", metrics)
+                self.assertEqual(len(ranks["users"]), len(ranks["ranks"]))
+                self.assertEqual(ranks["max_rank"], 10)
+                self.assertAlmostEqual(sum(0 < rank <= 10 for rank in ranks["ranks"]) / len(ranks["ranks"]),
+                                       metrics["recall@10"])
+            # A run evaluated before ranks existed gets them from --eval-groups; groups stay as they were.
+            (run_dir / "test/amazon2014-beauty/ranks.json").unlink()
+            groups_before = (run_dir / "test/amazon2014-beauty/groups.json").read_text()
+            refilled = run("--eval-groups")
+            self.assertEqual(refilled.returncode, 0, refilled.stderr[-2000:])
+            self.assertTrue((run_dir / "test/amazon2014-beauty/ranks.json").is_file())
+            self.assertEqual((run_dir / "test/amazon2014-beauty/groups.json").read_text(), groups_before)
+            settings =json.loads((run_dir / "settings.json").read_text())
             self.assertEqual((settings["training"]["loss"], settings["model"]["config"]["max_history"]),
                              ("bce", 4))
             self.assertIn("not in the user's train sequence", settings["training"]["negatives"])

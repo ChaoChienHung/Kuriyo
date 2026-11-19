@@ -23,7 +23,7 @@ if __package__ in (None, ""):
 from Recall.TIGER.baseline.train_sequence import read_examples
 from Recall.TIGER.baseline.sequence import SIDTokenizer
 from Recall.core.data import pad_token_sequences, preprocessing_summary
-from Recall.core.metrics import ranking_metrics
+from Recall.core.metrics import per_user, ranking_metrics
 from Recall.core.popularity import GROUPING, popularity_groups, target_counts
 from core.experiment import file_sha256, seed_everything
 from core.runs import (RunError, RunLayout, Selection, add_run_arguments, check_run_arguments,
@@ -98,6 +98,7 @@ def evaluate(model, tokenizer, examples, max_history, device, batch_size, beam_s
                     items.append(item)
             requests.append((items, row["target_asin"]))
     return {**ranking_metrics(requests, ks=(5, 10), groups=groups),
+            "per_user": per_user((row["user_id"] for row in examples), requests, 10),
             "validation_examples": len(examples), "beam_size": beam_size,
             "invalid_beam_fraction": invalid / total_beams,
             "decoding": "unconstrained beam search; invalid IDs count as misses"}
