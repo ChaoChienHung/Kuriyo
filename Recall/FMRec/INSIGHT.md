@@ -8,7 +8,7 @@ FMRec 家族的研究筆記。事實與假設分開，每個結果都註明資�
 
 從資料或實驗得到、會改變後續做法的解讀。
 
-- 在同一切分與指標下，FMRec 訓練到 epoch 80 的 validation Recall@10 0.1019、NDCG@10 0.0595，和 SASRec 同一量級，遠高於 TIGER。又一個 item-ID 模型正常，TIGER 的差距更確定在 TIGER 自己的流程。訓練尚未結束。證據：[baseline Experiment-log](baseline/Experiment-log.md) 2026-11-19。
+- 在同一切分與指標下，FMRec 的 best validation Recall@10 0.1031 與 SASRec 相當，NDCG@10 0.0603 比 SASRec 高約 0.010：命中的商品排得更前面。又一個 item-ID 模型正常，TIGER 的差距確定在 TIGER 自己的流程。證據：[baseline Experiment-log](baseline/Experiment-log.md) 2026-11-19。
 
 ## Facts
 
@@ -20,13 +20,13 @@ FMRec 家族的研究筆記。事實與假設分開，每個結果都註明資�
 - 論文 Beauty 結果（HR@5 5.84%、HR@10 8.27%、NDCG@5 4.16%、NDCG@10 4.95%）使用 50 件歷史、ICLRec／DuoRec 處理的資料（22,361 users、12,101 items），論文沒有和 TIGER 比較。
 - Kuriyo 的 20 件歷史上限來自 TIGER 論文 Appendix C（套用在訓練）；FMRec 論文用 50。Kuriyo 2014 Beauty 切分：22,363 users、12,101 items。
 - Kuriyo baseline 28,388,038 參數（SoC job 1165520 log），其中約 2,480 萬在重建 MLP 最後一層（2048 × 12,102）。
-- 完整訓練 `fmrec-beauty-v1`（SoC job 1165520）在 epoch 80 達 validation Recall@10 0.1019、NDCG@10 0.0595，epoch 100 幾乎相同；訓練仍在進行（[baseline Experiment-log](baseline/Experiment-log.md) 2026-11-19）。
+- 完整訓練 `fmrec-beauty-v1`（SoC job 1165520，程式 `bb1088c`）在 epoch 260 early stop；best epoch 160 的 validation Recall@5 0.0728、Recall@10 0.1031、NDCG@5 0.0506、NDCG@10 0.0603。epoch 80 之後幾乎持平（[baseline Experiment-log](baseline/Experiment-log.md) 2026-11-19）。
 
 ## Limitations
 
 會限制結論範圍的已知弱點。
 
-- 完整訓練尚未結束，沒有 test 結果。
+- 只有一個 seed、只有 validation，沒有 test 結果。
 - 20 件歷史上限與論文的 50 不同；資料前處理也不同，因此即使跑完，也不能直接和論文數字比較。
 - 論文 Appendix B.2 對 s 有 1.0 與 0.4 兩種說法；目前只依作者程式預設 1.0。
 - 評估不過濾歷史商品（與作者程式、TIGER baseline 一致）。
@@ -36,7 +36,7 @@ FMRec 家族的研究筆記。事實與假設分開，每個結果都註明資�
 待驗證的主張。編號固定；跨檔引用寫 `Recall/FMRec/INSIGHT.md` H[n]。
 
 - **H1 — 取樣步數幾乎不影響結果：**x_t 只以約 0.001 的權重注入，預測主要由歷史決定；Euler 30 步的結果可能與單步預測幾乎相同。驗證：比較 `--sample-steps 1` 與 30 的 validation。
-- **H2 — FMRec 優於 TIGER baseline：**在相同切分下，FMRec（全排名、item ID embedding）的 validation Recall@10 會高於 TIGER baseline 的 0.0342／0.0368。支持（訓練中，epoch 80 已達 0.1019）：[baseline Experiment-log](baseline/Experiment-log.md) 2026-11-19（job 1165520）。
+- **H2 — FMRec 優於 TIGER baseline：**在相同切分下，FMRec（全排名、item ID embedding）的 validation Recall@10 會高於 TIGER baseline 的 0.0342／0.0368。支持（best 0.1031）：[baseline Experiment-log](baseline/Experiment-log.md) 2026-11-19（job 1165520）。
 
 ## Discussion
 
@@ -48,4 +48,4 @@ FMRec 家族的研究筆記。事實與假設分開，每個結果都註明資�
 
 具體的阻礙或未知；排入工作後在 `TODO.md` 追蹤。
 
-- 等完整訓練結束（job 1165520），記錄最終 best validation。
+- 尚無阻礙；單一因素對照（H1 等）列在 `TODO.md`。

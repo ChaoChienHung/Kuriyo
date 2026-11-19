@@ -40,17 +40,23 @@
 
 #### Results
 
-| Run | train loss @1k | train loss @1.5k | Recall@10 @20k | Recall@10 @40k | Notes |
+| Run（step 20k） | Recall@5 | Recall@10 | NDCG@5 | NDCG@10 | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Baseline | 3.362 | 3.127 | 0.0132 | 0.0174 | `tiger-paper-v1`，job 1163052 |
-| T5X Adafactor | 2.36 | 2.144 | 待定 | 待定 | `tiger-t5x-adafactor-v1`，job 1165519（訓練中） |
+| Baseline | 0.00939 | 0.01319 | 0.00593 | 0.00718 | `tiger-paper-v1`，job 1163052 |
+| T5X Adafactor | 0.05290 | 0.07999 | 0.03467 | 0.04344 | `tiger-t5x-adafactor-v1`，job 1165519 |
+| 參考：baseline 跑滿 200k | 0.02182 | 0.03680 | 0.01349 | 0.01835 | 同上 job 1163052 |
 
-- **Observations:** 截至 log 的 step 1,500，train loss 比 baseline 同 step 低約 1.0。兩者 SID 相同，loss 可以直接比，但 train loss 下降快不代表 validation 會更好。
-- **Hypotheses:** 尚無。
+| Run | train loss @1k | train loss @1.5k | step 40k Recall@10 |
+| --- | --- | --- | --- |
+| Baseline | 3.362 | 3.127 | 0.0174 |
+| T5X Adafactor | 2.36 | 2.144 | 待定（log 截至 step 30,500） |
+
+- **Observations:** 只改 Adafactor 的縮放，20k 的 validation Recall@10 從 0.0132 變成 0.0800（約 6 倍），NDCG@10 約 6 倍；已是 baseline 跑滿 200k（0.0368）的 2.2 倍，接近同切分 SASRec（0.1023）與 FMRec（0.1031）。invalid beam 仍需在 40k 一併確認。
+- **Hypotheses:** 剩下與 item-ID 模型的差距（約 0.02）可能隨訓練縮小，或來自容量（H4）；未驗證。
 
 #### Conclusion
 
-進行中，等 20k／40k validation。
+強烈支持 H5：Adafactor 步長就是 TIGER 落後的主因。讓 job 繼續跑滿 200k，記錄 40k 之後的曲線與最佳 step；之後的 TIGER 實驗以 `ADAFACTOR_SCALE_PARAMETER=1` 為新 baseline。
 
 ## 2026-11-18
 

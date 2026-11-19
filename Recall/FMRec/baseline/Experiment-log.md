@@ -45,12 +45,17 @@ validation Recall@10 高於 TIGER 的 0.0342／0.0368；作為成熟的 item-ID 
 | FMRec epoch 20 | 0.05701 | 0.03300 | job 1165520 |
 | FMRec epoch 40 | 0.08751 | 0.05070 | |
 | FMRec epoch 60 | 0.09936 | 0.05767 | |
-| FMRec epoch 80（目前 best NDCG@10） | 0.10186 | 0.05954 | Recall@5 0.07119、NDCG@5 0.04961 |
-| FMRec epoch 100 | 0.10186 | 0.05950 | 訓練中，StepLR 已把 lr 降到 1e-4 |
+| FMRec epoch 80 | 0.10186 | 0.05954 | |
+| FMRec epoch 100 | 0.10186 | 0.05950 | StepLR 把 lr 降到 1e-4 |
+| FMRec epoch 120 | 0.10325 | 0.06014 | |
+| FMRec epoch 140 | 0.10316 | 0.06025 | |
+| **FMRec epoch 160（best NDCG@10）** | **0.10307** | **0.06035** | Recall@5 0.07280、NDCG@5 0.05058 |
+| FMRec epoch 200 | 0.10218 | 0.06011 | lr 降到 1e-5 |
+| FMRec epoch 260（early stop） | 0.10204 | 0.06010 | |
 
-- **Observations:** 截至 log 的 epoch 108，已做 5 次 validation。epoch 80 的 Recall@10 0.1019 已和 SASRec 相當，NDCG@10 0.0595 比 SASRec 高 0.009；是 TIGER 新 SID 200k（0.0368）的約 2.8 倍。epoch 80 到 100 幾乎沒變。
+- **Observations:** 在 epoch 260 early stop 並存檔（step 66,800）。best 在 epoch 160：Recall@10 0.1031 與 SASRec（0.1023）相當，NDCG@10 0.0603 比 SASRec 高約 0.010，是 TIGER 新 SID 200k（0.0368）的約 2.8 倍。epoch 80 之後只在 0.102–0.103 之間變動，兩次 lr 衰減幾乎沒有幫助。
 - **Hypotheses:** 尚無。
 
 #### Conclusion
 
-進行中，但已支持 H2：FMRec 遠高於 TIGER baseline。等早停或 500 epochs 後記錄最終 best。
+支持 H2：FMRec 遠高於當時的 TIGER baseline。`best.pt` 是 epoch 160；模型未定案，沒有跑 test。NDCG 高於 SASRec 而 Recall 相當，代表 FMRec 把命中的商品排得更前面。

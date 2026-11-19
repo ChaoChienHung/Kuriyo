@@ -13,18 +13,14 @@
 
 依優先順序。
 
-- [ ] 判讀 H5：T5X 式 Adafactor 的 20k／40k validation
-  - **Context:** `Recall/TIGER/INSIGHT.md` H5；SoC job 1165519（`tiger-t5x-adafactor-v1`）訓練中。
-  - **Scope:** 使用者推 log 後，更新 `Recall/TIGER/baseline/Experiment-log.md` 2026-11-19 條目、TIGER INSIGHT 的 H5 狀態、`Recall/INSIGHT.md` 對照表。
-  - **Acceptance:** 20k／40k Recall@10 與 `tiger-paper-v1`（0.0132／0.0174）並列，寫出支持或不支持 H5 與下一步（跑滿 200k，或查訓練樣本、token 排列、解碼）。
-- [ ] 記錄 FMRec 完整訓練的最終 validation
-  - **Context:** SoC job 1165520（`fmrec-beauty-v1`）訓練中；epoch 80 已達 Recall@10 0.1019，H2 已支持。
-  - **Scope:** `Recall/FMRec/baseline/Experiment-log.md`、FMRec INSIGHT、`Recall/INSIGHT.md` 對照表。
-  - **Acceptance:** best validation Recall@10／NDCG@10 寫進 Experiment-log 與 `Recall/INSIGHT.md` 對照表。
-- [ ] 若 H5 不成立，繼續找 TIGER 與 SASRec 的差距
-  - **Context:** `Recall/TIGER/INSIGHT.md` Problems to solve 2。
-  - **Scope:** 小型 overfit 測試、訓練樣本、token 排列、beam search 解碼；每項新 RUN_NAME。
-  - **Acceptance:** 找到能讓 validation 明顯上升的單一因素，或逐項排除並記錄在 Experiment-log。
+- [ ] 記錄 T5X 式 Adafactor TIGER 跑滿 200k 的結果
+  - **Context:** `Recall/TIGER/INSIGHT.md` H5 已強烈支持（20k Recall@10 0.0800 對 0.0132）；SoC job 1165519 繼續訓練。
+  - **Scope:** 使用者推 log 後，更新 TIGER baseline Experiment-log、TIGER INSIGHT、`Recall/INSIGHT.md` 對照表。
+  - **Acceptance:** 每 20k 的 validation 曲線與最佳 step 記錄完成，並與 SASRec 0.1023、FMRec 0.1031 比較。
+- [ ] 若 TIGER 跑滿後仍明顯落後 item-ID 模型，找剩下的差距
+  - **Context:** 20k 時與 SASRec／FMRec 仍差約 0.02。
+  - **Scope:** 容量（H4）、訓練樣本、token 排列、解碼；每項新 RUN_NAME。
+  - **Acceptance:** 找到能縮小差距的單一因素，或逐項排除並記錄在 Experiment-log。
 - [ ] 核對論文 T5X 與 HF T5 的設定
   - **Context:** `Recall/TIGER/INSIGHT.md` H4；HF T5 4.8–5.6M 參數，論文約 1,300 萬。
   - **Scope:** 容量（embedding 共享、詞表）、商品文句、user hash、prefix expansion、解碼與評估。
