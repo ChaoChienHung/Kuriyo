@@ -91,8 +91,9 @@ SoC 安裝指令在根 requirements.txt 註解與 run.sbatch，明確使用 torc
 1. **驗證 Adafactor 假設（H5）：**在 SoC 執行
    `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-v1 ADAFACTOR_SCALE_PARAMETER=1 STAGE=train sbatch --export=ALL scripts/run.sbatch`。
    第一次提交 job 1165195 落在節點 xgpe2，CUDA 初始化失敗（`CUDA unknown error`），train.py 在建立 run 目錄前以 exit 2 結束，沒有訓練；重送時加 `--exclude=xgpe2`，同一 RUN_NAME 可用。
+   2026-11-19 同時提交三個 job（程式 `bb1088c`）：TIGER job 1165519（`tiger-t5x-adafactor-v1`）與 FMRec job 1165520（`fmrec-beauty-v1`）正在訓練；SASRec job 1165521 落在 xgpe4，同樣 `CUDA unknown error`，建立 run 目錄前結束，重送時加 `--exclude=xgpe2,xgpe4`。
    比較 20k／40k validation 與 `tiger-paper-v1`（Recall@10 0.0132／0.0174）。明顯較高就跑滿 200k；否則依 `Recall/TIGER/INSIGHT.md` Problems 2 繼續查。
-2. 新 SID 完整 run `tiger-paper-v1` 已完成（200k Recall@10 0.0368），SID 產生紀錄見 job 1162430（`38b9bcf`）與 `Representations/SID/INSIGHT.md`。
+2. 新 SID 完整 run `tiger-paper-v1` 已完成（200k Recall@10 0.0368），SID 產生紀錄見 job 1162430 與 `Representations/SID/INSIGHT.md`。已記錄進 INSIGHT 的 Slurm log（job 1162430、1163050、1163052）與失敗 job（1165195、1165521）的 log 已從工作目錄移除，可用 `git show b7a4078:slurm-kuriyo-<job>.out` 取回。
 3. 核對 paper/T5X 與 HF T5 的容量、商品文字、user hash、訓練樣本、optimizer、解碼與評估設定；將事實與猜測分開記錄。
 4. 保留本 run 作比較起點，新增實驗用新 SID_VERSION/RUN_NAME；固定 validation，先建立熱門商品基線。模型定案後才執行一次 held-out test。
 5. **FMRec 完整訓練：**在 SoC GPU 執行 `MODEL=fmrec RUN_NAME=fmrec-beauty-v1 STAGE=train sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch`（作者預設，約 257 steps/epoch、最多 500 epochs；約 2,840 萬參數，CPU 不可行）。validation 與 SASRec、TIGER、熱門基線比較；之後的單一因素對照（`--mode-scale 0.4`、`--attention causal`、取樣步數）見 TODO「FMRec 同切分比較」。
