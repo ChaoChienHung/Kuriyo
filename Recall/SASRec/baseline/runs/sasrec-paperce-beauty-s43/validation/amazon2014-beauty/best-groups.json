@@ -1,0 +1,37 @@
+{
+  "recall@5": 0.06908733175334257,
+  "recall@10": 0.10307203863524572,
+  "ndcg@5": 0.04017423090309083,
+  "ndcg@10": 0.05114623817654774,
+  "groups": {
+    "0": {
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "ndcg@5": 0.0,
+      "ndcg@10": 0.0,
+      "examples": 81
+    },
+    "1-4": {
+      "recall@5": 0.021253286590709904,
+      "recall@10": 0.029360210341805432,
+      "ndcg@5": 0.01100042218174484,
+      "ndcg@10": 0.01358122034815293,
+      "examples": 4564
+    },
+    "5+": {
+      "recall@5": 0.08172479963878541,
+      "recall@10": 0.12253075967942206,
+      "ndcg@5": 0.04787280724959576,
+      "ndcg@10": 0.06105647559956911,
+      "examples": 17718
+    }
+  },
+  "examples": 22363,
+  "ranking": "full catalog, inner product with item embeddings; history items not filtered",
+  "split": "validation",
+  "set": "amazon2014-beauty",
+  "checkpoint": "checkpoints/best.pt",
+  "max_abs_difference": 0.0,
+  "git_revision": "7209f6009bdcbc0e0f9e4b94c60f92736236f86c",
+  "slurm_job_id": "1168946"
+}

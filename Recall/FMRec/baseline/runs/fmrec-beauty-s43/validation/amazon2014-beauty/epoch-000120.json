@@ -1,0 +1,37 @@
+{
+  "recall@5": 0.07306711979609176,
+  "recall@10": 0.10293788847650136,
+  "ndcg@5": 0.05100517090772977,
+  "ndcg@10": 0.06064416582284334,
+  "groups": {
+    "0": {
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "ndcg@5": 0.0,
+      "ndcg@10": 0.0,
+      "examples": 81
+    },
+    "1-4": {
+      "recall@5": 0.024539877300613498,
+      "recall@10": 0.030893952673093777,
+      "ndcg@5": 0.018392733416948904,
+      "ndcg@10": 0.020437077781007167,
+      "examples": 4564
+    },
+    "5+": {
+      "recall@5": 0.08590134326673439,
+      "recall@10": 0.12196636189186139,
+      "ndcg@5": 0.059639022558674926,
+      "ndcg@10": 0.07127839808690174,
+      "examples": 17718
+    }
+  },
+  "examples": 22363,
+  "ranking": "full catalog, inner product with item embeddings; history items not filtered",
+  "sample_steps": 30,
+  "eval_seed": 43,
+  "split": "validation",
+  "set": "amazon2014-beauty",
+  "epoch": 120,
+  "step": 30840
+}
