@@ -16,7 +16,7 @@ verified_at: 6b9097b
 
 # TIGER baseline 訓練與 Adafactor 步長
 
-`Recall/TIGER/baseline/train.py` 是 TIGER 的正式入口。它用 Hugging Face T5，設定依論文：4+4 層、6 heads、d_kv 64、d_ff 1024、dropout 0.1（`Recall/TIGER/baseline/train.py:46`），並加上 2,000 個 hashed user token。每個商品編成 3 個 SID token 加 1 個碰撞 token，各層使用不同的 token offset（`Recall/TIGER/baseline/sequence.py:35`）。學習率前 10k steps 固定 0.01，之後按 inverse square root 衰減。評估用 unconstrained beam search（beam 10）；產生不存在的 SID 時算 miss。
+`Recall/TIGER/baseline/train.py` 是 TIGER 的正式入口。它用 Hugging Face T5，設定依論文：4+4 層、6 heads、d_kv 64、d_ff 1024、dropout 0.1（`Recall/TIGER/baseline/train.py:60`；`--dropout` 可改，續訓必須相同），並加上 2,000 個 hashed user token。每個商品編成 3 個 SID token 加 1 個碰撞 token，各層使用不同的 token offset（`Recall/TIGER/baseline/sequence.py:35`）。學習率前 10k steps 固定 0.01，之後按 inverse square root 衰減。評估用 unconstrained beam search（beam 10）；產生不存在的 SID 時算 miss。
 
 同切分的 SASRec 與 FMRec 達到 validation Recall@10 約 0.10，TIGER 兩個 `scale_parameter=False` 的完整 run 只有 0.034–0.037。改用 T5X 式 Adafactor（SoC job 1165519）後，20k 就達 0.080；證據見 `Recall/TIGER/INSIGHT.md` 的 H5。2026-11-19 起 T5X 式縮放是預設值。
 
