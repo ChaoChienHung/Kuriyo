@@ -6,6 +6,42 @@
 
 ## 2026-11-20
 
+### Dropout 0.2：`tiger-t5x-adafactor-dropout02-v1`（H8，待執行）
+
+#### Motivation
+
+2k 間隔曲線（下方條目）顯示 20k 之後對熱門商品過擬合：train loss 持續下降、5+ 組 Recall@10 從 0.0975 降到 0.0858，1–4 組仍上升。加強正則化看能否延後或壓低下降，並讓冷門組繼續進步（[INSIGHT](INSIGHT.md) H8、H7）。
+
+#### Details
+
+- **Variant:** `baseline`（`--dropout` 是 2026-11-20 加入的選擇性旗標，預設 0.1 不變）
+- **Baseline:** `tiger-t5x-adafactor-eval2k-v1`（同 seed、同 SID、同評估間隔）。
+- **Change:** T5 `dropout_rate` 0.1 → 0.2，其他不變。
+- **Data:** 2014 Beauty SID `tiger-paper-v1`；validation 22,363 筆。
+- **Environment:** SoC（待提交）。
+- **Command:** `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-dropout02-v1 TRAIN_ARGS="--dropout 0.2 --eval-every 2000 --steps 40000" STAGE=train sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch`
+- **Artifacts:** `Recall/TIGER/baseline/runs/tiger-t5x-adafactor-dropout02-v1/`。
+
+#### Settings
+
+- 與 baseline 相同，**不同**：`model.config.dropout_rate` 0.2。
+
+#### Expectation
+
+run 前寫下（2026-11-20）：同 step 的 train loss 高於 baseline；validation 最佳點晚於 20k（約 24k–34k），最佳 Recall@10 與 baseline 相當或略高（0.078–0.084），最佳點之後的下降小於 baseline（40k 高於 0.0713）；最佳點的 1–4 組 Recall@10 不低於 0.0134。若最佳值低於 0.076，代表 0.2 已經欠擬合。單一 seed，差距在 ±0.003 內不下結論。
+
+#### Key Metrics
+
+- 每 2k step 的 validation Recall@10／NDCG@10、無效 beam；1–4 組與 5+ 組 Recall@10；train loss；最佳 step。
+
+#### Results
+
+待執行。
+
+#### Conclusion
+
+待執行。
+
 ### 分組重新評估與逐使用者排名：`tiger-t5x-adafactor-v1`（H7）
 
 #### Motivation

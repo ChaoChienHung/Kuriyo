@@ -35,7 +35,8 @@ from core.runs import (RunError, RunLayout, Selection, add_run_arguments, check_
 RESUME_KEYS = {"sid_sha256": "data.sid.sha256", "train_sha256": "data.splits.train.sha256",
                "validation_sha256": "data.splits.validation.sha256", "seed": "run.seed",
                "batch_size": "training.batch_size",
-               "adafactor_scale_parameter": ("training.adafactor_scale_parameter", False)}
+               "adafactor_scale_parameter": ("training.adafactor_scale_parameter", False),
+               "dropout": ("model.config.dropout_rate", 0.1)}
 TEST_KEYS = {"sid_sha256": "data.sid.sha256", "train_sha256": "data.splits.train.sha256",
              "validation_sha256": "data.splits.validation.sha256", "sid_version": "data.sid.version"}
 
@@ -56,10 +57,10 @@ def collate(examples, tokenizer, max_history):
     return source, source.ne(tokenizer.PAD), labels
 
 
-def build_model(tokenizer):
+def build_model(tokenizer, dropout=0.1):
     config = T5Config(vocab_size=tokenizer.vocab_size + 2000, d_model=128,
                       d_kv=64, d_ff=1024, num_layers=4, num_decoder_layers=4,
-                      num_heads=6, dropout_rate=0.1, dense_act_fn="relu",
+                      num_heads=6, dropout_rate=dropout, dense_act_fn="relu",
                       pad_token_id=tokenizer.PAD, eos_token_id=tokenizer.EOS,
                       decoder_start_token_id=tokenizer.BOS)
     return T5ForConditionalGeneration(config)
@@ -121,6 +122,8 @@ def main():
     parser.add_argument("--max-history", type=int, default=20)
     parser.add_argument("--max-train-examples", type=int)
     parser.add_argument("--max-validation-examples", type=int)
+    parser.add_argument("--dropout", type=float, default=0.1,
+                        help="T5 dropout_rate (paper and default 0.1); resume refuses a change")
     parser.add_argument("--adafactor-scale-parameter", action=argparse.BooleanOptionalAction,
                         default=True,
                         help="scale each Adafactor step by the parameter RMS, as T5X does by default "
@@ -139,6 +142,8 @@ def main():
         parser.error("counts must be positive")
     if args.beam_size < 10:
         parser.error("--beam-size must be at least 10")
+    if not 0 <= args.dropout < 1:
+        parser.error("--dropout must be in [0, 1)")
     sid_path = args.sid_run / "semantic_ids.jsonl"
     sid_manifest_path = args.sid_run / "manifest.json"
     if not sid_path.is_file() or not sid_manifest_path.is_file():
@@ -172,7 +177,7 @@ def main():
     validation = read_examples(paths["validation"], args.max_validation_examples, tokenizer)
     seed_everything(args.seed)
     configure_threads(args.device)
-    model = build_model(tokenizer).to(args.device)
+    model = build_model(tokenizer, args.dropout).to(args.device)
     optimizer = Adafactor(model.parameters(), lr=0.01, scale_parameter=args.adafactor_scale_parameter,
                           relative_step=False, warmup_init=False)
     eval_set = eval_set_name("2014", args.category)

@@ -15,8 +15,8 @@
 
 - [ ] TIGER 20k 後的過擬合：正則化單一因素（H8）
   - **Context:** `Recall/TIGER/INSIGHT.md` H8：2k 間隔曲線（job 1167955）最佳在 20k（平台 14k–22k），之後熱門目標組下降、1–4 組仍上升，train loss 持續下降。
-  - **Scope:** 新 RUN_NAME，同 seed、同 SID，一次只改一個：T5 dropout 0.1 → 0.2（需新增 opt-in 旗標，預設不變），或 weight decay；`--eval-every 2000 --steps 40000`。單一 seed 先找方向，要下結論再補 3 個 seed。
-  - **Acceptance:** 與 `tiger-t5x-adafactor-eval2k-v1` 的曲線與分組並列在 TIGER Experiment-log，更新 H8。
+  - **Scope:** 新 RUN_NAME，同 seed、同 SID，一次只改一個。`--dropout` 已加入（2026-11-20，預設 0.1 不變）：`SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-dropout02-v1 TRAIN_ARGS="--dropout 0.2 --eval-every 2000 --steps 40000" STAGE=train`，再視結果試 0.3；weight decay 需另加旗標。單一 seed 先找方向，要下結論再補 3 個 seed。
+  - **Acceptance:** 與 `tiger-t5x-adafactor-eval2k-v1` 的曲線與分組（尤其 1–4 組，見 H7）並列在 TIGER Experiment-log，更新 H8；Expectation 在 run 前寫進 log。
 - [ ] Beauty 多 seed：SASRec 兩個設定、FMRec 各補 seed 43–46
   - **Context:** README 規定定案結果要 5 個 seed；既有 `sasrec-beauty-v1`（CE 設定）、`fmrec-beauty-v1` 即 seed 42。
   - **Scope:** agent 準備指令，使用者提交；SASRec CE 設定 `SEED=43 RUN_NAME=sasrec-ce-beauty-s43 TRAIN_ARGS="--loss ce --hidden 64 --heads 2"`，FMRec `SEED=43 RUN_NAME=fmrec-beauty-s43`；每個 job 一張 GPU，先查配額。

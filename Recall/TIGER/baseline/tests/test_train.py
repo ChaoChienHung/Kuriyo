@@ -63,11 +63,22 @@ class PaperBaselineTests(unittest.TestCase):
                                       cwd=ROOT, capture_output=True, text=True, timeout=120)
             self.assertNotEqual(mismatch.returncode, 0, "resume must keep the Adafactor scaling")
             self.assertIn("adafactor_scale_parameter", mismatch.stderr)
+            dropout = subprocess.run([sys.executable, "-m", *base_command, "--steps", "2", "--resume",
+                                      "--dropout", "0.2"],
+                                     cwd=ROOT, capture_output=True, text=True, timeout=120)
+            self.assertNotEqual(dropout.returncode, 0, "resume must keep the dropout")
+            self.assertIn("dropout", dropout.stderr)
             run(*base_command, "--steps", "2", "--resume")
             run(*base_command, "--eval-test-only")
             run_dir = base / "runs/smoke"
             self.assertIs(json.loads((run_dir / "settings.json").read_text())
                           ["training"]["adafactor_scale_parameter"], True)
+            self.assertEqual(json.loads((run_dir / "settings.json").read_text())
+                             ["model"]["config"]["dropout_rate"], 0.1)
+            run(*["dropout" if part == "smoke" else part for part in base_command],
+                "--steps", "1", "--dropout", "0.2")
+            self.assertEqual(json.loads((base / "runs/dropout/settings.json").read_text())
+                             ["model"]["config"]["dropout_rate"], 0.2)
             self.assertEqual(json.loads((run_dir / "test/amazon2014-beauty/metrics.json").read_text())
                              ["test_examples"], 1)
             self.assertTrue((run_dir / "checkpoints/best.pt").is_file())

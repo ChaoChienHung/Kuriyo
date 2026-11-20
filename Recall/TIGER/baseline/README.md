@@ -56,7 +56,7 @@ STAGE=test sbatch --export=ALL scripts/run.sbatch
 | `test` | 需要 run 的 `checkpoints/best.pt`；寫出 `test/<set>/metrics.json`，拒絕覆寫已存在的結果 |
 | `all`（預設） | 依序 prepare → sid → materialize → train |
 
-所有階段使用相同的 `SID_VERSION`；序列訓練與 test 使用相同的 `RUN_NAME`。新實驗使用新 run 名稱；更換 SID 設定時也使用新 SID 版本。`SID_RECIPE` 預設 `stable`；要重現 job 1153307 的 SID 用 `paper-pytorch`（已知會塌縮，只作對照）。`ADAFACTOR_SCALE_PARAMETER`（預設 1，`train.py --adafactor-scale-parameter`）讓 Adafactor 依參數 RMS 縮放步長，與 T5X 預設相同；設 0（`--no-adafactor-scale-parameter`）還原 2026-11-19 以前所有 run 的行為（lr 是絕對步長），只用於續訓或重現那些 run。續訓時必須與原 run 相同，否則拒絕執行。舊版 SID 目錄的 manifest 沒有 recipe 欄位，視為 `paper-pytorch`。重開 shell 後記得重新 export。若計算節點不能連外，需在允許的節點預先準備依賴、資料與 Hugging Face cache。
+所有階段使用相同的 `SID_VERSION`；序列訓練與 test 使用相同的 `RUN_NAME`。新實驗使用新 run 名稱；更換 SID 設定時也使用新 SID 版本。`SID_RECIPE` 預設 `stable`；要重現 job 1153307 的 SID 用 `paper-pytorch`（已知會塌縮，只作對照）。`ADAFACTOR_SCALE_PARAMETER`（預設 1，`train.py --adafactor-scale-parameter`）讓 Adafactor 依參數 RMS 縮放步長，與 T5X 預設相同；設 0（`--no-adafactor-scale-parameter`）還原 2026-11-19 以前所有 run 的行為（lr 是絕對步長），只用於續訓或重現那些 run。續訓時必須與原 run 相同，否則拒絕執行。`--dropout`（預設 0.1，論文值）設定 T5 的 `dropout_rate`，以 `TRAIN_ARGS="--dropout 0.2"` 傳入，記在 `settings.json` 的 `model.config.dropout_rate`；續訓時必須相同，舊 run 視為 0.1。這是 2026-11-20 加入的選擇性旗標，預設與之前逐位相同。舊版 SID 目錄的 manifest 沒有 recipe 欄位，視為 `paper-pytorch`。重開 shell 後記得重新 export。若計算節點不能連外，需在允許的節點預先準備依賴、資料與 Hugging Face cache。
 
 ## 安裝依賴與手動執行
 
@@ -157,7 +157,7 @@ Recall/TIGER/baseline/
 
 | 設定 | 目前實作 |
 | --- | --- |
-| Encoder / decoder | 各 4 層，d_model=128、d_ff=1024、6 heads、d_kv=64、dropout=0.1 |
+| Encoder / decoder | 各 4 層，d_model=128、d_ff=1024、6 heads、d_kv=64、dropout=0.1（`--dropout`） |
 | 使用者表示 | SHA-256 映射至 2,000 個 user token buckets |
 | 歷史長度 / seed | 最多 20 件商品 / 42 |
 | Optimizer / batch / steps | Adafactor / 256 / 200,000 |
