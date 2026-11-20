@@ -2,7 +2,7 @@
 
 召回階段的研究筆記：跨家族的比較、基線與共用評估協定。事實與假設分開，每個結果都註明資料版本、切分、模型設定、指標與來源。家族自己的發現寫在 `Recall/<family>/INSIGHT.md`，run 紀錄在各家族的 `Recall/<family>/Experiment-log.md`（家族所有變體共用）；總覽見 [根 INSIGHT](../INSIGHT.md)。
 
-*建立：2026-11-18（由根 INSIGHT 分出）；最後更新：2026-11-19。Experiment log：[TIGER](TIGER/Experiment-log.md)、[SASRec](SASRec/Experiment-log.md)、[FMRec](FMRec/Experiment-log.md)。熱門商品基線是一次性的本機計算，數字直接記在本檔 Facts。*
+*建立：2026-11-18（由根 INSIGHT 分出）；最後更新：2026-11-20。Experiment log：[TIGER](TIGER/Experiment-log.md)、[SASRec](SASRec/Experiment-log.md)、[FMRec](FMRec/Experiment-log.md)。熱門商品基線是一次性的本機計算，數字直接記在本檔 Facts。*
 
 ## Insights
 
@@ -41,6 +41,19 @@
   | FMRec baseline | 作者預設（`fmrec-beauty-v1`） | 0.05764 | 0.08036 | 0.04017 | 0.04745 | 0.0827／0.0495（FMRec 論文，另一份資料處理） | [log](FMRec/Experiment-log.md) 2026-11-19 |
 
   test 比 validation 低 17–22%，與 test 的冷門目標較多相符（上一項）。單一 seed，兩模型的差距不足以排序（README「實驗設計與統計檢定」）。TIGER 從 validation 到 test 掉 31%，多於另外兩個模型。
+- **依目標熱門度分組（Recall@10；目標在 train 當目標 0、1–4、5 次以上；`best.pt` 重新評估，整體數字與原紀錄差 0；各 seed 42）：**
+
+  | 模型 | validation 1–4（4,564） | validation 5+（17,718） | test 1–4（5,482） | test 5+（16,685） |
+  |---|---|---|---|---|
+  | SASRec 論文設定（BCE） | 0.0184 | 0.0694 | — | — |
+  | SASRec 論文架構只換 CE | 0.0289 | 0.1213 | — | — |
+  | SASRec CE、hidden 64、2 heads | 0.0302 | 0.1213 | 0.0297 | 0.1042 |
+  | FMRec | 0.0344 | 0.1212 | 0.0283 | 0.0984 |
+  | TIGER 20k | **0.0134** | 0.0975 | **0.0067** | 0.0723 |
+
+  從未當過 train 目標的組（validation 81 筆、test 196 筆）所有模型都是 0，表中省略。TIGER 在熱門組是 item-ID 模型的 0.80 倍，在 1–4 組只有 0.39–0.45 倍（validation），test 更降到 0.23 倍：冷門組是 TIGER 最弱的地方，不是最強。NDCG@10 的走向相同。證據：各家族 Experiment-log 2026-11-20「分組重新評估」。
+- **validation → test 的下降大多來自組內，不是組成：**以 validation 的分組 Recall@10 套用 test 的組成，只解釋整體下降的 16%（TIGER）、18%（FMRec）、25%（SASRec CE）。組內變化：SASRec 1–4 組 −2%、5+ 組 −14%；FMRec 兩組各 −18%／−19%；TIGER 1–4 組 −50%、5+ 組 −26%。
+- **逐使用者配對檢定（`python -m core.compare`，單一 seed，只反映評估樣本雜訊）：**對 SASRec CE（hidden 64）：TIGER 在 validation 與 test 的 Recall@10、NDCG@10 都較低（差 −0.022 到 −0.029 Recall@10，p < 1e-12）；FMRec 的 NDCG@10 在 validation（+0.0095）與 test（+0.0061）都較高（p < 1e-12），Recall@10 在 validation 無差異（+0.0008，p = 0.62）、test 略低（−0.0047，p = 0.002）。FMRec 命中前 10 的比例與 SASRec 相當，但把目標排得更前面。依 README 規則，單一 seed 不寫「顯著較好」。
 
 ## Limitations
 
@@ -54,7 +67,7 @@
 待驗證的主張。編號固定；跨檔引用寫 `Recall/INSIGHT.md` H[n]。
 
 - **H1 — 商品內容有助於推薦：**在相同資料切分下，結合商品 metadata 的召回模型可能優於只看互動紀錄的基線。需先定義冷啟動與整體評估方式，再用實驗驗證。
-- **H2 — 以內容產生 ID 的模型在冷門與未見過的商品上優於 item-ID 模型：**TIGER 的 SID 由商品文字的 Sentence-T5 向量產生，相似商品共用前綴 token，新商品不需要互動也有可用的表示；SASRec 與 FMRec 對沒學過的商品只有隨機 embedding。預期：依目標商品在 train 的出現次數分組（0、1–4、5 以上）報告 Recall@10，TIGER 與 item-ID 模型的差距在冷門組縮小或反轉。整體指標由熱門商品主導，看不出這個差異。[TIGER 論文](https://arxiv.org/abs/2305.05065) 另有專門的冷啟動實驗；其設定（例如移除部分商品）與 Kuriyo 的固定 catalog 不同，需另訂協定（根 INSIGHT 與 `TODO.md` 的評估協定延伸）。尚未驗證。
+- **H2 — 以內容產生 ID 的模型在冷門與未見過的商品上優於 item-ID 模型（目前不支持）：**TIGER 的 SID 由商品文字的 Sentence-T5 向量產生，相似商品共用前綴 token，新商品不需要互動也有可用的表示；SASRec 與 FMRec 對沒學過的商品只有隨機 embedding。預期：依目標商品在 train 的出現次數分組（0、1–4、5 以上）報告 Recall@10，TIGER 與 item-ID 模型的差距在冷門組縮小或反轉。**結果（不支持，單一 seed）：**差距在冷門組反而擴大，TIGER 的 1–4 組 Recall@10 是 SASRec／FMRec 的 0.39–0.45 倍（熱門組 0.80 倍），從未當過目標的組所有模型都是 0；見上方 Facts 的分組表。目前的 TIGER（20k、unconstrained beam）沒有展現內容 ID 的冷門優勢；是 SID 品質、過擬合（TIGER H8）還是解碼偏向熱門前綴，尚未分辨。整體指標由熱門商品主導，看不出這個差異。[TIGER 論文](https://arxiv.org/abs/2305.05065) 另有專門的冷啟動實驗；其設定（例如移除部分商品）與 Kuriyo 的固定 catalog 不同，需另訂協定（根 INSIGHT 與 `TODO.md` 的評估協定延伸）。
 
 ## Discussion
 

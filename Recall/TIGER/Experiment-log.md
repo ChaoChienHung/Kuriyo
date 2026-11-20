@@ -6,6 +6,49 @@
 
 ## 2026-11-20
 
+### 分組重新評估與逐使用者排名：`tiger-t5x-adafactor-v1`（H7）
+
+#### Motivation
+
+檢驗 [INSIGHT](INSIGHT.md) H7（SID 讓 TIGER 在冷門商品上占優），並找出 TIGER validation → test 下降 31%（多於 item-ID 模型）的來源。
+
+#### Details
+
+- **Variant:** `baseline`
+- **Baseline:** `tiger-t5x-adafactor-v1` 的原紀錄；跨模型比較對 SASRec CE（`sasrec-beauty-v1`）與 FMRec（`fmrec-beauty-v1`）。
+- **Change:** 無；只對 20k 的 `best.pt` 重新評估。
+- **Data:** 2014 Beauty SID `tiger-paper-v1`；validation／test 各 22,363 筆。
+- **Environment:** SoC job 1168949，程式 `7209f60`。`tiger-t5x-adafactor-eval2k-v1` 的分組 job 尚未執行（訓練時的每個 validation 已帶分組）。
+- **Command:** `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-v1 STAGE=groups sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch`
+- **Artifacts:** `Recall/TIGER/baseline/runs/tiger-t5x-adafactor-v1/` 的 `validation/amazon2014-beauty/best-groups.json`、`best-ranks.json`、`test/amazon2014-beauty/groups.json`、`ranks.json`。
+
+#### Settings
+
+- 不訓練；以各 run 的 `checkpoints/best.pt` 重新評估，評估設定與原 run 相同（`settings.json`），只多分組與逐使用者排名。分組依該 run 實際訓練的 train。
+- beam 10、unconstrained，無效 SID 算未命中（同原 run）。
+
+#### Expectation
+
+在 `Recall/INSIGHT.md` H2 與 TIGER H7 中事先寫下：若內容 ID 有冷門優勢，TIGER 與 item-ID 模型的差距會在 1–4 組與 0 組縮小或反轉。
+
+#### Key Metrics
+
+- 各熱門度組（目標在 train 當目標 0、1–4、5 次以上）的 Recall@10／NDCG@10；整體數字與原紀錄的差（`max_abs_difference`）；逐使用者配對檢定。
+
+#### Results
+
+| split | 1–4 R@10 | 1–4 N@10 | 5+ R@10 | 5+ N@10 | 1–4 相對 SASRec／FMRec | 5+ 相對 SASRec／FMRec |
+| --- | --- | --- | --- | --- | --- | --- |
+| validation | 0.0134 | 0.0060 | 0.0975 | 0.0533 | 0.44／0.39 | 0.80／0.80 |
+| test | 0.0067 | 0.0024 | 0.0723 | 0.0386 | 0.23／0.24 | 0.69／0.73 |
+
+- **Observations:** `max_abs_difference` 為 0；0 組（validation 81、test 196）全為 0，item-ID 模型也是 0。以 validation 的分組 Recall@10 套用 test 的組成得 0.0760，只解釋 0.0800 → 0.0556 下降的 16%；其餘是組內下降：1–4 組 −50%、5+ 組 −26%（SASRec −2%／−14%，FMRec −18%／−19%）。逐使用者配對對 SASRec CE：Recall@10 validation −0.022、test −0.029，NDCG@10 −0.007／−0.012（皆 p < 1e-12，單一 seed）。
+- **Hypotheses:** 目前的 TIGER 偏向熱門商品：beam search 從熱門前綴展開，冷門商品的 SID 很少進入前 10。test 的組內下降可能與 20k 已開始對熱門商品過擬合（H8）有關；2k 曲線中 1–4 組在 20k 後仍上升。
+
+#### Conclusion
+
+H7 不支持：TIGER 在冷門組的差距最大，不是最小；test 的額外下降主要是組內，尤其冷門組減半。下一步的正則化實驗（H8，TODO）同時看 1–4 組；之後可試 constrained decoding 或調整 beam，看冷門 SID 是否被 beam 剪掉（新變體）。
+
 ### 2k 間隔的細曲線：`tiger-t5x-adafactor-eval2k-v1`（H8）
 
 #### Motivation

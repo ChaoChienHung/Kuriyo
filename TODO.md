@@ -25,10 +25,10 @@
   - **Context:** TIGER 論文在三個 2014 分類上報告；只看 Beauty 的結論可能不穩。`run.sbatch` 已支援 `CATEGORY`。
   - **Scope:** `Sports_and_Outdoors` 與 `Toys_and_Games` 都已準備（README）；之後 SASRec、FMRec、TIGER（各自的 SID 版本）用預設 run 名稱訓練，多 seed 依 README。
   - **Acceptance:** 兩個分類的切分筆數、商品數與論文資料表對照；三個模型的 validation 分資料集記在各 Experiment-log 與 `Recall/INSIGHT.md`。
-- [ ] 對既有 run 跑分組評估並記錄（冷啟動與長尾）（優先：TIGER 的 test 比 validation 低 31%，item-ID 模型只低 17–22%）
-  - **Context:** `Recall/INSIGHT.md` H2、`Recall/TIGER/INSIGHT.md` H7：SASRec／FMRec 的 ID embedding 隨機初始化，對沒學過的商品無能為力；validation 目標有 20.8% 在 train 當目標少於 5 次、0.23% 完全沒出現。整體指標由熱門商品主導。
-  - **Scope:** 程式已完成（`Recall/core/popularity.py`、`--eval-groups`／`STAGE=groups`）；第一批 9 個 job（1167705–13）用 pull 前的程式提交，全部在 stage 檢查就結束，需重送。使用者在 SoC 對 `sasrec-beauty-v1`、`sasrec-paper-beauty-*`、`sasrec-paperce-beauty-*`、`fmrec-beauty-v1`、`tiger-t5x-adafactor-v1` 執行 `STAGE=groups` 並推上紀錄；同一個 job 也補出逐使用者排名（`best-ranks.json`、`test/<set>/ranks.json`），之後用 `python -m core.compare` 對 SASRec 兩個設定的 3 個 seed 做配對檢定，補進 SASRec H1。
-  - **Acceptance:** 各 run 的 `best-groups.json`（有 test 的另有 `test/<set>/groups.json`）`max_abs_difference` 為 0 或接近 0；分組 Recall@10／NDCG@10 並列在 `Recall/INSIGHT.md`，更新 H2 與 TIGER H7。
+- [ ] 補完 4 個 run 的分組評估；SASRec H1 三 seed 配對檢定
+  - **Context:** 2026-11-20 的分組結果已記錄（`Recall/INSIGHT.md`、H2 不支持、TIGER H7 不支持），但 `sasrec-paper-beauty-s43`、`-s44`、`sasrec-paperce-beauty-s44`、`tiger-t5x-adafactor-eval2k-v1` 的 `STAGE=groups` 沒有執行（events.log 沒有 `groups_evaluated`）。
+  - **Scope:** 使用者在 SoC 重送這 4 個 job 並推上；之後 `python -m core.compare --setting bce <3 runs> --setting ce <3 runs>` 做 SASRec H1 的三 seed 配對與 Welch。
+  - **Acceptance:** SASRec Experiment-log 與 INSIGHT H1 記下三 seed 的配對檢定與 README 判定。
 - [ ] 以各論文自己的協定重現（確認沒有低估模型）
   - **Context:** 共用切分與全 catalog 評估適合比較模型，但無法和論文數字直接對照。原始 SASRec 論文用 50 件歷史、每位使用者 1 個正例 + 100 個未互動過的隨機商品排名；TIGER test 比論文低 14%。
   - **Scope:** 在 `--eval-groups` 的重新評估框架加「抽樣負例」協定（100 個、排除使用者看過的商品、固定 seed），各模型都能跑；之後視結果建立 50 件歷史的切分（另一個資料版本，結果分開報告）並用論文設定重訓。

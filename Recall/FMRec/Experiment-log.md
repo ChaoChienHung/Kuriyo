@@ -4,6 +4,50 @@
 
 所有 run 都用 2014 Beauty ASIN 切分（131,413 train／22,363 validation，歷史上限 20），validation 對全 catalog 12,101 件排名、不過濾歷史，以 NDCG@10 選最佳。
 
+## 2026-11-20
+
+### 分組重新評估與逐使用者排名（`STAGE=groups`）
+
+#### Motivation
+
+依目標熱門度拆解整體指標（`Recall/INSIGHT.md` H2），並補出逐使用者排名，和 SASRec、TIGER 做配對比較。
+
+#### Details
+
+- **Variant:** `baseline`
+- **Baseline:** `fmrec-beauty-v1` 的原紀錄。
+- **Change:** 無；只重新評估（評估雜訊以固定 seed 產生，所以可重現）。
+- **Data:** 同 SASRec 條目（2014 Beauty，validation／test 各 22,363 筆）。
+- **Environment:** SoC job 1168948，程式 `7209f60`。
+- **Command:** `MODEL=fmrec RUN_NAME=fmrec-beauty-v1 STAGE=groups sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch`
+- **Artifacts:** `Recall/FMRec/baseline/runs/fmrec-beauty-v1/` 的 `validation/amazon2014-beauty/best-groups.json`、`best-ranks.json`、`test/amazon2014-beauty/groups.json`、`ranks.json`。
+
+#### Settings
+
+- 不訓練；以各 run 的 `checkpoints/best.pt` 重新評估，評估設定與原 run 相同（`settings.json`），只多分組與逐使用者排名。分組依該 run 實際訓練的 train。
+
+#### Expectation
+
+在 `Recall/INSIGHT.md` H2 與 TIGER H7 中事先寫下：若內容 ID 有冷門優勢，TIGER 與 item-ID 模型的差距會在 1–4 組與 0 組縮小或反轉。
+
+#### Key Metrics
+
+- 各熱門度組（目標在 train 當目標 0、1–4、5 次以上）的 Recall@10／NDCG@10；整體數字與原紀錄的差（`max_abs_difference`）；逐使用者配對檢定。
+
+#### Results
+
+| split | 1–4 R@10 | 1–4 N@10 | 5+ R@10 | 5+ N@10 |
+| --- | --- | --- | --- | --- |
+| validation | 0.0344 | 0.0213 | 0.1212 | 0.0707 |
+| test | 0.0283 | 0.0168 | 0.0984 | 0.0581 |
+
+- **Observations:** `max_abs_difference` 為 0；0 組全為 0。對 SASRec CE（`sasrec-beauty-v1`）的逐使用者配對：NDCG@10 validation +0.0095、test +0.0061（皆 p < 1e-12）；Recall@10 validation +0.0008（p = 0.62）、test −0.0047（p = 0.002）。validation → test 兩組各降 18%／19%。
+- **Hypotheses:** FMRec 與 SASRec 命中前 10 的比例相當，但把目標排得更前面（NDCG 較高），兩組都如此。單一 seed，不寫「顯著較好」。
+
+#### Conclusion
+
+FMRec 在冷門組是三個模型中最強（1–4 組 NDCG@10 0.021，SASRec 0.014），整體優勢在 NDCG 而非 Recall。等 seed 43–46 完成後用 5 個 seed 重做配對與 Welch 檢定。
+
 ## 2026-11-19
 
 ### Held-out test：`fmrec-beauty-v1`（seed 42）

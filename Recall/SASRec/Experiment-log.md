@@ -6,6 +6,52 @@
 
 所有 run 都用 2014 Beauty ASIN 切分（131,413 train／22,363 validation，歷史上限 20），validation 對全 catalog 12,101 件排名、不過濾歷史，以 NDCG@10 選最佳。
 
+## 2026-11-20
+
+### 分組重新評估與逐使用者排名（`STAGE=groups`）
+
+#### Motivation
+
+依目標熱門度拆解整體指標（`Recall/INSIGHT.md` H2），並補出配對檢定需要的逐使用者排名，檢查 H1 的 CE 提升是否只來自熱門商品。
+
+#### Details
+
+- **Variant:** `baseline`
+- **Baseline:** 各 run 自己的原紀錄（`best.json`、`test/<set>/metrics.json`）。
+- **Change:** 無；只重新評估。
+- **Data:** 2014 Beauty ASIN 切分；validation 22,363 筆（1–4 組 4,564、5+ 組 17,718、0 組 81），test 22,363 筆（5,482／16,685／196）。
+- **Environment:** SoC，程式 `7209f60`；job ID 記在各 `best-groups.json`（例如 `sasrec-beauty-v1` 1168941、`sasrec-paper-beauty-v1` 1168942）。
+- **Command:** `MODEL=sasrec RUN_NAME=<run> SEED=<seed> [TRAIN_ARGS=…] STAGE=groups sbatch --export=ALL --job-name=kuriyo-sasrec scripts/run.sbatch`
+- **Artifacts:** 各 run 的 `validation/amazon2014-beauty/best-groups.json`、`best-ranks.json`；`sasrec-beauty-v1` 另有 `test/amazon2014-beauty/groups.json`、`ranks.json`。`sasrec-paper-beauty-s43`、`-s44`、`sasrec-paperce-beauty-s44` 尚未執行。
+
+#### Settings
+
+- 不訓練；以各 run 的 `checkpoints/best.pt` 重新評估，評估設定與原 run 相同（`settings.json`），只多分組與逐使用者排名。分組依該 run 實際訓練的 train。
+
+#### Expectation
+
+在 `Recall/INSIGHT.md` H2 與 TIGER H7 中事先寫下：若內容 ID 有冷門優勢，TIGER 與 item-ID 模型的差距會在 1–4 組與 0 組縮小或反轉。
+
+#### Key Metrics
+
+- 各熱門度組（目標在 train 當目標 0、1–4、5 次以上）的 Recall@10／NDCG@10；整體數字與原紀錄的差（`max_abs_difference`）；逐使用者配對檢定。
+
+#### Results
+
+| run | 設定 | validation 1–4 R@10 | validation 5+ R@10 | test 1–4 R@10 | test 5+ R@10 |
+| --- | --- | --- | --- | --- | --- |
+| `sasrec-paper-beauty-v1` | 論文設定（BCE） | 0.0184 | 0.0694 | — | — |
+| `sasrec-paperce-beauty-v1` | 只換 CE | 0.0289 | 0.1213 | — | — |
+| `sasrec-paperce-beauty-s43` | 只換 CE，seed 43 | 0.0294 | 0.1225 | — | — |
+| `sasrec-beauty-v1` | CE、hidden 64、2 heads | 0.0302 | 0.1213 | 0.0297 | 0.1042 |
+
+- **Observations:** 所有 run 的 `max_abs_difference` 為 0。0 組全為 0。CE 對 BCE 的提升在 1–4 組 ×1.6、5+ 組 ×1.7。逐使用者配對（seed 42 一對）：CE − BCE Recall@10 +0.043（bootstrap 95% CI +0.040 到 +0.047，paired t p = 5e-128）。`sasrec-beauty-v1` 從 validation 到 test，1–4 組幾乎不變（−2%），5+ 組 −14%。
+- **Hypotheses:** CE 的優勢不限於熱門商品（H1 的機制：難負例在各組都存在）。單一 seed 的配對檢定只反映評估樣本雜訊。
+
+#### Conclusion
+
+H1 的 CE 提升遍及各熱門度組；三個 seed 的配對檢定待補 3 個 run 的排名。SASRec 是冷門組的強基準之一（與 FMRec 相當），不是只靠熱門商品。
+
 ## 2026-11-19
 
 ### 論文設定 vs 只換 CE（H1），各 3 個 seed

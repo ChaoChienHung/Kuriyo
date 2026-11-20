@@ -2,7 +2,7 @@
 
 SASRec 家族的研究筆記。事實與假設分開，每個結果都註明資料版本、切分、模型設定、指標，以及來自哪一條 Experiment-log 或哪個 run。操作方式見 [README](README.md) 與 [baseline README](baseline/README.md)；跨家族比較在 [Recall INSIGHT](../INSIGHT.md)。
 
-*建立：2026-11-19；最後更新：2026-11-19。Experiment log：[Experiment-log.md](Experiment-log.md)（家族所有變體）。*
+*建立：2026-11-19；最後更新：2026-11-20。Experiment log：[Experiment-log.md](Experiment-log.md)（家族所有變體）。*
 
 ## Insights
 
@@ -31,7 +31,7 @@ SASRec 家族的研究筆記。事實與假設分開，每個結果都註明資�
 
 待驗證的主張。編號固定；跨檔引用寫 `Recall/SASRec/INSIGHT.md` H[n]。
 
-- **H1 — 高於論文來自 CE loss（成立）：**validation 高於 TIGER 論文表 3 的 SASRec（0.0605），主要來自 full-softmax CE。原始 SASRec 用 BCE，每個正例只配一個隨機負例；TIGER 表中的 SASRec 數字很可能沿用這類設定的早期文獻（尚未對照原文確認）。機制：隨機抽到的負例大多是冷門、與使用者無關的商品，模型很快就能把它們分開，loss 與梯度隨之變小，學到的界線只區分「目標」與「隨便一件商品」；評估卻是在全部 12,101 件中排名，真正的對手是和目標相似、分數也高的商品。full-softmax CE 每一步都和所有商品比較，每個負例的梯度與它的 softmax 機率成正比，所以分數高、難分的負例被推得最多，直接對應全商品排名。文獻也觀察到 CE 訓練的 SASRec 明顯強於 BCE 版本（Klenitskiy & Vasilev, RecSys 2023；Petrov & Macdonald 的 gSASRec, RecSys 2023 指出負例抽樣造成的過度自信）。驗證：2026-11-19 起 baseline 預設就是論文的 BCE 設定（hidden 50／1 head，負例排除看過的商品）；對照只加 `--loss ce`，兩邊各 3 個 seed。預期論文設定的 validation Recall@10 明顯低於 0.10，接近論文的 0.06。目前 0.10 的數字來自 `--loss ce --hidden 64 --heads 2` 設定。結果（各 3 個 seed）：論文設定 Recall@10 0.0602 ± 0.0015，只換 CE 0.1024 ± 0.0006，差 0.042，Welch p = 6e-5；論文設定的數字與論文的 0.0605 相當。[Experiment-log](Experiment-log.md) 2026-11-19。
+- **H1 — 高於論文來自 CE loss（成立）：**validation 高於 TIGER 論文表 3 的 SASRec（0.0605），主要來自 full-softmax CE。原始 SASRec 用 BCE，每個正例只配一個隨機負例；TIGER 表中的 SASRec 數字很可能沿用這類設定的早期文獻（尚未對照原文確認）。機制：隨機抽到的負例大多是冷門、與使用者無關的商品，模型很快就能把它們分開，loss 與梯度隨之變小，學到的界線只區分「目標」與「隨便一件商品」；評估卻是在全部 12,101 件中排名，真正的對手是和目標相似、分數也高的商品。full-softmax CE 每一步都和所有商品比較，每個負例的梯度與它的 softmax 機率成正比，所以分數高、難分的負例被推得最多，直接對應全商品排名。文獻也觀察到 CE 訓練的 SASRec 明顯強於 BCE 版本（Klenitskiy & Vasilev, RecSys 2023；Petrov & Macdonald 的 gSASRec, RecSys 2023 指出負例抽樣造成的過度自信）。驗證：2026-11-19 起 baseline 預設就是論文的 BCE 設定（hidden 50／1 head，負例排除看過的商品）；對照只加 `--loss ce`，兩邊各 3 個 seed。預期論文設定的 validation Recall@10 明顯低於 0.10，接近論文的 0.06。目前 0.10 的數字來自 `--loss ce --hidden 64 --heads 2` 設定。結果（各 3 個 seed）：論文設定 Recall@10 0.0602 ± 0.0015，只換 CE 0.1024 ± 0.0006，差 0.042，Welch p = 6e-5；論文設定的數字與論文的 0.0605 相當。[Experiment-log](Experiment-log.md) 2026-11-19。逐使用者配對（seed 42 一對，`python -m core.compare`）：CE 比 BCE 高 0.043 Recall@10（bootstrap 95% CI +0.040 到 +0.047，paired t p = 5e-128）；三個 seed 的配對檢定待 `sasrec-paper-beauty-s43`／`-s44` 補出排名。提升遍及各組：1–4 組 0.0184 → 0.0289（×1.6）、5+ 組 0.0694 → 0.1213（×1.7），不是只來自熱門商品。[Experiment-log](Experiment-log.md) 2026-11-20。
 
 ## Discussion
 
