@@ -1,0 +1,75 @@
+{
+  "recall@5": 0.0565219335509547,
+  "recall@10": 0.08116084604033448,
+  "ndcg@5": 0.04061986326521526,
+  "ndcg@10": 0.04853823828389983,
+  "groups": {
+    "0": {
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "ndcg@5": 0.0,
+      "ndcg@10": 0.0,
+      "examples": 196
+    },
+    "1-4": {
+      "recall@5": 0.021707406056183876,
+      "recall@10": 0.028456767603064575,
+      "ndcg@5": 0.017874865549610014,
+      "ndcg@10": 0.020090757061492156,
+      "examples": 5482
+    },
+    "5+": {
+      "recall@5": 0.06862451303566078,
+      "recall@10": 0.09943062631105784,
+      "ndcg@5": 0.04857009225394354,
+      "ndcg@10": 0.05845508495845076,
+      "examples": 16685
+    }
+  },
+  "examples": 22363,
+  "ranking": "full catalog, inner product with item embeddings; history items not filtered",
+  "sample_steps": 30,
+  "eval_seed": 44,
+  "split": "test",
+  "set": "amazon2014-beauty",
+  "test_sha256": "88e1d63794d8f6b8f184439e4ced56496e11c9aa5a748702d8153fb873fee4b7",
+  "selected_validation": {
+    "recall@5": 0.07458748826186111,
+    "recall@10": 0.10508429101641104,
+    "ndcg@5": 0.051819105698763766,
+    "ndcg@10": 0.06161923121837731,
+    "groups": {
+      "0": {
+        "recall@5": 0.0,
+        "recall@10": 0.0,
+        "ndcg@5": 0.0,
+        "ndcg@10": 0.0,
+        "examples": 81
+      },
+      "1-4": {
+        "recall@5": 0.027607361963190184,
+        "recall@10": 0.034399649430324274,
+        "ndcg@5": 0.02035009159015723,
+        "ndcg@10": 0.02248963346097197,
+        "examples": 4564
+      },
+      "5+": {
+        "recall@5": 0.08703013884185574,
+        "recall@10": 0.12377243481205553,
+        "ndcg@5": 0.060162142607742025,
+        "ndcg@10": 0.07198036915118489,
+        "examples": 17718
+      }
+    },
+    "examples": 22363,
+    "ranking": "full catalog, inner product with item embeddings; history items not filtered",
+    "sample_steps": 30,
+    "eval_seed": 44,
+    "split": "validation",
+    "set": "amazon2014-beauty",
+    "epoch": 160,
+    "step": 41120
+  },
+  "git_revision": "2eec16bae893e564f7f428e853a6b49be2fa9393",
+  "slurm_job_id": "1176437"
+}
