@@ -8,7 +8,7 @@ Recall@10 / NDCG@10. Kuriyo uses the TIGER protocol: per-user chronological leav
 
 | Model | Paper (test) | Kuriyo validation | Kuriyo test | Status |
 |---|---|---|---|---|
-| [FMRec](Recall/FMRec/README.md) (author defaults) | 0.0827 / 0.0495 | 0.1031 / 0.0604 | **0.0804 / 0.0474** | Within 0.0025 of the paper on all four reported metrics (1 seed). The paper used 50-item histories and different preprocessing, so the match is indicative. |
+| [FMRec](Recall/FMRec/README.md) (author defaults) | 0.0827 / 0.0495 | 0.1034 ± 0.0016 / 0.0602 ± 0.0017 (5 seeds) | **0.0804 / 0.0474** (seed 42) | Test within 0.0025 of the paper on all four reported metrics; 5-seed test pending. Beats SASRec with CE loss on NDCG@10 (paired and seed-level tests, 3 shared seeds), ties on Recall@10. The paper used 50-item histories and different preprocessing, so the match is indicative. |
 | [SASRec](Recall/SASRec/README.md), paper setting (BCE loss) | 0.0605 / 0.0318¹ | 0.0602 ± 0.0015 / 0.0259 ± 0.0006 (3 seeds) | — | Validation matches the paper; test not run yet. |
 | SASRec, cross-entropy loss (hidden 64, 2 heads) | — | 0.1023 / 0.0508 | 0.0851 / 0.0413 | Changing only the loss to full-softmax cross-entropy raises validation Recall@10 from 0.060 to 0.102 (3 seeds each, Welch p = 6e-5). |
 | [TIGER](Recall/TIGER/README.md) (T5X-style Adafactor, best at 20k steps) | 0.0648 / 0.0384 | 0.0800 / 0.0434 | 0.0556 / 0.0294 | 14% below the paper on test, and 31% below its own validation; validation declines after 20k steps as training loss keeps falling (overfitting, 1 seed). Under investigation. |
@@ -192,7 +192,7 @@ Recall/TIGER/
 **檢定（同一資料集、同一切分）：**
 1. **使用者層級配對檢定（主要）：**同一位使用者在兩個模型下的指標配對比較。對每位使用者先平均各 seed 的 NDCG@10（或 Recall@10 是否命中），再做雙尾 paired bootstrap（10,000 次重抽使用者）或 paired t-test；Recall@10 這種 0／1 指標也可用 McNemar。檢定力高，但只反映評估樣本的雜訊。逐使用者排名由評估自動寫出（`best-ranks.json`、`test/<set>/ranks.json`；之前的 run 用 `STAGE=groups` 補），比較用 `python -m core.compare`（見 [core/README.md](core/README.md)），它一併做下面第 2–4 項。
 2. **Seed 層級（確認）：**對兩組 seed 的指標做 Welch t-test。n=3 或 5 時檢定力低，只在差距遠大於 seed 標準差時才會顯著，主要用來確認結論不是某個 seed 的運氣。
-3. 兩者都 p < 0.05，且平均差距大於兩組 seed 標準差的較大者，才寫「顯著較好」；只有其一成立就寫「傾向」並說明。
+3. 兩者都 p < 0.05，且平均差距大於兩組 seed 標準差的較大者，才寫「顯著較好」；至少一個檢定 p < 0.05 但條件沒有全部成立時寫「傾向」並說明；兩個檢定都不顯著時，即使差距大於 seed 標準差也不寫優劣（`core.compare` 依此判定）。
 4. 同時比較多個模型或資料集時，以 Holm–Bonferroni 校正 p 值。
 
 **Validation 與 test：**模型選擇、早停與上面的檢定都在 validation 上做。設定定案後，每個 seed 的 run 對 test 各跑一次（`STAGE=test`），報告 test 的平均 ± 標準差；不依 test 結果回頭調參。

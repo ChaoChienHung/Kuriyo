@@ -13,7 +13,9 @@ Per setting: mean ± sample sd over seeds and the t 95% CI. Per comparison: the 
 per-user test (each user's metric averaged over seeds; paired t and a 10,000-resample
 paired bootstrap) and Welch's t over seed values, Holm-adjusted across comparisons, and
 the README verdict: "significant" when both adjusted p < 0.05 and the mean gap exceeds
-the larger seed sd, "tendency" when only some hold, "single seed" when Welch cannot run.
+the larger seed sd, "tendency" when at least one test has adjusted p < 0.05 but not all
+conditions hold, "no difference shown" when neither test does, "single seed" when Welch
+cannot run.
 """
 
 import argparse
@@ -134,7 +136,7 @@ def verdict(comparison, base, other):
     direction = "better" if comparison["difference"] > 0 else "worse"
     if all(conditions):
         return "significantly {}".format(direction)
-    if any(conditions):
+    if conditions[0] or conditions[1]:
         return "tendency {} (paired p<0.05: {}, Welch p<0.05: {}, gap > seed sd: {})".format(direction, *conditions)
     return "no difference shown"
 

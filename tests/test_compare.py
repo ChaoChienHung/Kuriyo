@@ -86,6 +86,15 @@ class CompareTests(unittest.TestCase):
             single = compare([("weak", weak[:1]), ("strong", strong[:1])], metric="recall@10", resamples=100)
             self.assertEqual(single["comparisons"][0]["verdict"], "single seed: no claim")
 
+    def test_large_gap_without_significance_is_no_difference(self):
+        from core.compare import verdict
+        base, other = {"sd": 0.001}, {"sd": 0.001}
+        comparison = {"difference": 0.002, "welch": {"p_holm": 0.11},
+                      "paired_t": {"p_holm": 0.2}, "paired_bootstrap": {"p_holm": 0.2}}
+        self.assertEqual(verdict(comparison, base, other), "no difference shown")
+        comparison["welch"]["p_holm"] = 0.01
+        self.assertTrue(verdict(comparison, base, other).startswith("tendency better"))
+
     def test_refuses_different_users(self):
         with TemporaryDirectory() as temporary:
             root = Path(temporary)
