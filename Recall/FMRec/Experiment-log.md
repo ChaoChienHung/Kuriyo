@@ -6,6 +6,54 @@
 
 ## 2026-11-21
 
+### 作者預設 5 個 seed（42–46）的 held-out test
+
+#### Motivation
+
+README「實驗設計與統計檢定」規定與論文並列的數字要 5 個 seed 的 test 平均 ± 標準差；seed 42 的 test 已有（2026-11-19），補上 43–46。作者預設不再調整，每個 seed 只跑一次 test。
+
+#### Details
+
+- **Variant:** `baseline`
+- **Baseline:** `fmrec-beauty-v1` 的 test（seed 42，2026-11-19 條目）。
+- **Change:** 無；以各 seed 的 `best.pt`（下方 validation 條目選定）跑一次 test。
+- **Data:** 2014 Beauty ASIN 切分；test 22,363 筆。
+- **Environment:** SoC jobs 1175902（s46，`da61807`）、1176436–37（s43–s44，`2eec16b`）、1177268（s45，`abab2b9`）；這些 revision 之間 FMRec 的評估程式沒有改動。
+- **Command:** `MODEL=fmrec RUN_NAME=fmrec-beauty-s<seed> SEED=<seed> STAGE=test sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch`；整理：`python -m core.compare --split test --metric <metric> --setting fmrec Recall/FMRec/baseline/runs/fmrec-beauty-{v1,s43,s44,s45,s46}`
+- **Artifacts:** `Recall/FMRec/baseline/runs/fmrec-beauty-s{43,44,45,46}/test/amazon2014-beauty/`（`metrics.json`、`ranks.json`）。
+
+#### Settings
+
+- 與 seed 42 的 test 相同：全 catalog 內積排名、不過濾歷史、Euler 30 步、評估 seed = run seed。
+
+#### Expectation
+
+事後記錄：提交時沒有寫下數值預期。
+
+#### Key Metrics
+
+- 5 個 seed 的 test Recall@5/10、NDCG@5/10 平均 ± 標準差與 t 95% CI，與論文並列；分組（1–4、5+）Recall@10。
+
+#### Results
+
+| seed | Recall@5 | Recall@10 | NDCG@5 | NDCG@10 | 1–4 組 R@10 | 5+ 組 R@10 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 42（`fmrec-beauty-v1`） | 0.05764 | 0.08036 | 0.04017 | 0.04745 | 0.0283 | 0.0984 |
+| 43 | 0.05679 | 0.08259 | 0.04044 | 0.04875 | 0.0274 | 0.1017 |
+| 44 | 0.05652 | 0.08116 | 0.04062 | 0.04854 | 0.0285 | 0.0994 |
+| 45 | 0.05683 | 0.08116 | 0.04023 | 0.04809 | 0.0303 | 0.0988 |
+| 46 | 0.05151 | 0.07772 | 0.03529 | 0.04369 | 0.0237 | 0.0964 |
+| **平均 ± sd** | **0.05586 ± 0.00247** | **0.08060 ± 0.00180** | **0.03935 ± 0.00228** | **0.04730 ± 0.00208** | 0.0276 | 0.0989 |
+| 95% CI | 0.05280–0.05892 | 0.07836–0.08283 | 0.03652–0.04218 | 0.04472–0.04988 | | |
+| FMRec 論文（HR@K） | 0.0584 | 0.0827 | 0.0416 | 0.0495 | | |
+
+- **Observations:** 四個指標都比論文低 0.0021–0.0025，論文數字都落在 5 個 seed 的 t 95% CI 內（Recall@10 在上緣）。validation → test：Recall@10 0.1034 → 0.0806（−22%），NDCG@10 0.0602 → 0.0473（−21%），與 seed 42 一致。seed 46 在 validation 與 test 都最低（validation 條目：它較晚才到最佳）。
+- **Hypotheses:** 與論文的小差距可能來自歷史長度（論文 50、Kuriyo 20）與資料處理不同，未驗證。
+
+#### Conclusion
+
+FMRec 作者預設在 Kuriyo 切分的 test：Recall@10 0.0806 ± 0.0018、NDCG@10 0.0473 ± 0.0021（5 seeds）。論文數字都在 95% CI 內，但論文的資料處理與歷史長度不同，只能說「與論文相符」而不是重現。這是 FMRec 的最終 test，之後不再用 test 調整。
+
 ### 作者預設 5 個 seed（42–46）的 validation
 
 #### Motivation
@@ -59,7 +107,7 @@ Recall@5 0.07285 ± 0.00207，NDCG@5 0.05033 ± 0.00187。
 
 #### Conclusion
 
-FMRec 作者預設在 Kuriyo 切分的 validation：Recall@10 0.1034 ± 0.0016、NDCG@10 0.0602 ± 0.0017（5 seeds）。相對 SASRec CE，NDCG@10 顯著較好、Recall@10 沒有差異。下一步：seed 43–46 各跑一次 test，報告 5 個 seed 的 test 平均 ± 標準差與論文並列。
+FMRec 作者預設在 Kuriyo 切分的 validation：Recall@10 0.1034 ± 0.0016、NDCG@10 0.0602 ± 0.0017（5 seeds）。相對 SASRec CE，NDCG@10 顯著較好、Recall@10 沒有差異。test 見上方 2026-11-21 held-out test 條目。
 
 ## 2026-11-20
 

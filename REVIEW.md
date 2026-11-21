@@ -4,6 +4,11 @@
 
 ## Awaiting review
 
+- [ ] FMRec 5 個 seed 的 held-out test
+  - **Delivered:** FMRec Experiment-log 2026-11-21 的 test 條目（seed 42–46，jobs 1175902、1176436–37、1177268）：Recall@10 0.0806 ± 0.0018、NDCG@10 0.0473 ± 0.0021，與論文並列；README 結果表、`Recall/INSIGHT.md`、FMRec INSIGHT 更新；TODO 移除此項。
+  - **Evidence:** 平均、sd、95% CI 來自 `python -m core.compare --split test`（四個指標），每個 seed 的數字對照 `test/amazon2014-beauty/metrics.json`；從排名重算的指標與紀錄一致（沒有警告）。
+  - **Review focus:** README 寫「論文的四個數字都在 95% CI 內」而不寫「重現」，因為論文用 50 件歷史與另一份資料處理；Expectation 標為事後記錄。
+
 - [ ] TIGER `--dropout` 旗標與 dropout 0.2 結果（H8）
   - **Delivered:** `Recall/TIGER/baseline/train.py` 的選擇性 `--dropout`（預設 0.1，續訓拒絕更改，`settings.json` 記 `dropout_rate`）；`tiger-t5x-adafactor-dropout02-v1`（job 1175903）的結果填入事先登記的 Experiment-log 條目（2026-11-21），更新 TIGER H8、H7 與 Problems to solve；TODO 的正則化項改成容量（H4）。
   - **Evidence:** 預設 0.1 的固定 seed 回歸前後逐位相同；結果表的每個數字來自 run 的 `validation/amazon2014-beauty/step-*.json`，配對檢定來自 `python -m core.compare`（eval2k 對 dropout02）。
