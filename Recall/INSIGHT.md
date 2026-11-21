@@ -2,7 +2,7 @@
 
 召回階段的研究筆記：跨家族的比較、基線與共用評估協定。事實與假設分開，每個結果都註明資料版本、切分、模型設定、指標與來源。家族自己的發現寫在 `Recall/<family>/INSIGHT.md`，run 紀錄在各家族的 `Recall/<family>/Experiment-log.md`（家族所有變體共用）；總覽見 [根 INSIGHT](../INSIGHT.md)。
 
-*建立：2026-11-18（由根 INSIGHT 分出）；最後更新：2026-11-20。Experiment log：[TIGER](TIGER/Experiment-log.md)、[SASRec](SASRec/Experiment-log.md)、[FMRec](FMRec/Experiment-log.md)。熱門商品基線是一次性的本機計算，數字直接記在本檔 Facts。*
+*建立：2026-11-18（由根 INSIGHT 分出）；最後更新：2026-11-21。Experiment log：[TIGER](TIGER/Experiment-log.md)、[SASRec](SASRec/Experiment-log.md)、[FMRec](FMRec/Experiment-log.md)。熱門商品基線是一次性的本機計算，數字直接記在本檔 Facts。*
 
 ## Insights
 
@@ -29,6 +29,7 @@
   | SASRec baseline | 論文設定只換 CE，3 seeds 平均 ± sd | 0.06885 ± 0.00049 | 0.10237 ± 0.00061 | 0.03992 ± 0.00043 | 0.05072 ± 0.00042 | SoC jobs 1166905–07；[log](SASRec/Experiment-log.md) 2026-11-19 |
   | SASRec baseline | CE、hidden 64、2 層，SoC best epoch 85 | 0.06882 | 0.10227 | 0.04010 | 0.05083 | SoC job 1165570；本機同設定 0.09382；[log](SASRec/Experiment-log.md) 2026-11-19 |
   | FMRec baseline | 作者預設，best epoch 160 | 0.07280 | 0.10307 | 0.05058 | 0.06035 | SoC job 1165520；[log](FMRec/Experiment-log.md) 2026-11-19 |
+  | FMRec baseline | 作者預設，5 seeds（42–46）平均 ± sd | 0.07285 ± 0.00207 | 0.10335 ± 0.00164 | 0.05033 ± 0.00187 | 0.06016 ± 0.00173 | SoC jobs 1165520、1168952–54、1170268；[log](FMRec/Experiment-log.md) 2026-11-21 |
 
   逐 step／epoch 的數字與 run 證據只記在各變體的 Experiment-log；本表只並列最佳 validation，新增 run 時同時更新 log 與本表。
 - **Held-out test（2014 Beauty，22,363 examples，全商品排名，各一次、seed 42）：**
@@ -54,6 +55,7 @@
   從未當過 train 目標的組（validation 81 筆、test 196 筆）所有模型都是 0，表中省略。TIGER 在熱門組是 item-ID 模型的 0.80 倍，在 1–4 組只有 0.39–0.45 倍（validation），test 更降到 0.23 倍：冷門組是 TIGER 最弱的地方，不是最強。NDCG@10 的走向相同。證據：各家族 Experiment-log 2026-11-20「分組重新評估」。
 - **validation → test 的下降大多來自組內，不是組成：**以 validation 的分組 Recall@10 套用 test 的組成，只解釋整體下降的 16%（TIGER）、18%（FMRec）、25%（SASRec CE）。組內變化：SASRec 1–4 組 −2%、5+ 組 −14%；FMRec 兩組各 −18%／−19%；TIGER 1–4 組 −50%、5+ 組 −26%。
 - **逐使用者配對檢定（`python -m core.compare`，單一 seed，只反映評估樣本雜訊）：**對 SASRec CE（hidden 64）：TIGER 在 validation 與 test 的 Recall@10、NDCG@10 都較低（差 −0.022 到 −0.029 Recall@10，p < 1e-12）；FMRec 的 NDCG@10 在 validation（+0.0095）與 test（+0.0061）都較高（p < 1e-12），Recall@10 在 validation 無差異（+0.0008，p = 0.62）、test 略低（−0.0047，p = 0.002）。FMRec 命中前 10 的比例與 SASRec 相當，但把目標排得更前面。依 README 規則，單一 seed 不寫「顯著較好」。
+- **三個 seed 的比較（seed 42–44，validation，`python -m core.compare`）：**SASRec 只換 CE 對論文設定（BCE）：Recall@10、NDCG@10 都「顯著較好」（配對 t p < 1e-200、Welch p ≤ 6e-5）。FMRec 對 SASRec 只換 CE：NDCG@10「顯著較好」（+0.0103，配對 p = 7e-47、Welch p = 6e-5），Recall@10 沒有差異（+0.0015，p = 0.2／0.11）。證據：SASRec 與 FMRec Experiment-log 2026-11-21。
 
 ## Limitations
 

@@ -6,6 +6,51 @@
 
 所有 run 都用 2014 Beauty ASIN 切分（131,413 train／22,363 validation，歷史上限 20），validation 對全 catalog 12,101 件排名、不過濾歷史，以 NDCG@10 選最佳。
 
+## 2026-11-21
+
+### H1 三個 seed 的配對檢定（BCE 對 CE）
+
+#### Motivation
+
+2026-11-19 的 H1 結論只有 seed 層級的 Welch 檢定；README 的主要檢定是逐使用者配對。補齊 `sasrec-paper-beauty-s43`／`-s44`、`sasrec-paperce-beauty-s44` 的排名後做完整檢定。
+
+#### Details
+
+- **Variant:** `baseline`
+- **Baseline:** 論文設定（BCE）3 個 seed。
+- **Change:** 無新訓練；三個 run 的 `STAGE=groups` 補出排名（程式 `36336f3` 之前的 main；job ID 記在各 `best-groups.json`），再以 `python -m core.compare` 比較。
+- **Data:** 2014 Beauty validation 22,363 筆。
+- **Environment:** 本機執行 `core.compare`（bootstrap 10,000 次、seed 0）。
+- **Command:** `python -m core.compare --metric recall@10 --setting bce Recall/SASRec/baseline/runs/sasrec-paper-beauty-{v1,s43,s44} --setting ce Recall/SASRec/baseline/runs/sasrec-paperce-beauty-{v1,s43,s44}`（NDCG@10 同理）
+- **Artifacts:** 六個 run 的 `validation/amazon2014-beauty/best-ranks.json`、`best-groups.json`。
+
+#### Settings
+
+- 同 2026-11-19「論文設定 vs 只換 CE（H1）」條目。
+
+#### Expectation
+
+2026-11-19 條目的 Expectation 不變（論文設定明顯低於 CE）；本條只補檢定。
+
+#### Key Metrics
+
+- 配對 t、paired bootstrap 與 Welch 的 Holm 校正 p 值；README 判定；各組 Recall@10。
+
+#### Results
+
+| 指標 | BCE（3 seeds） | CE（3 seeds） | 差 | 配對 t p | bootstrap 95% CI | Welch p | 判定 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Recall@10 | 0.06016 ± 0.00145 | 0.10237 ± 0.00061 | +0.04221 | 8e-212 | +0.0396 到 +0.0449 | 6e-5 | 顯著較好 |
+| NDCG@10 | 0.02591 ± 0.00064 | 0.05072 ± 0.00042 | +0.02481 | 4e-242 | +0.0234 到 +0.0262 | 3e-6 | 顯著較好 |
+
+各組 Recall@10（1–4 組／5+ 組）：BCE s43 0.0232／0.0718、s44 0.0182／0.0712；CE s44 0.0291／0.1212；s42、s43 見 2026-11-20 條目。所有 `max_abs_difference` 為 0。
+
+- **Observations:** 兩種檢定都 p < 0.05，差距約為 seed 標準差的 30 倍。
+
+#### Conclusion
+
+H1 依 README 規則成立：只換 CE 顯著較好，且在冷門與熱門組都較好。
+
 ## 2026-11-20
 
 ### 分組重新評估與逐使用者排名（`STAGE=groups`）

@@ -17,18 +17,14 @@
   - **Context:** `Recall/TIGER/INSIGHT.md` H8：2k 間隔曲線（job 1167955）最佳在 20k（平台 14k–22k），之後熱門目標組下降、1–4 組仍上升，train loss 持續下降。
   - **Scope:** 新 RUN_NAME，同 seed、同 SID，一次只改一個。`--dropout` 已加入（2026-11-20，預設 0.1 不變）：`SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-dropout02-v1 TRAIN_ARGS="--dropout 0.2 --eval-every 2000 --steps 40000" STAGE=train`，再視結果試 0.3；weight decay 需另加旗標。單一 seed 先找方向，要下結論再補 3 個 seed。
   - **Acceptance:** 與 `tiger-t5x-adafactor-eval2k-v1` 的曲線與分組（尤其 1–4 組，見 H7）並列在 TIGER Experiment-log，更新 H8；Expectation 在 run 前寫進 log。
-- [ ] Beauty 多 seed：SASRec 兩個設定、FMRec 各補 seed 43–46
-  - **Context:** README 規定定案結果要 5 個 seed；既有 `sasrec-beauty-v1`（CE 設定）、`fmrec-beauty-v1` 即 seed 42。
-  - **Scope:** agent 準備指令，使用者提交；SASRec CE 設定 `SEED=43 RUN_NAME=sasrec-ce-beauty-s43 TRAIN_ARGS="--loss ce --hidden 64 --heads 2"`，FMRec `SEED=43 RUN_NAME=fmrec-beauty-s43`；每個 job 一張 GPU，先查配額。
-  - **Acceptance:** 五個 seed 的 validation 平均 ± 標準差記在各家族 Experiment-log 與 `Recall/INSIGHT.md` 對照表。
+- [ ] FMRec 5 個 seed 的 held-out test
+  - **Context:** 5 個 seed 的 validation 已記錄（FMRec Experiment-log 2026-11-21：Recall@10 0.1034 ± 0.0016）；test 只有 seed 42（0.0804）。README 規定與論文並列要 5 個 seed 的 test 平均 ± 標準差。作者預設不再調整，所以可以跑 test。
+  - **Scope:** 使用者提交 `for s in 43 44 45 46; do MODEL=fmrec RUN_NAME=fmrec-beauty-s$s SEED=$s STAGE=test sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch; done`，推上 `test/` 紀錄；agent 用 `python -m core.compare --split test` 整理。
+  - **Acceptance:** FMRec Experiment-log 有 5 個 seed 的 test 平均 ± 標準差與 95% CI，和論文並列；README 結果表與 `Recall/INSIGHT.md` 更新。
 - [ ] Sports_and_Outdoors、Toys_and_Games 資料與三個模型
   - **Context:** TIGER 論文在三個 2014 分類上報告；只看 Beauty 的結論可能不穩。`run.sbatch` 已支援 `CATEGORY`。
   - **Scope:** `Sports_and_Outdoors` 與 `Toys_and_Games` 都已準備（README）；之後 SASRec、FMRec、TIGER（各自的 SID 版本）用預設 run 名稱訓練，多 seed 依 README。
   - **Acceptance:** 兩個分類的切分筆數、商品數與論文資料表對照；三個模型的 validation 分資料集記在各 Experiment-log 與 `Recall/INSIGHT.md`。
-- [ ] 補完 4 個 run 的分組評估；SASRec H1 三 seed 配對檢定
-  - **Context:** 2026-11-20 的分組結果已記錄（`Recall/INSIGHT.md`、H2 不支持、TIGER H7 不支持），但 `sasrec-paper-beauty-s43`、`-s44`、`sasrec-paperce-beauty-s44`、`tiger-t5x-adafactor-eval2k-v1` 的 `STAGE=groups` 沒有執行（events.log 沒有 `groups_evaluated`）。
-  - **Scope:** 使用者在 SoC 重送這 4 個 job 並推上；之後 `python -m core.compare --setting bce <3 runs> --setting ce <3 runs>` 做 SASRec H1 的三 seed 配對與 Welch。
-  - **Acceptance:** SASRec Experiment-log 與 INSIGHT H1 記下三 seed 的配對檢定與 README 判定。
 - [ ] 以各論文自己的協定重現（確認沒有低估模型）
   - **Context:** 共用切分與全 catalog 評估適合比較模型，但無法和論文數字直接對照。原始 SASRec 論文用 50 件歷史、每位使用者 1 個正例 + 100 個未互動過的隨機商品排名；TIGER test 比論文低 14%。
   - **Scope:** 在 `--eval-groups` 的重新評估框架加「抽樣負例」協定（100 個、排除使用者看過的商品、固定 seed），各模型都能跑；之後視結果建立 50 件歷史的切分（另一個資料版本，結果分開報告）並用論文設定重訓。

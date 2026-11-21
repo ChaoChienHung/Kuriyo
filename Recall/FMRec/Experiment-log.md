@@ -4,6 +4,63 @@
 
 所有 run 都用 2014 Beauty ASIN 切分（131,413 train／22,363 validation，歷史上限 20），validation 對全 catalog 12,101 件排名、不過濾歷史，以 NDCG@10 選最佳。
 
+## 2026-11-21
+
+### 作者預設 5 個 seed（42–46）的 validation
+
+#### Motivation
+
+FMRec 是 Kuriyo 與論文最接近的結果，但只有 seed 42。README「實驗設計與統計檢定」規定與論文並列的數字要 5 個 seed；同時以共同的 seed 42–44 和 SASRec CE 做配對與 seed 層級比較。
+
+#### Details
+
+- **Variant:** `baseline`
+- **Baseline:** `fmrec-beauty-v1`（seed 42，2026-11-19 條目）。
+- **Change:** 只改 seed（43、44、45、46）；設定全部是作者預設。
+- **Data:** 2014 Beauty ASIN 切分；validation 22,363 筆。
+- **Environment:** SoC jobs 1168952–54（s43–s45，程式 `7209f60`）、1170268（s46，`e92cd50`）；兩個 revision 之間 FMRec 的訓練與評估程式沒有改動（中間只有紀錄與 TIGER 旗標）。
+- **Command:** `MODEL=fmrec RUN_NAME=fmrec-beauty-s<seed> SEED=<seed> STAGE=train sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch`
+- **Artifacts:** `Recall/FMRec/baseline/runs/fmrec-beauty-s{43,44,45,46}/`（含 `best-ranks.json`）。
+
+#### Settings
+
+- 與 `fmrec-beauty-v1` 相同（作者預設：hidden 128、4 blocks、Euler 30 步、lr 1e-3、batch 512、每 20 epochs 評估、patience 5），**不同**：`run.seed`。
+
+#### Expectation
+
+事後記錄：提交時沒有寫下數值預期。
+
+#### Key Metrics
+
+- 5 個 seed 的 validation Recall@5/10、NDCG@5/10 平均 ± 標準差與 t 95% CI；與 SASRec CE（只換 CE，seed 42–44）的配對與 Welch 檢定。
+
+#### Results
+
+| seed | best epoch | Recall@10 | NDCG@10 |
+| --- | --- | --- | --- |
+| 42（`fmrec-beauty-v1`） | 160 | 0.10307 | 0.06035 |
+| 43 | 160 | 0.10356 | 0.06094 |
+| 44 | 160 | 0.10508 | 0.06162 |
+| 45 | 160 | 0.10428 | 0.06072 |
+| 46 | 360 | 0.10075 | 0.05718 |
+| **平均 ± sd（95% CI）** | | **0.10335 ± 0.00164（0.10131–0.10539）** | **0.06016 ± 0.00173（0.05801–0.06231）** |
+
+Recall@5 0.07285 ± 0.00207，NDCG@5 0.05033 ± 0.00187。
+
+`python -m core.compare`，seed 42–44，對 SASRec 只換 CE（`sasrec-paperce-beauty-*`）：
+
+| 指標 | SASRec CE | FMRec | 差 | 配對 t p | bootstrap 95% CI | Welch p | 判定 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Recall@10 | 0.10237 ± 0.00061 | 0.10391 ± 0.00105 | +0.00154 | 0.2 | −0.0008 到 +0.0039 | 0.11 | 沒有差異 |
+| NDCG@10 | 0.05072 ± 0.00042 | 0.06097 ± 0.00064 | +0.01025 | 7e-47 | +0.0089 到 +0.0117 | 6e-5 | 顯著較好 |
+
+- **Observations:** seed 42–45 都在 epoch 160 最好、260 early stop；seed 46 在 360 最好、460 停，數字最低。NDCG@10 的優勢遠大於 seed 標準差，Recall@10 沒有差異。
+- **Hypotheses:** FMRec 的優勢在把目標排得更前面，而不是命中更多（與 2026-11-20 單一 seed 的配對結果一致）。seed 46 的訓練路徑不同（較晚才到最佳），原因未查。
+
+#### Conclusion
+
+FMRec 作者預設在 Kuriyo 切分的 validation：Recall@10 0.1034 ± 0.0016、NDCG@10 0.0602 ± 0.0017（5 seeds）。相對 SASRec CE，NDCG@10 顯著較好、Recall@10 沒有差異。下一步：seed 43–46 各跑一次 test，報告 5 個 seed 的 test 平均 ± 標準差與論文並列。
+
 ## 2026-11-20
 
 ### 分組重新評估與逐使用者排名（`STAGE=groups`）

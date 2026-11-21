@@ -2,7 +2,7 @@
 
 FMRec 家族的研究筆記。事實與假設分開，每個結果都註明資料版本、切分、模型設定、指標，以及來自哪一條 Experiment-log 或哪個 run。操作方式見 [README](README.md) 與 [baseline README](baseline/README.md)；跨家族比較在 [Recall INSIGHT](../INSIGHT.md)。
 
-*建立：2026-11-18；最後更新：2026-11-20。Experiment log：[Experiment-log.md](Experiment-log.md)（家族所有變體）。*
+*建立：2026-11-18；最後更新：2026-11-21。Experiment log：[Experiment-log.md](Experiment-log.md)（家族所有變體）。*
 
 ## Insights
 
@@ -20,6 +20,7 @@ FMRec 家族的研究筆記。事實與假設分開，每個結果都註明資�
 - 論文 Beauty 結果（HR@5 5.84%、HR@10 8.27%、NDCG@5 4.16%、NDCG@10 4.95%）使用 50 件歷史、ICLRec／DuoRec 處理的資料（22,361 users、12,101 items），論文沒有和 TIGER 比較。
 - `fmrec-beauty-v1`（作者預設，seed 42）在 Kuriyo 切分的 test：Recall@5 0.0576、Recall@10 0.0804、NDCG@5 0.0402、NDCG@10 0.0474，四項都在論文數字的 0.0025 以內；資料處理與歷史長度不同，只能當參考。證據：[Experiment-log](Experiment-log.md) 2026-11-19 Held-out test。
 - 依目標熱門度分組，FMRec 在冷門目標（train 當目標 1–4 次）上是三個模型中最強：validation NDCG@10 0.0213（SASRec CE 0.0141、TIGER 0.0060）。對 SASRec CE 的逐使用者配對（單一 seed）：NDCG@10 在 validation 與 test 都較高（+0.0095／+0.0061，p < 1e-12），Recall@10 相當（validation +0.0008，p = 0.62；test −0.0047）。優勢在排序位置而非命中與否。證據：[Experiment-log](Experiment-log.md) 2026-11-20。
+- 作者預設 5 個 seed（42–46）的 validation：Recall@10 0.1034 ± 0.0016（95% CI 0.1013–0.1054）、NDCG@10 0.0602 ± 0.0017。與 SASRec 只換 CE 在共同 seed 42–44 比較：NDCG@10 +0.0103，配對 t p = 7e-47、Welch p = 6e-5，依 README 判定「顯著較好」；Recall@10 +0.0015，兩種檢定都不顯著（p = 0.2／0.11），判定沒有差異。證據：[Experiment-log](Experiment-log.md) 2026-11-21。
 - Kuriyo 的 20 件歷史上限來自 TIGER 論文 Appendix C（套用在訓練）；FMRec 論文用 50。Kuriyo 2014 Beauty 切分：22,363 users、12,101 items。
 - Kuriyo baseline 28,388,038 參數（SoC job 1165520 log），其中約 2,480 萬在重建 MLP 最後一層（2048 × 12,102）。
 - 完整訓練 `fmrec-beauty-v1`（SoC job 1165520，程式 `bb1088c`）在 epoch 260 early stop；best epoch 160 的 validation Recall@5 0.0728、Recall@10 0.1031、NDCG@5 0.0506、NDCG@10 0.0603。epoch 80 之後幾乎持平（[baseline Experiment-log](Experiment-log.md) 2026-11-19）。
