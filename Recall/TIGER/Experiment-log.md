@@ -52,8 +52,8 @@ run 前寫下（2026-11-20）：同 step 的 train loss 高於 baseline；valida
 - **學習較慢：**26k 之前每個 step 都低於 baseline（10k 低 0.011），約 26k 交叉；之後 baseline 下降，dropout 0.2 持平。
 - **對 baseline 最佳點（20k）的逐使用者配對（`python -m core.compare`，22,363 位使用者）：**Recall@10 +0.0005（paired t p 0.76，bootstrap 95% CI [−0.0027, +0.0037]）；NDCG@10 +0.0008（p 0.42，CI [−0.0010, +0.0026]）。單一 seed，不做 seed 層級檢定。
 - **分組：**最佳點的 1–4 組 Recall@10 0.0077（4,564 筆中 35 筆命中），baseline 20k 0.0134（61 筆）；1–4 組在每個 step 都低於 baseline，最高 0.0092（36k）。5+ 組 0.0996，baseline 20k 0.0975。0 組仍為 0。
-- **Train loss：**`train/train.jsonl` 不在 Git、Slurm log 沒有推上，無法比較；Expectation 的「train loss 較高」未驗證。
-- **對照 Expectation：**最佳點晚於 20k（是，38k，晚於預期的 24k–34k）；最佳 Recall@10 在 0.078–0.084（是）；40k 高於 0.0713（是，0.0802）；1–4 組不低於 0.0134（否，0.0077）；沒有欠擬合（最佳值高於 0.076）。
+- **Train loss**（每點為結束於該 step 的 1,000 步平均，取自 SoC 上兩個 run 的 `train/train.jsonl`，使用者 2026-11-21 回報）：dropout 0.2 為 10k 1.845、20k 1.687、30k 1.608、40k 1.549；baseline 為 1.631、1.442、1.290、1.158。dropout 0.2 在每個 step 都較高，40k 仍在下降，約等於 baseline 15k 的水準。訓練時的 loss 含 dropout 雜訊，兩者不完全可比。
+- **對照 Expectation：**最佳點晚於 20k（是，38k，晚於預期的 24k–34k）；最佳 Recall@10 在 0.078–0.084（是）；40k 高於 0.0713（是，0.0802）；1–4 組不低於 0.0134（否，0.0077）；沒有欠擬合（最佳值高於 0.076）；同 step 的 train loss 較高（是）。
 
 #### Conclusion
 
