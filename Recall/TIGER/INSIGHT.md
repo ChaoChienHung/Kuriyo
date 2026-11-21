@@ -44,7 +44,7 @@ TIGER 家族的研究筆記，適用於家族下所有變體。事實與假設�
 待驗證的主張。編號固定；跨檔引用寫 `Recall/TIGER/INSIGHT.md` H[n]。
 
 - **H3 — SID 品質是與論文差距的主因（不支持）：**原預期：用不塌縮的 SID 重訓，其他不變，validation Recall@10 會明顯高於 0.0342。結果 0.0368，只高約 2 個標準誤（約 0.0013），差距主因不在 SID。證據：[baseline Experiment-log](Experiment-log.md) 2026-11-18。
-- **H4 — 模型容量不足是次要因素：**HF T5 實測 4.8–5.6M 參數，論文約 1,300 萬。差異可能來自 T5X 不共享輸入輸出 embedding 或詞表大小，尚未核實；H5 修正後與 item-ID 模型仍差約 0.02，是下一個候選，等跑滿 200k 再決定。
+- **H4 — 模型容量不足是次要因素（參數差異不支持，2026-11-21 推算）：**HF T5 實測 4.8–5.6M 參數，論文約 1,300 萬。H5 修正後與 item-ID 模型仍差約 0.02。結果：逐項計算 4,815,488 參數（詞表 2,780），其中 transformer 本體 4,459,648 完全由論文給的維度決定，與論文相同；約 1,300 萬只能由大詞表的 embedding 解釋（T5X 預設 32,128 詞表、輸入輸出不共享為 12.68M，加 gated FFN 為 13.73M），而這些多出的詞表列不增加有效容量。所以「比論文小」不是差距的來源（推算，論文沒有公開程式）；比論文更大的模型（例如 d_model 256）是偏離論文的設定比較，尚未測試。拆解見 [baseline README](baseline/README.md)「與論文差距」。
 - **H5 — Adafactor 步長是 TIGER 差距的主因（強烈支持）：**Kuriyo 以 `scale_parameter=False` 把 lr 0.01 當成絕對步長，小初始化的權重（如 `q`）每步被大幅改寫，訓練噪音大、收斂慢。兩個完整 run 到 200k 仍在上升，train loss 約 1.69／token（約 8.5 nats／商品），SASRec 約 7.0 nats 且 30 epochs 內收斂，與此相符。驗證：`ADAFACTOR_SCALE_PARAMETER=1`、SID `tiger-paper-v1`、新 RUN_NAME，比較 20k／40k validation 與 `tiger-paper-v1`（Recall@10 0.0132／0.0174）。結果：20k Recall@10 0.0800 對 0.0132（約 6 倍），已超過舊設定跑滿 200k 的 0.0368；[baseline Experiment-log](Experiment-log.md) 2026-11-19（job 1165519）。20k 之後 validation 反而下降（H8）。
 - **H8 — T5X 式 Adafactor 的 TIGER 在 20k 達到最佳，之後過擬合（支持）：**job 1165519 的 validation Recall@10 在 20k 是 0.0800，之後每 20k 下降（40k 0.0713、60k 0.0610、80k 0.0571、100k 0.0546），無效 SID 的 beam 比例從 0.06% 升到 1.8%。兩種解釋：過擬合（train loss 繼續下降），或步長仍太大（train loss 停滯）。驗證：同 seed、新 RUN_NAME，`TRAIN_ARGS="--eval-every 2000 --steps 40000"`，找出最佳 step；同時從 Slurm log 取 train loss 曲線。若最佳點在 20k 之前且 train loss 持續下降，支持過擬合，下一步是 dropout 或提早停止；若 train loss 也停滯，改查 lr。結果：train loss 從 20k 的約 1.49 降到 30k 的 1.29，validation 同時下降，支持過擬合；20k 約等於 39 個 epoch。2k 間隔的曲線確認最佳 step 為 20k（平台 14k–22k，Recall@10 0.0800，與 job 1165519 逐位相同），之後 train loss 從 1.42 降到 1.16（40k），validation 降到 0.0713；熱門目標（5+）組在 20k 後下降，1–4 組仍緩慢上升，過擬合主要發生在熱門商品（單一 seed）。Dropout 0.2（job 1175903）把下降推遲到 40k 之後（最佳 38k，Recall@10 0.0805，40k 0.0802），但最佳值與 0.1 相同（+0.0005，配對 p 0.76），1–4 組更低（0.0077 對 0.0134）：正則化移動最佳點，不提高約 0.080 的上限（單一 seed）。證據：[Experiment-log](Experiment-log.md) 2026-11-19、2026-11-20、2026-11-21。
 - **H6 — SID 方法影響召回品質：**在固定切分與相同模型預算下，RQ-VAE SID、隨機 ID 與其他內容編碼（`sentence-t5_kmeans`、`sentence-t5_lsh`）的召回品質不同。尚未比較，需先讓 TIGER 本身的訓練正常（H5）。
@@ -61,6 +61,6 @@ TIGER 家族的研究筆記，適用於家族下所有變體。事實與假設�
 
 具體的阻礙或未知；排入工作後在 `TODO.md` 追蹤。
 
-1. TIGER 的最佳 validation Recall@10 停在約 0.080：20k 之後的過擬合可用 dropout 推遲，但上限不變（H8）。與 SASRec／FMRec（約 0.10）的差距要從容量與資料找（H4）。
+1. TIGER 的最佳 validation Recall@10 停在約 0.080：20k 之後的過擬合可用 dropout 推遲，但上限不變（H8）。與 SASRec／FMRec（約 0.10）的差距不是因為參數比論文少（H4）；剩下的候選是比論文更大的模型、token 排列與解碼，或接受這是 TIGER 在此切分的水準。
 2. 若仍落後，候選是容量（H4）、訓練樣本、token 排列與解碼。程式碼檢查已確認 token offset、user token、decoder start、label 格式、beam 對應與 validation 歷史沒有問題。
 3. 對齊論文的模型容量、訓練預算與解碼協定，確認指標的可比性；模型定案後才對 test 做一次最終評估。

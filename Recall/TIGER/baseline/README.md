@@ -218,7 +218,7 @@ paper baseline 的 run 版面與 `settings.json` 見 [`core/README.md`](../../..
 - **SID split missing：** 完整 SID 生成後先跑 `STAGE=materialize`，確認後續沿用同一個 `SID_VERSION`。
 - **CUDA is unavailable：** 確認執行於 GPU allocation，並檢查該 `.venv` 的 PyTorch/CUDA 與節點驅動。CPU 小樣本可用 `--device cpu`，正式 batch 入口使用 CUDA。
 - **run 已存在：** 相同實驗以 `--resume` 接續；新實驗改 `RUN_NAME`。SID 目前沒有中途 checkpoint／續訓，完成前中斷可能需重跑，勿將部分 SID 目錄當成已完成。
-- **與論文差距：** 本實作使用 HF T5，並非作者的 T5X；job 1153307 實際記錄為 5,587,968 參數，低於論文所述約 1,300 萬。user hash、樣本展開、訓練框架及選模協定尚未證實與原實驗完全一致。完整 validation 已取得；最終 test 與鎖定依賴環境仍待補齊。
+- **與論文差距：** 本實作使用 HF T5，並非作者的 T5X；job 1153307 實際記錄為 5,587,968 參數，低於論文所述約 1,300 萬。目前的 run（SID `tiger-paper-v1`，詞表 2,780 = 780 個 SID token + 2,000 個 user token）是 4,815,488 參數，可逐項算出：共享 embedding 2,780×128 = 355,840；encoder 4 層 1,836,352；decoder 4 層 2,623,296（`settings.json` 的 `model.parameters` 與此相同；job 1153307 較多是因為塌縮的 SID 有較多碰撞 token）。論文給的維度（4+4 層、6 heads×64、MLP 1024、d_model 128）只決定 4,459,648 個 transformer 參數，與本實作相同；要到約 1,300 萬，只有大詞表的 embedding 說得通：T5X 預設的 32,128 詞表、輸入與輸出不共享時是 12,684,416，再加 T5 v1.1 的 gated FFN 是 13,732,992。這是推算，論文沒有公開程式，無法核實；多出的詞表列不會被輸入用到，不增加有效容量。user hash、樣本展開、訓練框架及選模協定尚未證實與原實驗完全一致。完整 validation 已取得；最終 test 與鎖定依賴環境仍待補齊。
 - **其他 SID 方法：** `sentence-t5_kmeans`、`sentence-t5_lsh` 目前只有預留目錄，尚無生成器。
 
 ## 程式導覽

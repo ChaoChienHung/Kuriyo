@@ -72,7 +72,7 @@ SASRec 論文設定（BCE）3 個 seed 的 validation Recall@10 0.0602 ± 0.0015
 
 2026-11-21：SASRec H1 三個 seed 的配對與 Welch 檢定都成立（只換 CE 顯著較好）；FMRec 5 個 seed 的 validation Recall@10 0.1034 ± 0.0016、NDCG@10 0.0602 ± 0.0017，對 SASRec CE 的 NDCG@10 顯著較好、Recall@10 沒有差異。`core.compare` 的「傾向」改成至少一個檢定顯著才算。下一步：FMRec seed 43–46 的 test；TIGER dropout 0.2（`--dropout` 已加入，Expectation 已寫）。分組結果（2026-11-20，`7209f60`）：TIGER 在冷門目標（train 當目標 1–4 次）只有 item-ID 模型的 0.23–0.45 倍，熱門組 0.69–0.80 倍，所以 `Recall/INSIGHT.md` H2 與 TIGER H7 不支持；validation → test 的下降只有 16–25% 來自 test 冷門目標較多，其餘是組內下降。FMRec 對 SASRec CE 的 NDCG@10 較高、Recall@10 相當（單一 seed 配對）。評估現在另存逐使用者排名（`validation/<set>/best-ranks.json`、`test/<set>/ranks.json`），`python -m core.compare` 依 README 規則做配對與 seed 層級檢定。之前的 run 沒有排名檔，`STAGE=groups` 會補上（已有的分組檔不覆寫），所以分組 job 請用含此改動的程式提交；已用舊程式跑完分組的 run 再跑一次 `STAGE=groups` 即可補排名。
 
-2026-11-21 晚：TIGER dropout 0.2（job 1175903，`da61807`）最佳在 38k（validation Recall@10 0.0805），40k 仍 0.0802，未出現 0.1 dropout 20k 後的下降；但最佳值與 0.1 的 20k（0.0800）相同（配對 p 0.76，單一 seed），冷門 1–4 組更低（0.0077 對 0.0134）。正則化不提高上限，TIGER 下一步改查容量（H4，TODO 第一項）。FMRec 5 個 seed 的 test 已齊（jobs 1175902、1176436–37、1177268）：Recall@10 0.0806 ± 0.0018、NDCG@10 0.0473 ± 0.0021，論文數字都在 95% CI 內（FMRec Experiment-log 2026-11-21）；README 結果表已更新。
+2026-11-21 晚：TIGER dropout 0.2（job 1175903，`da61807`）最佳在 38k（validation Recall@10 0.0805），40k 仍 0.0802，未出現 0.1 dropout 20k 後的下降；但最佳值與 0.1 的 20k（0.0800）相同（配對 p 0.76，單一 seed），冷門 1–4 組更低（0.0077 對 0.0134）。正則化不提高上限。參數拆解（TIGER README）顯示 transformer 本體與論文維度相同，13M 推算是大詞表 embedding，所以 H4 的參數差異不是原因；TIGER 下一步待使用者決定（TODO Owner-led）。FMRec 5 個 seed 的 test 已齊（jobs 1175902、1176436–37、1177268）：Recall@10 0.0806 ± 0.0018、NDCG@10 0.0473 ± 0.0021，論文數字都在 95% CI 內（FMRec Experiment-log 2026-11-21）；README 結果表已更新。
 
 ## Logging 與匯入狀態
 

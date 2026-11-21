@@ -13,10 +13,6 @@
 
 依優先順序。
 
-- [ ] TIGER 容量：找出約 0.080 上限的來源（H4）
-  - **Context:** `Recall/TIGER/INSIGHT.md` H8：dropout 0.2（job 1175903）把 20k 後的下降推遲到 40k 之後，但最佳 validation Recall@10 仍約 0.080（與 0.1 相同，單一 seed），冷門組更差；正則化不是瓶頸。H4：HF T5 實測 4.8–5.6M 參數，論文約 1,300 萬。
-  - **Scope:** 先核實參數差異的來源（embedding 是否共享、詞表大小、FFN 寬度）並在 TIGER README 記錄；再以新的選擇性旗標（預設不變）把參數量對齊論文，`--eval-every 2000 --steps 40000`、同 seed、同 SID 跑一次。Expectation 在 run 前寫進 log。
-  - **Acceptance:** 參數計數拆解與論文對照記在 TIGER README；新 run 的曲線與分組和 `tiger-t5x-adafactor-eval2k-v1` 並列在 TIGER Experiment-log，更新 H4。
 - [ ] Sports_and_Outdoors、Toys_and_Games 資料與三個模型
   - **Context:** TIGER 論文在三個 2014 分類上報告；只看 Beauty 的結論可能不穩。`run.sbatch` 已支援 `CATEGORY`。
   - **Scope:** `Sports_and_Outdoors` 與 `Toys_and_Games` 都已準備（README）；之後 SASRec、FMRec、TIGER（各自的 SID 版本）用預設 run 名稱訓練，多 seed 依 README。
@@ -59,6 +55,10 @@
   - **Acceptance:** 壞節點上的 job 在 pip 之前就以明確訊息結束；環境可由 lock 重建。
 
 ## Owner-led
+
+- [ ] TIGER 下一步：要不要繼續追與 item-ID 模型的差距
+  - **Context:** TIGER validation Recall@10 停在約 0.080（SASRec／FMRec 約 0.10）。正則化只移動最佳點（H8，dropout 0.2）；參數比論文少不是原因（H4：transformer 本體與論文維度相同，13M 推算是大詞表 embedding）。TIGER test 0.0556，比論文低 14%。
+  - **Decision needed:** (a) 試比論文更大的模型（例如 `--d-model 256`，偏離論文的設定比較，需新旗標）；(b) 補 TIGER 的 3 個 seed，把 0.080 定案後轉往 Sports／Toys；(c) 先做論文協定（抽樣 100 負例）確認 TIGER 與論文的差距。
 
 - [ ] 決定何時定案並跑 held-out test
   - **Decision needed:** 哪個 TIGER run 算定案；之後才對 test 跑一次，不用 test 調參。SASRec（`sasrec-beauty-v1`，CE 設定）與 FMRec（`fmrec-beauty-v1`）的 seed 42 已於 2026-11-19 跑過 test；其他 seed 與設定的 test 依 README 的統計規則。
