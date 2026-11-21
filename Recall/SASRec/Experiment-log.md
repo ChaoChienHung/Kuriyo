@@ -8,6 +8,42 @@
 
 ## 2026-11-21
 
+### Sports_and_Outdoors：論文設定與只換 CE（待執行）
+
+#### Motivation
+
+把 Beauty 的 H1（只換 CE 大幅提升）與跨家族排序搬到 TIGER 論文的第二個分類上確認；與 TIGER、FMRec 的 Sports run 一起提交。
+
+#### Details
+
+- **Variant:** `baseline`
+- **Baseline:** Beauty 的 `sasrec-paper-beauty-v1`、`sasrec-paperce-beauty-v1`（設定相同，換資料）。
+- **Change:** 分類 Beauty → Sports_and_Outdoors。
+- **Data:** 2014 Sports_and_Outdoors（job 1166748）：18,357 件商品、189,543 train／35,598 validation。
+- **Environment:** SoC（待提交）。
+- **Command:** 論文設定 `MODEL=sasrec CATEGORY=Sports_and_Outdoors STAGE=train sbatch --export=ALL --job-name=kuriyo-sasrec scripts/run.sbatch`（預設 RUN_NAME `sasrec-paper-sports_and_outdoors-v1`）；只換 CE 加 `RUN_NAME=sasrec-paperce-sports_and_outdoors-v1 TRAIN_ARGS="--loss ce"`。
+- **Artifacts:** `Recall/SASRec/baseline/runs/sasrec-paper{,ce}-sports_and_outdoors-v1/`。
+
+#### Settings
+
+- 與 Beauty 的兩個 run 相同（論文設定：BCE、hidden 50、1 head；對照只改 `--loss ce`），**不同**：分類。seed 42，單一 seed。
+
+#### Expectation
+
+run 前寫下（2026-11-21）：論文設定的 validation Recall@10 0.033–0.045（TIGER 論文表中 SASRec Sports test 0.0350；Beauty validation 與論文相當）。只換 CE 明顯較高，0.050–0.065，比例與 Beauty 相近（1.5–1.8 倍）。
+
+#### Key Metrics
+
+- validation Recall@10／NDCG@10、分組；best epoch；與 TIGER、FMRec Sports run 的配對比較（單一 seed）。
+
+#### Results
+
+待執行。
+
+#### Conclusion
+
+待執行。
+
 ### H1 三個 seed 的配對檢定（BCE 對 CE）
 
 #### Motivation

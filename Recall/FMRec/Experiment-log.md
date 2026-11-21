@@ -6,6 +6,42 @@
 
 ## 2026-11-21
 
+### Sports_and_Outdoors：作者預設 `fmrec-sports_and_outdoors-v1`（待執行）
+
+#### Motivation
+
+確認 FMRec 在 Beauty 的表現（與 SASRec CE 同為最強）在第二個分類上是否成立；與 TIGER、SASRec 的 Sports run 一起提交。
+
+#### Details
+
+- **Variant:** `baseline`
+- **Baseline:** Beauty 的 `fmrec-beauty-v1`（設定相同，換資料）。
+- **Change:** 分類 Beauty → Sports_and_Outdoors。
+- **Data:** 2014 Sports_and_Outdoors（job 1166748）：18,357 件商品、189,543 train／35,598 validation。
+- **Environment:** SoC（待提交）。
+- **Command:** `MODEL=fmrec CATEGORY=Sports_and_Outdoors STAGE=train sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch`（預設 RUN_NAME `fmrec-sports_and_outdoors-v1`）
+- **Artifacts:** `Recall/FMRec/baseline/runs/fmrec-sports_and_outdoors-v1/`。
+
+#### Settings
+
+- 與 `fmrec-beauty-v1` 相同（Beauty 的作者預設：hidden 128、4 blocks、Euler 30 步、lr 1e-3、batch 512、每 20 epochs 評估、patience 5），**不同**：分類。作者對 Sports 是否用不同超參數尚未核對。seed 42，單一 seed。
+
+#### Expectation
+
+run 前寫下（2026-11-21）：validation Recall@10 0.050–0.065，與 SASRec 只換 CE 相差在 ±0.005 內；NDCG@10 高於 SASRec CE（Beauty 的模式）。
+
+#### Key Metrics
+
+- validation Recall@10／NDCG@10、分組；best epoch；與 SASRec、TIGER Sports run 的配對比較（單一 seed）。
+
+#### Results
+
+待執行。
+
+#### Conclusion
+
+待執行。
+
 ### 作者預設 5 個 seed（42–46）的 held-out test
 
 #### Motivation

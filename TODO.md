@@ -13,10 +13,14 @@
 
 依優先順序。
 
-- [ ] Sports_and_Outdoors、Toys_and_Games 資料與三個模型
-  - **Context:** TIGER 論文在三個 2014 分類上報告；只看 Beauty 的結論可能不穩。`run.sbatch` 已支援 `CATEGORY`。
-  - **Scope:** `Sports_and_Outdoors` 與 `Toys_and_Games` 都已準備（README）；之後 SASRec、FMRec、TIGER（各自的 SID 版本）用預設 run 名稱訓練，多 seed 依 README。
-  - **Acceptance:** 兩個分類的切分筆數、商品數與論文資料表對照；三個模型的 validation 分資料集記在各 Experiment-log 與 `Recall/INSIGHT.md`。
+- [ ] TIGER 3 個 seed（Beauty），然後 Sports_and_Outdoors 三個模型
+  - **Context:** 使用者 2026-11-21 選定方向 (b)：先把 TIGER 約 0.080 的 Beauty 結果補到 3 個 seed，再看 TIGER 在 Sports 是否同樣落後 item-ID 模型。Expectation 都已事先寫在各 Experiment-log（2026-11-21，待執行）。
+  - **Scope:** 使用者提交（可同時）：
+    - TIGER seeds：`for s in 43 44; do SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-eval2k-s$s SEED=$s TRAIN_ARGS="--eval-every 2000 --steps 40000" STAGE=train sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch; done`
+    - TIGER Sports：`CATEGORY=Sports_and_Outdoors SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-sports_and_outdoors-v1 TRAIN_ARGS="--eval-every 2000 --steps 60000" STAGE=all sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch`
+    - SASRec Sports：`MODEL=sasrec CATEGORY=Sports_and_Outdoors STAGE=train sbatch --export=ALL --job-name=kuriyo-sasrec scripts/run.sbatch`，以及加 `RUN_NAME=sasrec-paperce-sports_and_outdoors-v1 TRAIN_ARGS="--loss ce"` 的同一指令
+    - FMRec Sports：`MODEL=fmrec CATEGORY=Sports_and_Outdoors STAGE=train sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch`
+  - **Acceptance:** 各條目填入 Results／Conclusion；TIGER 3 seed 以 `core.compare` 對 SASRec CE 與 FMRec（seed 42–44）；Sports 的跨家族表加進 `Recall/INSIGHT.md`。Toys_and_Games 之後另開。
 - [ ] 以各論文自己的協定重現（確認沒有低估模型）
   - **Context:** 共用切分與全 catalog 評估適合比較模型，但無法和論文數字直接對照。原始 SASRec 論文用 50 件歷史、每位使用者 1 個正例 + 100 個未互動過的隨機商品排名；TIGER test 比論文低 14%。
   - **Scope:** 在 `--eval-groups` 的重新評估框架加「抽樣負例」協定（100 個、排除使用者看過的商品、固定 seed），各模型都能跑；之後視結果建立 50 件歷史的切分（另一個資料版本，結果分開報告）並用論文設定重訓。
@@ -55,10 +59,6 @@
   - **Acceptance:** 壞節點上的 job 在 pip 之前就以明確訊息結束；環境可由 lock 重建。
 
 ## Owner-led
-
-- [ ] TIGER 下一步：要不要繼續追與 item-ID 模型的差距
-  - **Context:** TIGER validation Recall@10 停在約 0.080（SASRec／FMRec 約 0.10）。正則化只移動最佳點（H8，dropout 0.2）；參數比論文少不是原因（H4：transformer 本體與論文維度相同，13M 推算是大詞表 embedding）。TIGER test 0.0556，比論文低 14%。
-  - **Decision needed:** (a) 試比論文更大的模型（例如 `--d-model 256`，偏離論文的設定比較，需新旗標）；(b) 補 TIGER 的 3 個 seed，把 0.080 定案後轉往 Sports／Toys；(c) 先做論文協定（抽樣 100 負例）確認 TIGER 與論文的差距。
 
 - [ ] 決定何時定案並跑 held-out test
   - **Decision needed:** 哪個 TIGER run 算定案；之後才對 test 跑一次，不用 test 調參。SASRec（`sasrec-beauty-v1`，CE 設定）與 FMRec（`fmrec-beauty-v1`）的 seed 42 已於 2026-11-19 跑過 test；其他 seed 與設定的 test 依 README 的統計規則。
