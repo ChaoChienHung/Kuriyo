@@ -1,6 +1,6 @@
 # Kuriyo
 
-Kuriyo reproduces sequential recommendation models (generative retrieval with semantic IDs, and item-ID baselines) on Amazon Reviews 2014, under one shared split, one evaluation protocol, and a fixed statistics policy, so that models are compared on equal terms rather than against numbers copied from papers.
+Kuriyo reproduces sequential recommendation models (generative retrieval with semantic IDs, and item-ID baselines) on Amazon Reviews 2014, under one shared split, one evaluation protocol, and a fixed statistics policy, so that models are compared on equal terms rather than against numbers copied from papers. Named after Kuriyo Urima, the door-to-door salesperson in *Crayon Shin-chan*—just as a salesperson brings the right item to a customer, a recommender finds what users need or want from a large catalog and brings it to them.
 
 ## Results (Amazon 2014 Beauty)
 
