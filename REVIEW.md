@@ -4,6 +4,11 @@
 
 ## Awaiting review
 
+- [ ] TIGER `--dropout` 旗標與 dropout 0.2 結果（H8）
+  - **Delivered:** `Recall/TIGER/baseline/train.py` 的選擇性 `--dropout`（預設 0.1，續訓拒絕更改，`settings.json` 記 `dropout_rate`）；`tiger-t5x-adafactor-dropout02-v1`（job 1175903）的結果填入事先登記的 Experiment-log 條目（2026-11-21），更新 TIGER H8、H7 與 Problems to solve；TODO 的正則化項改成容量（H4）。
+  - **Evidence:** 預設 0.1 的固定 seed 回歸前後逐位相同；結果表的每個數字來自 run 的 `validation/amazon2014-beauty/step-*.json`，配對檢定來自 `python -m core.compare`（eval2k 對 dropout02）。
+  - **Review focus:** 結論「正則化不提高上限，改查容量」只有單一 seed；train loss 無法比較（train.jsonl 不在 Git、Slurm log 沒推）。若要更確定，可補 seed 或推 Slurm log。
+
 - [ ] README 對外包裝：英文開頭、結果表、LICENSE
   - **Delivered:** README 開頭改成英文：一句話介紹、Beauty 結果表（論文 test／Kuriyo validation／Kuriyo test／狀態）、重現 FMRec 的指令、目錄說明；原本過時的「TIGER 0.034、尚無 test」段落移除，中文簡介接在後面。新增 MIT `LICENSE`（程式碼；資料依原站條款，不重新散布）。`/slurm-*.out` 加進 `.gitignore`，根目錄的 job 1167955 log 移除；SoC skill 與 README 改成需要時 `git add -f`。`Ranking/README.md` 開頭註明目前專注 Recall。依使用者決定，AGENTS.md、HANDOFF／TODO／REVIEW、`skills/` 留在根目錄。
   - **Evidence:** 結果表每個數字對照 `Recall/INSIGHT.md` 與 run 的 `metrics.json`；`run.sbatch` 確認 `MODEL=fmrec STAGE=all` 為 prepare → train；README 相對連結全部存在；docs lint 通過。

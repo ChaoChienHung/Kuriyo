@@ -4,9 +4,9 @@
 
 所有 run 都用 2014 Beauty 切分（131,413 train／22,363 validation，歷史上限 20）、seed 42（`train.py` 預設），validation 以全 catalog 的 unconstrained beam search（beam 10）評估。2026-11-19 以前的條目是事後依 log 補記；Expectation 依當時的動機補寫，不參考後來的結果。
 
-## 2026-11-20
+## 2026-11-21
 
-### Dropout 0.2：`tiger-t5x-adafactor-dropout02-v1`（H8，待執行）
+### Dropout 0.2：`tiger-t5x-adafactor-dropout02-v1`（H8）
 
 #### Motivation
 
@@ -18,7 +18,7 @@
 - **Baseline:** `tiger-t5x-adafactor-eval2k-v1`（同 seed、同 SID、同評估間隔）。
 - **Change:** T5 `dropout_rate` 0.1 → 0.2，其他不變。
 - **Data:** 2014 Beauty SID `tiger-paper-v1`；validation 22,363 筆。
-- **Environment:** SoC（待提交）。
+- **Environment:** SoC job 1175903，程式 `da61807`（`settings.json`）。
 - **Command:** `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-dropout02-v1 TRAIN_ARGS="--dropout 0.2 --eval-every 2000 --steps 40000" STAGE=train sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch`
 - **Artifacts:** `Recall/TIGER/baseline/runs/tiger-t5x-adafactor-dropout02-v1/`。
 
@@ -36,11 +36,30 @@ run 前寫下（2026-11-20）：同 step 的 train loss 高於 baseline；valida
 
 #### Results
 
-待執行。
+單一 seed（42）。Validation 每 2k step（Recall@10；分組為 1–4／5+ 組 Recall@10），與 baseline 並列：
+
+| step | dropout 0.2 | 1–4 | 5+ | baseline 0.1 | 1–4 | 5+ |
+|---|---|---|---|---|---|---|
+| 10k | 0.0627 | 0.0004 | 0.0791 | 0.0739 | 0.0066 | 0.0916 |
+| 20k | 0.0751 | 0.0077 | 0.0928 | **0.0800** | 0.0134 | 0.0975 |
+| 26k | 0.0795 | 0.0079 | 0.0983 | 0.0771 | 0.0125 | 0.0941 |
+| 30k | 0.0787 | 0.0074 | 0.0974 | 0.0759 | 0.0129 | 0.0924 |
+| 34k | 0.0805 | 0.0088 | 0.0993 | 0.0729 | 0.0167 | 0.0878 |
+| 38k | **0.0805** | 0.0077 | 0.0996 | 0.0702 | 0.0138 | 0.0851 |
+| 40k | 0.0802 | 0.0085 | 0.0990 | 0.0713 | 0.0162 | 0.0858 |
+
+- **最佳點：**38k，Recall@10 0.08049、NDCG@10 0.04420、Recall@5 0.05362，無效 beam 0.085%（`best.json`）。34k–40k 是平台（0.0802–0.0805），40k 時仍未下降。
+- **學習較慢：**26k 之前每個 step 都低於 baseline（10k 低 0.011），約 26k 交叉；之後 baseline 下降，dropout 0.2 持平。
+- **對 baseline 最佳點（20k）的逐使用者配對（`python -m core.compare`，22,363 位使用者）：**Recall@10 +0.0005（paired t p 0.76，bootstrap 95% CI [−0.0027, +0.0037]）；NDCG@10 +0.0008（p 0.42，CI [−0.0010, +0.0026]）。單一 seed，不做 seed 層級檢定。
+- **分組：**最佳點的 1–4 組 Recall@10 0.0077（4,564 筆中 35 筆命中），baseline 20k 0.0134（61 筆）；1–4 組在每個 step 都低於 baseline，最高 0.0092（36k）。5+ 組 0.0996，baseline 20k 0.0975。0 組仍為 0。
+- **Train loss：**`train/train.jsonl` 不在 Git、Slurm log 沒有推上，無法比較；Expectation 的「train loss 較高」未驗證。
+- **對照 Expectation：**最佳點晚於 20k（是，38k，晚於預期的 24k–34k）；最佳 Recall@10 在 0.078–0.084（是）；40k 高於 0.0713（是，0.0802）；1–4 組不低於 0.0134（否，0.0077）；沒有欠擬合（最佳值高於 0.076）。
 
 #### Conclusion
 
-待執行。
+Dropout 0.2 把 20k 之後的下降推遲到至少 40k，但沒有提高最佳值：差距 +0.0005 在事先定的 ±0.003 內，配對檢定也不顯著（單一 seed）。最佳值的提升與損失都來自熱門組；冷門（1–4）組反而更差，推測 0.1 dropout 下冷門組在 20k 後的上升是靠記憶，加強正則化會抑制它。過擬合決定的是最佳點出現在哪一步，不是 TIGER 約 0.080 的上限，所以更強的 dropout 或 weight decay 不太可能補上與 SASRec／FMRec（約 0.10）的差距；下一步改查容量與資料（H4）。0.1 dropout 的 20k 仍是較省的設定（一半的 step、相同的最佳值）。
+
+## 2026-11-20
 
 ### 分組重新評估與逐使用者排名：`tiger-t5x-adafactor-v1`（H7）
 

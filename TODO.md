@@ -13,13 +13,13 @@
 
 依優先順序。
 
-- [ ] TIGER 20k 後的過擬合：正則化單一因素（H8）
-  - **Context:** `Recall/TIGER/INSIGHT.md` H8：2k 間隔曲線（job 1167955）最佳在 20k（平台 14k–22k），之後熱門目標組下降、1–4 組仍上升，train loss 持續下降。
-  - **Scope:** 新 RUN_NAME，同 seed、同 SID，一次只改一個。`--dropout` 已加入（2026-11-20，預設 0.1 不變）：`SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-dropout02-v1 TRAIN_ARGS="--dropout 0.2 --eval-every 2000 --steps 40000" STAGE=train`，再視結果試 0.3；weight decay 需另加旗標。單一 seed 先找方向，要下結論再補 3 個 seed。
-  - **Acceptance:** 與 `tiger-t5x-adafactor-eval2k-v1` 的曲線與分組（尤其 1–4 組，見 H7）並列在 TIGER Experiment-log，更新 H8；Expectation 在 run 前寫進 log。
+- [ ] TIGER 容量：找出約 0.080 上限的來源（H4）
+  - **Context:** `Recall/TIGER/INSIGHT.md` H8：dropout 0.2（job 1175903）把 20k 後的下降推遲到 40k 之後，但最佳 validation Recall@10 仍約 0.080（與 0.1 相同，單一 seed），冷門組更差；正則化不是瓶頸。H4：HF T5 實測 4.8–5.6M 參數，論文約 1,300 萬。
+  - **Scope:** 先核實參數差異的來源（embedding 是否共享、詞表大小、FFN 寬度）並在 TIGER README 記錄；再以新的選擇性旗標（預設不變）把參數量對齊論文，`--eval-every 2000 --steps 40000`、同 seed、同 SID 跑一次。Expectation 在 run 前寫進 log。
+  - **Acceptance:** 參數計數拆解與論文對照記在 TIGER README；新 run 的曲線與分組和 `tiger-t5x-adafactor-eval2k-v1` 並列在 TIGER Experiment-log，更新 H4。
 - [ ] FMRec 5 個 seed 的 held-out test
   - **Context:** 5 個 seed 的 validation 已記錄（FMRec Experiment-log 2026-11-21：Recall@10 0.1034 ± 0.0016）；test 只有 seed 42（0.0804）。README 規定與論文並列要 5 個 seed 的 test 平均 ± 標準差。作者預設不再調整，所以可以跑 test。
-  - **Scope:** 使用者提交 `for s in 43 44 45 46; do MODEL=fmrec RUN_NAME=fmrec-beauty-s$s SEED=$s STAGE=test sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch; done`，推上 `test/` 紀錄；agent 用 `python -m core.compare --split test` 整理。
+  - **Scope:** 使用者提交 `for s in 43 44 45 46; do MODEL=fmrec RUN_NAME=fmrec-beauty-s$s SEED=$s STAGE=test sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch; done`，推上 `test/` 紀錄（2026-11-21 只收到 seed 46：Recall@10 0.0777；43–45 沒有 test 輸出，需確認 job 狀態後重送）；agent 用 `python -m core.compare --split test` 整理。
   - **Acceptance:** FMRec Experiment-log 有 5 個 seed 的 test 平均 ± 標準差與 95% CI，和論文並列；README 結果表與 `Recall/INSIGHT.md` 更新。
 - [ ] Sports_and_Outdoors、Toys_and_Games 資料與三個模型
   - **Context:** TIGER 論文在三個 2014 分類上報告；只看 Beauty 的結論可能不穩。`run.sbatch` 已支援 `CATEGORY`。
