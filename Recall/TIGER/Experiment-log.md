@@ -6,6 +6,42 @@
 
 ## 2026-11-23
 
+### 外部實作：RQ-VAE-Recommender（Botta）原封不動在 P5 Beauty 上執行（待執行）
+
+#### Motivation
+
+Kuriyo 的 TIGER 在 test 比論文低 14%，beam 寬度、dropout、參數量、商品描述都不是原因，資料切分也與 P5 相同。先看獨立的社群實作在同一份資料上能到多少：如果它也低於論文，差距可能在論文沒寫的細節；如果它明顯較高，再逐項找出差異。
+
+#### Details
+
+- **Variant:** 外部實作，不是 Kuriyo 的變體。來源：Edoardo Botta, [RQ-VAE-Recommender](https://github.com/EdoardoBotta/RQ-VAE-Recommender)（MIT，commit `957d32bda43958ba641ae919abb1092ac6738798`，[Zenodo](https://doi.org/10.5281/zenodo.22076163)），實作 Rajput et al., [Recommender Systems with Generative Retrieval](https://arxiv.org/abs/2305.05065)（NeurIPS 2023）。
+- **Baseline:** Kuriyo `baseline` 的 3 個 seed（validation Recall@10 0.0806 ± 0.0006）與 `tiger-t5x-adafactor-v1` 的 test（0.0556）；論文 test 0.0648。
+- **Change:** 整套換成外部程式：P5 Beauty（與 Kuriyo 切分逐使用者相同）、sentence-t5-xxl 商品向量、它附帶的 RQ-VAE checkpoint（`checkpoint_399999.pt`）、`configs/decoder_amazon.gin`（d_model 384、6 heads、d_ff 1024、4 層、AdamW lr 1e-3、weight decay 1e-4、batch 640、10k iterations、10k warmup 的 inverse-sqrt、限制在既有 SID 的生成 top 10）。唯一改動：`wandb_logging=False`。
+- **Data:** P5 `P5_data.zip`（程式自動從 Google Drive 下載）。
+- **Environment:** SoC（待提交）；需要 24 GB 以上的 GPU（sentence-t5-xxl）。
+- **Command:** `EXTERNAL=botta sbatch --export=ALL --gpus=a100-40:1 scripts/external_tiger.sbatch`
+- **Artifacts:** Slurm log（`git add -f` 推上後記 commit）；`third_party/botta/` 不進 Git。
+
+#### Settings
+
+- 全部是外部程式的設定（上方 Change）。評估：它每 1,000 步在 **test** 上算 h@1／5／10 與 NDCG（只在前 10 名內計分），沒有 validation 選模；它的最佳值是對 test 挑過的，偏樂觀。
+
+#### Expectation
+
+run 前寫下（2026-11-23）：最後一次評估的 test h@10 在 0.050–0.065，曲線最高點比最後一次高不到 0.005。若高於 0.065，差距的來源在 Kuriyo 的實作，下一步逐項比對（d_model 384、AdamW、限制解碼、sentence-t5-xxl SID）；若低於 0.060，代表獨立實作也到不了論文。
+
+#### Key Metrics
+
+- 每 1,000 步的 test h@5、h@10、NDCG；最後一次與最高值；訓練時間。
+
+#### Results
+
+待執行。
+
+#### Conclusion
+
+待執行。
+
 ### 加入商品描述的 SID：`tiger-t5x-adafactor-desc-v1`（H3）
 
 #### Motivation

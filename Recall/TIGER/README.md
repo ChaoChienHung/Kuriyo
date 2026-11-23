@@ -21,6 +21,18 @@ Recall/TIGER/
 | --- | --- | --- |
 | [`baseline/`](baseline/README.md) | 已完成首輪 SoC 訓練（200,000 steps）與 validation；尚無最終 test | 依論文已公開設定的 HF T5；`scripts/run.sbatch` 使用此入口。完整操作指南見其 README |
 
+## 外部實作對照
+
+社群的 TIGER 實作只拿來對照數字，不 import、不複製程式。原封不動地在固定 commit 上執行（`scripts/external_tiger.sbatch`，clone、環境、資料與輸出都在 Git 忽略的 `third_party/<名稱>/`），結果記在 [Experiment-log.md](Experiment-log.md)，以 Slurm log 為證據。
+
+| 實作 | 來源 | 授權 | 狀態 | 與 Kuriyo baseline 的主要差異 |
+| --- | --- | --- | --- | --- |
+| RQ-VAE-Recommender（Botta） | [GitHub](https://github.com/EdoardoBotta/RQ-VAE-Recommender)（`957d32b`），[Zenodo](https://doi.org/10.5281/zenodo.22076163) | MIT | `EXTERNAL=botta` 可執行 | P5 Beauty；sentence-t5-xxl 商品向量與附帶的 RQ-VAE checkpoint；d_model 384；AdamW 1e-3、10k warmup、10k iterations；限制在既有 SID 的生成；**每 1,000 步在 test 上評估**（沒有 validation 選模） |
+| GRID（Snap） | [GitHub](https://github.com/snap-research/GRID)（`2fe3475`），論文 Ju et al., [Generative Recommendation with Semantic IDs: A Practitioner's Handbook](https://arxiv.org/abs/2507.22224)，CIKM 2025 | 自訂 LICENSE（GitHub 無法辨識），不複製程式 | 待加入 | P5 Beauty；Flan-T5-XL 向量、RQ-KMeans SID；dropout 0.15、無 user token、Adam 1e-3；beam 10 只保留有效前綴；以 validation Recall@5 選模、early stopping |
+| tiger（NonameUntitled） | [GitHub](https://github.com/NonameUntitled/tiger) | MIT | 只讀程式 | LETTER 的資料處理、LLaMA-7B 向量；AdamW 3e-4 固定；beam 100 取 20、限制有效 SID 並排除歷史商品；自報 Beauty test Recall@10 0.0582 |
+
+Kuriyo 的 2014 Beauty 切分與 [P5](https://arxiv.org/abs/2203.13366) 的 `sequential_data.txt` 逐使用者相同（`Recall/INSIGHT.md` Facts），所以 P5 資料上的數字可以和 Kuriyo 的切分直接比較；評估程式則各自不同。
+
 ## 新增變體
 
 1. 只有設定不同時，用既有變體加參數跑新的 run，不開新目錄。

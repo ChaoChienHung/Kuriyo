@@ -78,6 +78,8 @@ SASRec 論文設定（BCE）3 個 seed 的 validation Recall@10 0.0602 ± 0.0015
 
 2026-11-23 晚：beam 10 → 100 只多 0.0013 Recall@10（搜尋不是瓶頸）；TIGER 3 個 seed 0.0806 ± 0.0006，對 SASRec CE 與 FMRec 都顯著較差；描述 SID 沒有改善（0.0783，最大碰撞群 9 → 34）。Sports：SASRec 論文設定 0.0319、只換 CE 0.0613、FMRec 0.0569（NDCG 較高），與 Beauty 模式相同；TIGER Sports（job 1186528）仍在訓練。xgpe2／xgpe6 再次 CUDA 故障，重送時加 `--exclude='xgpe[0-4,6]'`。修正：SID text_source 曾把 SoC 家目錄路徑寫進 `settings.json`，已改為相對路徑並清掉該 run 的紀錄（舊 commit 仍含該路徑）。
 
+2026-11-23 深夜：Kuriyo 的 Beauty 切分與 P5 `sequential_data.txt` 逐使用者相同（資料不是 TIGER 差距的原因）。新增 `scripts/external_tiger.sbatch`，原封不動地在固定 commit 執行社群實作（clone 在 Git 忽略的 `third_party/`）；先做 Botta 的 RQ-VAE-Recommender（`EXTERNAL=botta`，需要 24 GB 以上 GPU，它在 test 上評估），已事先登記在 TIGER Experiment-log。GRID 與 HSTU 之後再加；來源表在 `Recall/TIGER/README.md`「外部實作對照」。
+
 ## Logging 與匯入狀態
 
 新版 `core/run_logging.py` 已接入 paper trainer 和 SID generator：TIGER 每 step 寫 run 的 `train/train.jsonl`、SID 每 epoch 寫 `train.jsonl`，生命週期等事件寫 `events.log`（JSON Lines），含 UTC timestamp、session ID、elapsed_seconds。續訓追加，不抹掉歷史；重跑相同 step 用 session ID 區分。SIGKILL、斷電或 logger 啟動前的錯誤未必留下失敗事件。舊 smoke trainer 尚未接入。
