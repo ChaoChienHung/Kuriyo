@@ -14,6 +14,7 @@
 
 已確認的資料性質、實作細節與 run 結果。
 
+- **與 P5 切分相同：**2014 Beauty 切分與 [P5](https://arxiv.org/abs/2203.13366) 預處理的 `sequential_data.txt` 逐使用者相同（2026-11-23 本機比對）：22,363 位使用者、12,101 件商品，每位使用者最後 21 件的順序、validation 目標與 test 目標全部一致。P5 的資料來自 Botta 的 [RQ-VAE-Recommender](https://github.com/EdoardoBotta/RQ-VAE-Recommender) `data/amazon.py` 下載的 `P5_data.zip`（Google Drive，1.26 GB，sha256 `511eba3f…cbea7238`），[GRID](https://github.com/snap-research/GRID)（[論文](https://arxiv.org/abs/2507.22224)）也用同一份 P5 資料。所以社群 TIGER 實作與 Kuriyo 的差異不在切分。
 - `Recall/` 用於候選商品召回；2014 `Beauty` 的 `examples.jsonl` 已提供使用者歷史與下一件商品目標。現有資料準備指令見 [Recall README](../Recall/README.md)。共用 Recall 訓練與評估入口尚未實作。
 - 熱門商品基線（2026-11-18，本機）：以每位使用者 train 段落中的所有互動（歷史 + train 目標）計數，固定推薦前 10 名。validation Recall@5/10 = 0.00984 / 0.01704、NDCG@5/10 = 0.00581 / 0.00811；test Recall@5/10 = 0.00729 / 0.01203、NDCG@5/10 = 0.00400 / 0.00552。validation 目標從未出現在該使用者的歷史中（重複率 0）。目前 TIGER validation Recall@10 0.0342 約為熱門基線的 2 倍。
 - **冷門與未見過的目標商品（2026-11-19，本機統計 2014 Beauty 切分）：**12,101 件商品中有 59 件從未當過 train 目標，33 件完全沒出現在 train（歷史或目標都沒有）。validation 目標中有 81 筆（0.36%）不曾是 train 目標、51 筆（0.23%）完全沒出現在 train；test 是 196 筆（0.88%）與 138 筆（0.62%）。在 train 當目標少於 5 次的長尾商品，占 validation 目標的 20.8%、test 目標的 25.4%。test 的冷門目標較多，是 test 通常比 validation 低的原因之一。
