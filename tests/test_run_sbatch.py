@@ -49,6 +49,11 @@ case "$2" in
       echo '{}' > "data/amazon_reviews/2014/$split/raw/$4/examples.jsonl"
     done
     ;;
+  scripts.build_item_texts)
+    test "$3" = --category
+    test "$5" = --recipe
+    echo "$*" > "$RUN_TRACE.texts"
+    ;;
   Representations.SID.scripts.generate_sids)
     test "$3" = --items
     test -s "$4"
@@ -118,6 +123,37 @@ esac
         self.assertEqual(self.trace.read_text().splitlines(), [
             "pip", "scripts.ensure_amazon_reviews_2014",
         ])
+
+    def test_sid_text_description_builds_texts_then_encodes_them(self):
+        self.env["SID_TEXT"] = "description"
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.trace.read_text().splitlines(), [
+            "pip", "scripts.ensure_amazon_reviews_2014", "scripts.build_item_texts",
+            "Representations.SID.scripts.generate_sids",
+        ])
+        self.assertIn("--texts data/amazon_reviews/2014/catalog/Beauty/texts/description.jsonl",
+                      Path(str(self.trace) + ".sid").read_text())
+        self.assertNotIn("--texts", self.run_default_sid_args())
+
+    def run_default_sid_args(self):
+        self.env["SID_TEXT"] = "catalog"
+        self.env["SID_VERSION"] = "test-v2"
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return Path(str(self.trace) + ".sid").read_text()
+
+    def test_sid_refuses_to_reuse_catalog_built_from_other_text(self):
+        self.write_sid({"recipe": "stable"})  # manifest from before SID_TEXT existed: catalog text
+        self.env["SID_TEXT"] = "description"
+        result = self.run_job()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("built from catalog text, not SID_TEXT=description", result.stderr)
+        for settings in ({"SID_TEXT": "reviews"}, {"MODEL": "fmrec", "STAGE": "train"}):
+            with self.subTest(settings=settings):
+                env = dict(self.env, **settings)
+                self.assertEqual(subprocess.run(["bash", str(SCRIPT)], cwd=self.root, env=env, text=True,
+                                                capture_output=True).returncode, 2)
 
     def test_failed_preparation_stops_before_generation(self):
         self.env["FAIL_PREPARE"] = "1"

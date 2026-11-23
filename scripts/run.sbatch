@@ -15,6 +15,8 @@
 # STAGE=beams (TIGER) re-evaluates checkpoints/best.pt on validation with each width in
 # BEAMS (default "10 20 50 100"), dropping invalid beams; it never touches test.
 # STAGE=sid also prepares/verifies the category's inputs before generating SIDs.
+# SID_TEXT=description (default catalog) builds catalog/<category>/texts/description.jsonl
+# (scripts.build_item_texts) and encodes that text; use a new SID_VERSION for it.
 # CATEGORY (default Beauty; also Sports_and_Outdoors, Toys_and_Games) selects the 2014
 # dataset; SID versions and run directories are kept apart by category. SEED (default
 # 42) sets the trainer seed; repeat a comparison with several seeds (README, "Statistics").
@@ -66,6 +68,11 @@ train_args_text="${TRAIN_ARGS:-}"
 [[ "$train_args_text" =~ ^[A-Za-z0-9_.=\ -]*$ ]] || { echo "TRAIN_ARGS may contain only flags and plain values" >&2; exit 2; }
 read -r -a train_args <<< "$train_args_text"
 sid_recipe="${SID_RECIPE:-stable}"
+sid_text="${SID_TEXT:-catalog}"
+case "$sid_text" in
+  catalog|description) ;;
+  *) echo "SID_TEXT must be catalog or description" >&2; exit 2 ;;
+esac
 adafactor_scale="${ADAFACTOR_SCALE_PARAMETER:-}"
 [[ -z "$adafactor_scale" || "$adafactor_scale" == 0 || "$adafactor_scale" == 1 ]] || { echo "ADAFACTOR_SCALE_PARAMETER must be 0 or 1" >&2; exit 2; }
 case "$sid_recipe" in
@@ -78,6 +85,7 @@ if [[ "$model" != tiger ]]; then
     echo "MODEL=$model supports STAGE=all, prepare, train, test, or groups" >&2; exit 2;
   }
   [[ "$adafactor_scale" != 1 ]] || { echo "ADAFACTOR_SCALE_PARAMETER applies only to MODEL=tiger" >&2; exit 2; }
+  [[ "$sid_text" == catalog ]] || { echo "SID_TEXT applies only to MODEL=tiger" >&2; exit 2; }
 fi
 if [[ -z "$adafactor_scale" ]]; then
   if [[ "$model" == tiger ]]; then adafactor_scale=1; else adafactor_scale=0; fi
@@ -98,7 +106,7 @@ fi
   "torch==2.7.1+cu126" \
   -r Representations/SID/requirements.txt -r Recall/TIGER/baseline/requirements.txt
 
-echo "job=${SLURM_JOB_ID:-local} commit=$(git rev-parse HEAD) model=$model category=$category seed=$seed train_args=[$train_args_text] stage=$stage sid_version=$sid_version sid_recipe=$sid_recipe adafactor_scale_parameter=$adafactor_scale run=$run_name"
+echo "job=${SLURM_JOB_ID:-local} commit=$(git rev-parse HEAD) model=$model category=$category seed=$seed train_args=[$train_args_text] stage=$stage sid_version=$sid_version sid_recipe=$sid_recipe sid_text=$sid_text adafactor_scale_parameter=$adafactor_scale run=$run_name"
 if [[ "$model" != tiger ]]; then
   case "$model" in
     sasrec) family=SASRec ;;
@@ -162,10 +170,22 @@ print(manifest.get("recipe") or ("paper-pytorch" if manifest.get("paper_baseline
     [[ "$recorded_recipe" == "$sid_recipe" ]] || {
       echo "SID $sid_version was built with recipe $recorded_recipe, not SID_RECIPE=$sid_recipe; use a new SID_VERSION" >&2; exit 2;
     }
+    # Manifests written before SID_TEXT existed used the catalog text.
+    recorded_text=$(python3 -c 'import json, sys
+print((json.load(open(sys.argv[1])).get("text_source") or {}).get("recipe") or "catalog")' "$sid_dir/manifest.json")
+    [[ "$recorded_text" == "$sid_text" ]] || {
+      echo "SID $sid_version was built from $recorded_text text, not SID_TEXT=$sid_text; use a new SID_VERSION" >&2; exit 2;
+    }
     echo "Reusing completed SID catalog: $sid_dir (recipe $sid_recipe)"
   else
+    text_args=()
+    if [[ "$sid_text" != catalog ]]; then
+      srun .venv/bin/python -m scripts.build_item_texts --category "$category" --recipe "$sid_text"
+      text_args=(--texts "data/amazon_reviews/2014/catalog/$category/texts/$sid_text.jsonl")
+    fi
     srun .venv/bin/python -m Representations.SID.scripts.generate_sids \
-      --items "$catalog" --output-dir "$sid_dir" --encoder sentence-t5 --recipe "$sid_recipe" --device cuda
+      --items "$catalog" --output-dir "$sid_dir" --encoder sentence-t5 --recipe "$sid_recipe" --device cuda \
+      ${text_args[@]+"${text_args[@]}"}
   fi
 fi
 

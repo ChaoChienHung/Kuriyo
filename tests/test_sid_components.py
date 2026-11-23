@@ -108,6 +108,28 @@ class SIDComponentTests(unittest.TestCase):
             rows = [json.loads(line) for line in (output / "train.jsonl").read_text().splitlines()]
             self.assertEqual(len(rows[-1]["dead_codes_reset"]), 3)
 
+            self.assertEqual(manifest["text_source"]["recipe"], "catalog")
+            texts = Path(temporary) / "texts/description.jsonl"
+            texts.parent.mkdir()
+            texts.write_text("".join(json.dumps({"asin": "A{:02d}".format(index),
+                                                 "content_text": "{} described item {}".format(
+                                                     words[(index * 5) % 8], index)}) + "\n"
+                                     for index in range(24)))
+            (texts.parent / "description.manifest.json").write_text(json.dumps({"recipe": "description"}))
+            described = Path(temporary) / "sid-description"
+            result = subprocess.run(command[:6] + [str(described)] + command[7:] + ["--texts", str(texts)],
+                                    cwd=root, capture_output=True, text=True, timeout=120)
+            self.assertEqual(result.returncode, 0, result.stderr[-2000:])
+            text_source = json.loads((described / "manifest.json").read_text())["text_source"]
+            self.assertEqual(text_source["recipe"], "description")
+            self.assertEqual(len(text_source["sha256"]), 64)
+            texts.write_text(texts.read_text().split("\n", 1)[1])  # one item missing
+            missing = subprocess.run(command[:6] + [str(described) + "-missing"] + command[7:]
+                                     + ["--texts", str(texts)], cwd=root, capture_output=True, text=True,
+                                     timeout=60)
+            self.assertNotEqual(missing.returncode, 0)
+            self.assertIn("do not cover exactly", missing.stderr)
+
             rejected = subprocess.run(command[:6] + [str(output) + "-recipe", "--encoder", "tfidf",
                                                      "--recipe", "stable"],
                                       cwd=root, capture_output=True, text=True, timeout=60)

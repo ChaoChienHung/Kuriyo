@@ -101,7 +101,7 @@ python3 -m unittest discover -s . -v
 
 準備腳本按 `reviewerID` 分組，以 `unixReviewTime` 升冪排序；同一時間戳以來源檔行序決定先後。少於五筆互動的使用者會排除。每位使用者最後一件商品作 test、倒數第二件作 validation，其餘作 train；每筆樣本的歷史最多保留前 20 件商品。訓練段落會展開為「已有至少一件歷史商品 → 下一件商品」的前綴樣本；這是 Kuriyo 的樣本建構選擇。
 
-每個切分輸出至 `data/amazon_reviews/2014/<train|validation|test>/raw/Beauty/examples.jsonl`，欄位為 `user_id`、`history`、`target_asin`、`target_timestamp`。`2014/catalog/Beauty/items.jsonl` 保存三個 split 共用的 12,101 件商品內容；`split_manifest.json` 記錄來源、商品目錄校驗值與切分規則。
+每個切分輸出至 `data/amazon_reviews/2014/<train|validation|test>/raw/Beauty/examples.jsonl`，欄位為 `user_id`、`history`、`target_asin`、`target_timestamp`。`2014/catalog/Beauty/items.jsonl` 保存三個 split 共用的 12,101 件商品內容；`split_manifest.json` 記錄來源、商品目錄校驗值與切分規則。選擇性的商品文字（例如加入 metadata 的 `description`）另存於 `2014/catalog/<分類>/texts/<recipe>.jsonl`（`scripts.build_item_texts`），不改 `items.jsonl`，所以既有 SID 的校驗不受影響。
 
 本次 Beauty 輸出為 **131,413 train**、**22,363 validation**、**22,363 test** 筆樣本。2014 年資料的時間戳可能相同：9,719 位使用者的 validation 和 test 事件同時間戳，當日內的實際先後無法由時間戳判定；來源行序使切分可重現，但不代表知道真實先後。
 

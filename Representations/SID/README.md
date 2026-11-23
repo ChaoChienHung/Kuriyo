@@ -15,7 +15,7 @@ python3 -m venv .venv
   --sid-file data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/stable-v1/semantic_ids.jsonl
 ```
 
-生成器讀 `data/amazon_reviews/2014/catalog/Beauty/items.jsonl` 的 `content_text`，訓練 RQ-VAE 後寫出 `embeddings.npz`、`rqvae.pt`、`semantic_ids.jsonl` 與含來源 SHA、參數、codebook usage 的 `manifest.json`。每個輸出目錄須是新版本，生成器不會覆蓋既有產物。`--run-name` 可改存於 `Representations/SID/runs/<名稱>/` 作試跑；小樣本 SID 不可用來轉換完整 split。
+生成器讀 `data/amazon_reviews/2014/catalog/Beauty/items.jsonl` 的 `content_text`，訓練 RQ-VAE 後寫出 `embeddings.npz`、`rqvae.pt`、`semantic_ids.jsonl` 與含來源 SHA、參數、codebook usage 的 `manifest.json`。`--texts <檔案>` 改用另一份商品文字（`asin`、`content_text`，須涵蓋整個商品目錄），例如 `python3 -m scripts.build_item_texts --category Beauty --recipe description` 產生的 `catalog/<分類>/texts/description.jsonl`（catalog 文字後接商品描述）；`manifest.json` 的 `text_source` 記錄文字來源與 sha256，預設為 `catalog`。`run.sbatch` 以 `SID_TEXT=description` 啟用，並拒絕重用文字來源不同的 SID 版本。每個輸出目錄須是新版本，生成器不會覆蓋既有產物。`--run-name` 可改存於 `Representations/SID/runs/<名稱>/` 作試跑；小樣本 SID 不可用來轉換完整 split。
 
 ## 訓練配方（`--recipe`）
 

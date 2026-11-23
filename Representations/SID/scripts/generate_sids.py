@@ -72,6 +72,28 @@ def read_items(path, limit):
     return items, digest.hexdigest()
 
 
+def apply_texts(items, path):
+    """Replace each item's content_text with the one in an item-text file (scripts/build_item_texts.py).
+
+    Returns the manifest's text record. Every item must be covered; extra rows are refused."""
+    texts = {}
+    with path.open(encoding="utf-8") as source:
+        for line in source:
+            row = json.loads(line)
+            if row["asin"] in texts:
+                raise ValueError("duplicate asin in item texts: {}".format(row["asin"]))
+            texts[row["asin"]] = row["content_text"]
+    asins = [item["asin"] for item in items]
+    if set(texts) != set(asins):
+        raise ValueError("item texts do not cover exactly the catalog items")
+    for item in items:
+        item["content_text"] = texts[item["asin"]]
+    sidecar = path.with_name(path.name.replace(".jsonl", ".manifest.json"))
+    recipe = json.loads(sidecar.read_text()).get("recipe") if sidecar.is_file() else None
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    return {"recipe": recipe or path.stem, "path": str(path.resolve()), "sha256": digest}
+
+
 def embed_items(items, args):
     texts = [item.get("content_text") or item.get("title") or "unknown item"
              for item in items]
@@ -160,6 +182,9 @@ def main():
                         help="after each epoch, re-seed codewords no item selects")
     parser.add_argument("--standardize-embeddings", action="store_true",
                         help="z-score each embedding dimension before training")
+    parser.add_argument("--texts", type=Path,
+                        help="item-text file from scripts.build_item_texts (asin, content_text); "
+                             "default uses the catalog's content_text (title, brand, price, categories)")
     parser.add_argument("--text-model", default="sentence-transformers/sentence-t5-base")
     parser.add_argument("--text-batch-size", type=int, default=32)
     parser.add_argument("--text-dim", type=int, default=64)
@@ -221,6 +246,14 @@ def main():
     if args.device == "cpu":
         torch.set_num_threads(min(4, os.cpu_count() or 1))
     items, items_sha256 = read_items(args.items, args.limit_items)
+    text_source = {"recipe": "catalog", "path": None, "sha256": None}
+    if args.texts is not None:
+        if args.limit_items is not None:
+            parser.error("--texts needs the full catalog")
+        try:
+            text_source = apply_texts(items, args.texts)
+        except (OSError, ValueError, KeyError) as error:
+            parser.error(str(error))
     if args.codebook_size > len(items):
         parser.error("--codebook-size cannot exceed the number of items")
     run_dir.mkdir(parents=True)
@@ -308,6 +341,7 @@ def main():
             "seed": args.seed, "collision_groups": collision_groups,
             "largest_collision_group": largest_collision, "codebook_usage": usages,
             "sid_length": 4, "collision_token_rule": "zero-based rank by asin within each 3-code group",
+            "text_source": text_source,
         }
         np.savez_compressed(run_dir / "embeddings.npz", asins=np.asarray(asins),
                             embeddings=embeddings, **standardization)

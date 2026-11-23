@@ -251,6 +251,7 @@ def main():
                  "sid": {"run": display_path(args.sid_run, ROOT), "method": args.sid_method,
                          "version": sid_version, "sha256": file_sha256(sid_path),
                          "recipe": sid_manifest.get("recipe"),
+                         "text_source": sid_manifest.get("text_source") or {"recipe": "catalog"},
                          "codebook_size": sid_manifest["codebook_size"],
                          "item_count": sid_manifest["item_count"]},
                  "splits": {split: {"path": display_path(path, ROOT),

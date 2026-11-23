@@ -72,6 +72,25 @@ def item_text(metadata):
     return " | ".join(fields)
 
 
+# Opt-in item-text recipes for content encoders. "catalog" is the catalog's content_text
+# (item_text above, the paper's title, brand, price and categories); others are built
+# from the raw metadata into catalog/<category>/texts/<recipe>.jsonl by
+# scripts/build_item_texts.py, leaving items.jsonl (and every SID that checks it) unchanged.
+TEXT_RECIPES = {
+    "description": "title, brand, price, categories, then the metadata description "
+                   "(whitespace collapsed; items without one keep the catalog text)",
+}
+
+
+def item_text_with_description(metadata):
+    """item_text plus the description last, so truncation by the encoder cuts it first."""
+    text = item_text(metadata)
+    description = " ".join(str(metadata.get("description") or "").split())
+    if description:
+        text = "{} | Description: {}".format(text, description) if text else "Description: " + description
+    return text
+
+
 def load_catalog(metadata_path, item_ids):
     catalog = {}
     for metadata in read_python_literal_gzip(metadata_path):
