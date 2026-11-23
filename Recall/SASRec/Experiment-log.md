@@ -8,7 +8,7 @@
 
 ## 2026-11-21
 
-### Sports_and_Outdoors：論文設定與只換 CE（待執行）
+### Sports_and_Outdoors：論文設定與只換 CE（論文設定已完成，CE 待執行）
 
 #### Motivation
 
@@ -20,7 +20,7 @@
 - **Baseline:** Beauty 的 `sasrec-paper-beauty-v1`、`sasrec-paperce-beauty-v1`（設定相同，換資料）。
 - **Change:** 分類 Beauty → Sports_and_Outdoors。
 - **Data:** 2014 Sports_and_Outdoors（job 1166748）：18,357 件商品、189,543 train／35,598 validation。
-- **Environment:** SoC（待提交）。
+- **Environment:** 論文設定：SoC job 1186397，程式 `8609ee1`；只換 CE：待提交。
 - **Command:** 論文設定 `MODEL=sasrec CATEGORY=Sports_and_Outdoors STAGE=train sbatch --export=ALL --job-name=kuriyo-sasrec scripts/run.sbatch`（預設 RUN_NAME `sasrec-paper-sports_and_outdoors-v1`）；只換 CE 加 `RUN_NAME=sasrec-paperce-sports_and_outdoors-v1 TRAIN_ARGS="--loss ce"`。
 - **Artifacts:** `Recall/SASRec/baseline/runs/sasrec-paper{,ce}-sports_and_outdoors-v1/`。
 
@@ -38,7 +38,15 @@ run 前寫下（2026-11-21）：論文設定的 validation Recall@10 0.033–0.0
 
 #### Results
 
-待執行。
+論文設定（`sasrec-paper-sports_and_outdoors-v1`，seed 42，單一 seed）：
+
+- **最佳：**epoch 80，validation Recall@10 0.03186、NDCG@10 0.01385（Recall@5 0.01759、NDCG@5 0.00924）；epoch 105 early stop，約 10 分鐘。
+- **曲線：**epoch 5 0.0128，到 55 約 0.030，之後在 0.029–0.032 之間平台。
+- **分組 Recall@10：**0 組 0（188 筆）、1–4 組 0.0042、5+ 組 0.0390。
+- **對照：**TIGER 論文表中的 SASRec Sports test 0.0350；Kuriyo validation 低 9%（Beauty 的論文設定 validation 0.0602 與論文 0.0605 相當）。
+- **對照 Expectation：**0.033–0.045 的下緣之下（0.0319），差 0.001。
+
+只換 CE：待執行。
 
 #### Conclusion
 
