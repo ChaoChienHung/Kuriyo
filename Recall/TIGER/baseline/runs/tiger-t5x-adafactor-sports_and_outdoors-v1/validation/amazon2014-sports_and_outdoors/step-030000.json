@@ -1,0 +1,36 @@
+{
+  "recall@5": 0.02778245968874656,
+  "recall@10": 0.042109107253216475,
+  "ndcg@5": 0.01775689120761581,
+  "ndcg@10": 0.022374201548653876,
+  "groups": {
+    "0": {
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "ndcg@5": 0.0,
+      "ndcg@10": 0.0,
+      "examples": 188
+    },
+    "1-4": {
+      "recall@5": 0.000423728813559322,
+      "recall@10": 0.0014124293785310734,
+      "ndcg@5": 0.00019839482599442668,
+      "ndcg@10": 0.0005065401430138717,
+      "examples": 7080
+    },
+    "5+": {
+      "recall@5": 0.03480409459936463,
+      "recall@10": 0.052559124602894455,
+      "ndcg@5": 0.022262801900482423,
+      "ndcg@10": 0.027987664049292003,
+      "examples": 28330
+    }
+  },
+  "validation_examples": 35598,
+  "beam_size": 10,
+  "invalid_beam_fraction": 4.213719871902916e-05,
+  "decoding": "unconstrained beam search; invalid IDs count as misses",
+  "split": "validation",
+  "set": "amazon2014-sports_and_outdoors",
+  "step": 30000
+}

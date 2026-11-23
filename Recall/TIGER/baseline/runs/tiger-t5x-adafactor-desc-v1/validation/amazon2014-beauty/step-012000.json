@@ -1,0 +1,36 @@
+{
+  "recall@5": 0.04811519026964182,
+  "recall@10": 0.07481107185976836,
+  "ndcg@5": 0.030310680774705525,
+  "ndcg@10": 0.03889855757566705,
+  "groups": {
+    "0": {
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "ndcg@5": 0.0,
+      "ndcg@10": 0.0,
+      "examples": 81
+    },
+    "1-4": {
+      "recall@5": 0.006134969325153374,
+      "recall@10": 0.008545135845749343,
+      "ndcg@5": 0.0026962493224596206,
+      "ndcg@10": 0.003455090510689269,
+      "examples": 4564
+    },
+    "5+": {
+      "recall@5": 0.059148888136358505,
+      "recall@10": 0.09222259848741393,
+      "ndcg@5": 0.03756248291325399,
+      "ndcg@10": 0.0482063105301872,
+      "examples": 17718
+    }
+  },
+  "validation_examples": 22363,
+  "beam_size": 10,
+  "invalid_beam_fraction": 0.0007288825291776595,
+  "decoding": "unconstrained beam search; invalid IDs count as misses",
+  "split": "validation",
+  "set": "amazon2014-beauty",
+  "step": 12000
+}

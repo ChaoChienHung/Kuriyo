@@ -1,0 +1,200 @@
+{
+  "run": {
+    "name": "tiger-t5x-adafactor-sports_and_outdoors-v1",
+    "family": "TIGER",
+    "variant": "baseline",
+    "implementation": "Hugging Face T5 PyTorch; paper-configured, not T5X",
+    "git_revision": "8ceeceb6c652631f6d151653221580b93371e12d",
+    "created_utc": "2026-11-23T11:52:35.497544+00:00",
+    "slurm_job_id": "1186528",
+    "device": "cuda",
+    "seed": 42
+  },
+  "data": {
+    "year": "2014",
+    "category": "Sports_and_Outdoors",
+    "catalog": {
+      "path": "data/amazon_reviews/2014/catalog/Sports_and_Outdoors/items.jsonl",
+      "sha256": "cad33e80e8db9b104be5fabf96cf814d36b263797e04002ad839bb56dd53bed3"
+    },
+    "sid": {
+      "run": "data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Sports_and_Outdoors/tiger-paper-v1",
+      "method": "sentence-t5_rqvae",
+      "version": "tiger-paper-v1",
+      "sha256": "bf48b6141f8a7f3e2810a5f2758f022b5d85ba0e66be800ffd2de8aa11a120bb",
+      "recipe": "stable",
+      "text_source": {
+        "recipe": "catalog",
+        "path": null,
+        "sha256": null
+      },
+      "codebook_size": 256,
+      "item_count": 18357
+    },
+    "splits": {
+      "train": {
+        "path": "data/amazon_reviews/2014/train/sids/sentence-t5_rqvae/Sports_and_Outdoors/tiger-paper-v1/examples.jsonl",
+        "sha256": "bc8a9abc00f1cde83091c83c3ba6dbc6cd8ec66af90a7faaa250cc1463d2e5a9"
+      },
+      "validation": {
+        "path": "data/amazon_reviews/2014/validation/sids/sentence-t5_rqvae/Sports_and_Outdoors/tiger-paper-v1/examples.jsonl",
+        "sha256": "34e3e04a9452c314040264cac33d1ce992ab75fea1cc7ea50f82ad68ea5665ba"
+      },
+      "test": {
+        "path": "data/amazon_reviews/2014/test/sids/sentence-t5_rqvae/Sports_and_Outdoors/tiger-paper-v1/examples.jsonl",
+        "sha256": "fd88693644144d137d7ae1bf990ce973ee429054eec89716582c342c8e38f316"
+      }
+    },
+    "sid_split_manifest": {
+      "path": "data/amazon_reviews/2014/train/sids/sentence-t5_rqvae/Sports_and_Outdoors/tiger-paper-v1/split_manifest.json",
+      "sha256": "800d155fbaafb7ab401f4c4f0f509bcc58267a0df9786ed390234d24aa8fd6e6"
+    },
+    "preprocessing": {
+      "producer": "scripts.prepare_amazon_reviews_2014",
+      "manifest": {
+        "path": "data/amazon_reviews/2014/train/raw/Sports_and_Outdoors/split_manifest.json",
+        "sha256": "e5fc03cb314412150cfac3581df50c4af19972dbbc7bde4854fb8d6c6efa5556"
+      },
+      "dataset": "Amazon Reviews 2014 5-core",
+      "source": {
+        "reviews": {
+          "path": "data/amazon_reviews/2014/raw/Sports_and_Outdoors/reviews_Sports_and_Outdoors_5.json.gz",
+          "sha256": "8130a2206c3062db1b4b9d4353efc303b0ebd13f48372559fee26c47a1d7fe51"
+        },
+        "metadata": {
+          "path": "data/amazon_reviews/2014/raw/Sports_and_Outdoors/meta_Sports_and_Outdoors.json.gz",
+          "sha256": "677108a0fe0f47cce08885a348879a5a89dd69e75fbc5d66410ae436750df086"
+        }
+      },
+      "rules": {
+        "minimum_user_interactions": 5,
+        "ordering": "unixReviewTime ascending; source row order breaks ties",
+        "train": "all except each user's last two events; one next-item example per prefix of length >=1",
+        "validation": "penultimate event, with preceding events as history",
+        "test": "last event, with preceding events including the validation event as history",
+        "max_history": 20,
+        "duplicate_user_item_events": "preserved"
+      },
+      "counts": {
+        "source_reviews": 296337,
+        "source_users": 35598,
+        "eligible_users": 35598,
+        "catalog_items": 18357,
+        "train_examples": 189543,
+        "validation_examples": 35598,
+        "test_examples": 35598
+      }
+    },
+    "max_history": 20,
+    "max_train_examples": null,
+    "max_validation_examples": null,
+    "training_examples": "one example per train prefix; a hashed user token, then 4 tokens per history item (3 SID levels + collision suffix)"
+  },
+  "model": {
+    "config": {
+      "vocab_size": 2785,
+      "d_model": 128,
+      "d_kv": 64,
+      "d_ff": 1024,
+      "num_layers": 4,
+      "num_decoder_layers": 4,
+      "num_heads": 6,
+      "relative_attention_num_buckets": 32,
+      "relative_attention_max_distance": 128,
+      "dropout_rate": 0.1,
+      "classifier_dropout": 0.0,
+      "layer_norm_epsilon": 1e-06,
+      "initializer_factor": 1.0,
+      "feed_forward_proj": "relu",
+      "use_cache": true,
+      "dense_act_fn": "relu",
+      "is_gated_act": false,
+      "return_dict": true,
+      "output_hidden_states": false,
+      "torchscript": false,
+      "dtype": null,
+      "pruned_heads": {},
+      "tie_word_embeddings": true,
+      "chunk_size_feed_forward": 0,
+      "is_encoder_decoder": true,
+      "is_decoder": false,
+      "cross_attention_hidden_size": null,
+      "add_cross_attention": false,
+      "tie_encoder_decoder": false,
+      "architectures": null,
+      "finetuning_task": null,
+      "id2label": {
+        "0": "LABEL_0",
+        "1": "LABEL_1"
+      },
+      "label2id": {
+        "LABEL_0": 0,
+        "LABEL_1": 1
+      },
+      "task_specific_params": null,
+      "problem_type": null,
+      "tokenizer_class": null,
+      "prefix": null,
+      "bos_token_id": null,
+      "pad_token_id": 0,
+      "eos_token_id": 2,
+      "sep_token_id": null,
+      "decoder_start_token_id": 1,
+      "max_length": 20,
+      "min_length": 0,
+      "do_sample": false,
+      "early_stopping": false,
+      "num_beams": 1,
+      "temperature": 1.0,
+      "top_k": 50,
+      "top_p": 1.0,
+      "typical_p": 1.0,
+      "repetition_penalty": 1.0,
+      "length_penalty": 1.0,
+      "no_repeat_ngram_size": 0,
+      "encoder_no_repeat_ngram_size": 0,
+      "bad_words_ids": null,
+      "num_return_sequences": 1,
+      "output_scores": false,
+      "return_dict_in_generate": false,
+      "forced_bos_token_id": null,
+      "forced_eos_token_id": null,
+      "remove_invalid_values": false,
+      "exponential_decay_length_penalty": null,
+      "suppress_tokens": null,
+      "begin_suppress_tokens": null,
+      "num_beam_groups": 1,
+      "diversity_penalty": 0.0,
+      "_name_or_path": "",
+      "transformers_version": "4.57.6",
+      "tf_legacy_loss": false,
+      "use_bfloat16": false,
+      "model_type": "t5",
+      "output_attentions": false
+    },
+    "user_hash_buckets": 2000,
+    "parameters": 4816128
+  },
+  "training": {
+    "optimizer": "Adafactor",
+    "adafactor_scale_parameter": true,
+    "learning_rate": "0.01 through 10k steps; then 0.01 * sqrt(10000 / step)",
+    "gradient_clip_norm": 1.0,
+    "steps": 60000,
+    "batch_size": 256,
+    "save_every": 5000
+  },
+  "evaluation": {
+    "set": "amazon2014-sports_and_outdoors",
+    "every_steps": 2000,
+    "batch_size": 16,
+    "beam_size": 10,
+    "selection": "best validation NDCG@10",
+    "ks": [
+      5,
+      10
+    ],
+    "decoding": "unconstrained beam search; invalid IDs count as misses",
+    "groups": "times the target is a target in the train split used for training: 0, 1-4, 5+"
+  }
+}

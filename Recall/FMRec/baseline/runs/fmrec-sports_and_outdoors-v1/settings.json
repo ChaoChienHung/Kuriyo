@@ -1,0 +1,120 @@
+{
+  "run": {
+    "name": "fmrec-sports_and_outdoors-v1",
+    "family": "FMRec",
+    "variant": "baseline",
+    "implementation": "Kuriyo PyTorch re-implementation of FMRec (https://github.com/FengLiu-1/FMRec commit 1c39b17)",
+    "git_revision": "8ceeceb6c652631f6d151653221580b93371e12d",
+    "created_utc": "2026-11-23T10:21:18.989051+00:00",
+    "slurm_job_id": "1186530",
+    "device": "cuda",
+    "seed": 42
+  },
+  "data": {
+    "year": "2014",
+    "category": "Sports_and_Outdoors",
+    "catalog": {
+      "path": "data/amazon_reviews/2014/catalog/Sports_and_Outdoors/items.jsonl",
+      "sha256": "cad33e80e8db9b104be5fabf96cf814d36b263797e04002ad839bb56dd53bed3",
+      "items": 18357
+    },
+    "splits": {
+      "train": {
+        "path": "data/amazon_reviews/2014/train/raw/Sports_and_Outdoors/examples.jsonl",
+        "sha256": "1b4dadba8c8ea86b1d8f0d4b42ac786b23f01d0aa08d1dc7b16684b19fa36acf"
+      },
+      "validation": {
+        "path": "data/amazon_reviews/2014/validation/raw/Sports_and_Outdoors/examples.jsonl",
+        "sha256": "0dc506840808910137155fb95da5e62e55d5ed8a48812ad2891421e2eee062a0"
+      },
+      "test": {
+        "path": "data/amazon_reviews/2014/test/raw/Sports_and_Outdoors/examples.jsonl",
+        "sha256": "eaed04b8a36628a9cacf2d7da6ed76aa7984e337c2215b3d1d54a8cd673ff6ef"
+      }
+    },
+    "preprocessing": {
+      "producer": "scripts.prepare_amazon_reviews_2014",
+      "manifest": {
+        "path": "data/amazon_reviews/2014/train/raw/Sports_and_Outdoors/split_manifest.json",
+        "sha256": "e5fc03cb314412150cfac3581df50c4af19972dbbc7bde4854fb8d6c6efa5556"
+      },
+      "dataset": "Amazon Reviews 2014 5-core",
+      "source": {
+        "reviews": {
+          "path": "data/amazon_reviews/2014/raw/Sports_and_Outdoors/reviews_Sports_and_Outdoors_5.json.gz",
+          "sha256": "8130a2206c3062db1b4b9d4353efc303b0ebd13f48372559fee26c47a1d7fe51"
+        },
+        "metadata": {
+          "path": "data/amazon_reviews/2014/raw/Sports_and_Outdoors/meta_Sports_and_Outdoors.json.gz",
+          "sha256": "677108a0fe0f47cce08885a348879a5a89dd69e75fbc5d66410ae436750df086"
+        }
+      },
+      "rules": {
+        "minimum_user_interactions": 5,
+        "ordering": "unixReviewTime ascending; source row order breaks ties",
+        "train": "all except each user's last two events; one next-item example per prefix of length >=1",
+        "validation": "penultimate event, with preceding events as history",
+        "test": "last event, with preceding events including the validation event as history",
+        "max_history": 20,
+        "duplicate_user_item_events": "preserved"
+      },
+      "counts": {
+        "source_reviews": 296337,
+        "source_users": 35598,
+        "eligible_users": 35598,
+        "catalog_items": 18357,
+        "train_examples": 189543,
+        "validation_examples": 35598,
+        "test_examples": 35598
+      }
+    },
+    "max_history": 20,
+    "max_train_examples": null,
+    "max_validation_examples": null,
+    "training_examples": "one example per train prefix; the newest max_history items"
+  },
+  "model": {
+    "config": {
+      "hidden": 128,
+      "heads": 4,
+      "decoder1_layers": 2,
+      "decoder2_layers": 2,
+      "dropout": 0.1,
+      "embedding_dropout": 0.3,
+      "lambda_uncertainty": 0.001,
+      "eps": 0.001,
+      "time_schedule": "mode",
+      "mode_scale": 1.0,
+      "sample_steps": 30,
+      "attention": "bidirectional"
+    },
+    "parameters": 42007350
+  },
+  "training": {
+    "optimizer": "Adam",
+    "lr": 0.001,
+    "weight_decay": 0.0,
+    "lr_schedule": "StepLR every 100 epochs x0.1",
+    "lr_decay_epochs": 100,
+    "lr_gamma": 0.1,
+    "alpha": 0.2,
+    "beta": 0.4,
+    "mask_ratio": 1.0,
+    "epochs": 500,
+    "batch_size": 512
+  },
+  "evaluation": {
+    "set": "amazon2014-sports_and_outdoors",
+    "every_epochs": 20,
+    "batch_size": 512,
+    "patience": 5,
+    "selection": "best validation NDCG@10",
+    "ks": [
+      5,
+      10
+    ],
+    "ranking": "full catalog, inner product with item embeddings; history items not filtered",
+    "sampling": "30 Euler steps, noise seeded with the run seed",
+    "groups": "times the target is a target in the train split used for training: 0, 1-4, 5+"
+  }
+}
