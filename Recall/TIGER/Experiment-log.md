@@ -4,6 +4,44 @@
 
 所有 run 都用 2014 Beauty 切分（131,413 train／22,363 validation，歷史上限 20）、seed 42（`train.py` 預設），validation 以全 catalog 的 unconstrained beam search（beam 10）評估。2026-11-19 以前的條目是事後依 log 補記；Expectation 依當時的動機補寫，不參考後來的結果。
 
+## 2026-11-23
+
+### Beam 寬度：`tiger-t5x-adafactor-eval2k-v1` 以 beam 10／20／50／100 重新評估 validation（待執行）
+
+#### Motivation
+
+TIGER 的 top-10 是 10 個 beam 的近似：beam search 不保證找到分數最高的 10 個 SID，無效 beam 也占位置。SASRec／FMRec 對全 catalog 精確排名，所以 beam 10 可能低估 TIGER。社群實作 [NonameUntitled/tiger](https://github.com/NonameUntitled/tiger) 用 100 個 beam、取前 20，Beauty test Recall@10 0.0582（他們的資料處理）。不重新訓練，只量 beam 寬度的影響。
+
+#### Details
+
+- **Variant:** `baseline`（`--eval-beams` 是 2026-11-23 加入的選擇性旗標；預設評估不變，固定 seed 前後逐位相同）
+- **Baseline:** 同一個 `best.pt`（20k）在訓練時的 beam 10 評估（`best.json`：Recall@10 0.08000）。
+- **Change:** 評估的 beam 寬度 10 → 20、50、100，並丟掉無效與重複的 beam；beam 10 也用丟掉的規則重評一次，分開這兩個效果。
+- **Data:** 2014 Beauty SID `tiger-paper-v1`；validation 22,363 筆。不碰 test。
+- **Environment:** SoC（待提交）。
+- **Command:** `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-eval2k-v1 STAGE=beams sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch`；比較：`python -m core.compare --metric recall@10 --setting beam10 Recall/TIGER/baseline/runs/tiger-t5x-adafactor-eval2k-v1 --setting beam100 Recall/TIGER/baseline/runs/tiger-t5x-adafactor-eval2k-v1/validation/amazon2014-beauty/best-beam100-ranks.json`（其他寬度與 NDCG@10 同理）。
+- **Artifacts:** `Recall/TIGER/baseline/runs/tiger-t5x-adafactor-eval2k-v1/validation/amazon2014-beauty/best-beam{010,020,050,100}{,-ranks}.json`。
+
+#### Settings
+
+- 模型與 checkpoint 不變（20k 的 `best.pt`），eval batch 16；**不同**：beam 寬度、無效與重複 beam 不占名次。
+
+#### Expectation
+
+run 前寫下（2026-11-23）：beam 10 加上丟掉無效 beam 的規則幾乎不變（無效 beam 只有約 0.06%，差 < 0.001）。Recall@10 隨 beam 寬度上升且邊際遞減：beam 20 高 0.002–0.006，beam 100 高 0.004–0.012（約 0.084–0.092）；NDCG@10 上升較少。與 SASRec CE（0.1024）的差距縮小但不會消失。配對檢定下 beam 100 對 beam 10 顯著（同一模型，只反映評估）。
+
+#### Key Metrics
+
+- 每個寬度的 validation Recall@5/10、NDCG@5/10、分組；對 beam 10 的逐使用者配對差；評估時間。
+
+#### Results
+
+待執行。
+
+#### Conclusion
+
+待執行。
+
 ## 2026-11-21
 
 ### 3 個 seed：`tiger-t5x-adafactor-eval2k-s43`／`-s44`（H8，待執行）

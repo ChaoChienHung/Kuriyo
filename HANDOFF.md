@@ -74,6 +74,8 @@ SASRec 論文設定（BCE）3 個 seed 的 validation Recall@10 0.0602 ± 0.0015
 
 2026-11-21 晚：TIGER dropout 0.2（job 1175903，`da61807`）最佳在 38k（validation Recall@10 0.0805），40k 仍 0.0802，未出現 0.1 dropout 20k 後的下降；但最佳值與 0.1 的 20k（0.0800）相同（配對 p 0.76，單一 seed），冷門 1–4 組更低（0.0077 對 0.0134）。正則化不提高上限。參數拆解（TIGER README）顯示 transformer 本體與論文維度相同，13M 推算是大詞表 embedding，所以 H4 的參數差異不是原因；使用者選定方向：TIGER 補 seed 43、44（Beauty），同時在 Sports_and_Outdoors 跑 TIGER、SASRec（論文設定與只換 CE）、FMRec；Expectation 已寫在各 Experiment-log，提交指令在 TODO 第一項。FMRec 5 個 seed 的 test 已齊（jobs 1175902、1176436–37、1177268）：Recall@10 0.0806 ± 0.0018、NDCG@10 0.0473 ± 0.0021，論文數字都在 95% CI 內（FMRec Experiment-log 2026-11-21）；README 結果表已更新。
 
+2026-11-23：TIGER 加入 `--eval-beams`／`STAGE=beams`（validation 以不同 beam 寬度重評 `best.pt`，丟掉無效 beam，不碰 test；預設逐位相同）。事先登記 `tiger-t5x-adafactor-eval2k-v1` 的 beam 10／20／50／100 重評（TIGER Experiment-log 2026-11-23）。參考社群實作 NonameUntitled/tiger：約 5M 參數、beam 100、Beauty test Recall@10 0.0582，同樣低於論文。進行中：TIGER seed 43／44（jobs 1186394–95）、SASRec 論文設定 Sports（部分紀錄已推）。
+
 ## Logging 與匯入狀態
 
 新版 `core/run_logging.py` 已接入 paper trainer 和 SID generator：TIGER 每 step 寫 run 的 `train/train.jsonl`、SID 每 epoch 寫 `train.jsonl`，生命週期等事件寫 `events.log`（JSON Lines），含 UTC timestamp、session ID、elapsed_seconds。續訓追加，不抹掉歷史；重跑相同 step 用 session ID 區分。SIGKILL、斷電或 logger 啟動前的錯誤未必留下失敗事件。舊 smoke trainer 尚未接入。
