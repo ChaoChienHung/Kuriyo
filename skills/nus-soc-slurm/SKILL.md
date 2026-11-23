@@ -59,7 +59,7 @@ Use `--job-name=kuriyo-<model>` so the log is `slurm-kuriyo-<model>-<jobid>.out`
 
 Symptom in the log: a Torch warning `CUDA initialization: CUDA unknown error`, then `train.py: error: CUDA is unavailable` and `srun: error: <node>: task 0: Exited with exit code 2`. The training scripts check CUDA before creating the run directory, so the same `RUN_NAME` can be resubmitted.
 
-- This is a node problem, not Kuriyo code. On 2026-11-19 it happened on `xgpe2`, `xgpe4`, and `xgpe6` (all `gpu:nv:1`), while jobs on `xgpf11` trained normally.
+- This is a node problem, not Kuriyo code. On 2026-11-19 it happened on `xgpe2`, `xgpe4`, and `xgpe6` (all `gpu:nv:1`), while jobs on `xgpf11` trained normally. It happened again on 2026-11-23 on `xgpe2` and `xgpe6` (four jobs submitted together failed within 20 s, while jobs on `xgpf6`/`xgpf7` trained), so exclude the `xgpe` group whenever several jobs are submitted at once.
 - **Trap:** broken nodes look `idle` in `sinfo` because every job on them dies at once, so Slurm keeps sending new jobs there. Excluding one node at a time just moves the job to the next broken sibling. Exclude the whole group.
 - **Trap:** `--exclude` must name only existing nodes. `--exclude='xgpe[0-6]'` failed with `Invalid node name specified` because `xgpe5` does not exist. Build the list from `sinfo -N`, e.g. `--exclude='xgpe[0-4,6]'`.
 - Alternatively request a GPU type from the `GRES` column, e.g. `--gpus=a100-40:1`, after checking that the partition offers it.
