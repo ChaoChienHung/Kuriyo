@@ -4,7 +4,42 @@
 
 所有實驗都用 2014 Beauty 的完整商品目錄（12,101 件，`catalog/Beauty/items.jsonl`），三層 RQ-VAE、每層 256 碼。2026-11-18 以前的條目是事後依 log 補記；Expectation 依當時的動機補寫，不參考後來的結果。
 
-## 2026-11-18
+## 2026-11-23
+
+### 加入商品描述的 SID（`tiger-desc-v1`，待執行）
+
+#### Motivation
+
+社群實作 [amritpurshotam/tiger](https://github.com/amritpurshotam/tiger) 的商品文字除了 title、brand、categories、price 外還放了 description，並引用作者在 OpenReview 的回覆（未能核實：頁面需要瀏覽器驗證）。TIGER 論文正文只列 title、price、brand、category。使用者決定直接試：只換文字來源，其他與 `tiger-paper-v1` 相同；對 TIGER 的效果記在 TIGER Experiment-log 同日條目。
+
+#### Details
+
+- **Baseline:** `tiger-paper-v1`（`stable` 配方，catalog 文字）。
+- **Change:** 文字來源 `catalog` → `description`：原本的文字之後接 ` | Description: <描述>`（空白合併；沒有描述的商品維持原文字）。描述放最後，Sentence-T5 截斷時先截掉它。
+- **Data:** 2014 Beauty 商品目錄（12,101 件，`items.jsonl` 不變）；描述取自 `raw/Beauty/meta_Beauty.json.gz`，寫成 `catalog/Beauty/texts/description.jsonl`（`scripts.build_item_texts`）。本機檢查：11,163 件（92%）有描述，中位 50 字、P90 171 字；每件的描述前文字與 catalog 文字完全相同。
+- **Environment:** SoC（待提交，與 TIGER run 同一個 job）。
+- **Command:** `SID_TEXT=description SID_RECIPE=stable SID_VERSION=tiger-desc-v1 RUN_NAME=tiger-t5x-adafactor-desc-v1 TRAIN_ARGS="--eval-every 2000 --steps 40000" STAGE=all sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch`
+- **Artifacts:** SoC 的 `data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/tiger-desc-v1/`（`manifest.json` 的 `text_source` 記錄文字檔 sha256）。
+
+#### Settings
+
+- 與 `tiger-paper-v1` 相同（Sentence-T5 base、MLP 512／256／128、latent 32、三層各 256 碼、AdamW 1e-3、逐維標準化、重設未使用碼、20,000 epochs、seed 42），**不同**：`text_source.recipe` = `description`。
+
+#### Expectation
+
+run 前寫下（2026-11-23）：三層仍全碼本使用。描述讓文字更具區分度，碰撞群組少於 `tiger-paper-v1` 的 279（約 150–280）。
+
+#### Key Metrics
+
+- 三層使用碼數、碰撞群組數、最大碰撞群、總 loss。
+
+#### Results
+
+待執行。
+
+#### Conclusion
+
+待執行。
 
 ### `stable` 配方的 SoC 完整 SID（`tiger-paper-v1`）
 

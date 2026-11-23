@@ -6,6 +6,42 @@
 
 ## 2026-11-23
 
+### 加入商品描述的 SID：`tiger-t5x-adafactor-desc-v1`（H3，待執行）
+
+#### Motivation
+
+測試商品文字加入 description 是否改善 TIGER（社群實作的做法，見 [SID Experiment-log](../../Representations/SID/Experiment-log.md) 2026-11-23）。H3 曾顯示換掉塌縮的 SID 只帶來小幅改善，這次只換 SID 的文字來源。
+
+#### Details
+
+- **Variant:** `baseline`（`SID_TEXT` 與 `--texts` 是 2026-11-23 加入的選擇性設定，預設 catalog 文字不變；`settings.json` 另記 `data.sid.text_source`）
+- **Baseline:** `tiger-t5x-adafactor-eval2k-v1`（seed 42，SID `tiger-paper-v1`，最佳 20k，Recall@10 0.0800）。
+- **Change:** SID `tiger-paper-v1` → `tiger-desc-v1`（只換文字來源）。
+- **Data:** 2014 Beauty；validation 22,363 筆。
+- **Environment:** SoC（待提交）。
+- **Command:** `SID_TEXT=description SID_RECIPE=stable SID_VERSION=tiger-desc-v1 RUN_NAME=tiger-t5x-adafactor-desc-v1 TRAIN_ARGS="--eval-every 2000 --steps 40000" STAGE=all sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch`（prepare 檢查 → 建文字檔 → SID → materialize → train）
+- **Artifacts:** `Recall/TIGER/baseline/runs/tiger-t5x-adafactor-desc-v1/`。
+
+#### Settings
+
+- 與 baseline 相同（論文模型、dropout 0.1、T5X 式 Adafactor、batch 256、每 2k step 評估、40k step、seed 42、beam 10），**不同**：SID 版本 `tiger-desc-v1`。
+
+#### Expectation
+
+run 前寫下（2026-11-23）：學習曲線與 baseline 相似，最佳 step 在 14k–26k；最佳 validation Recall@10 在 0.077–0.085。差距在 ±0.003 內不下結論（單一 seed）；若高於 0.083，再補 seed。1–4 組可能稍好（描述讓冷門商品與相似商品的 SID 更接近），但仍低於 0.02。
+
+#### Key Metrics
+
+- 每 2k step 的 validation Recall@10／NDCG@10、分組、無效 beam；最佳 step；對 baseline 的逐使用者配對。
+
+#### Results
+
+待執行。
+
+#### Conclusion
+
+待執行。
+
 ### Beam 寬度：`tiger-t5x-adafactor-eval2k-v1` 以 beam 10／20／50／100 重新評估 validation（待執行）
 
 #### Motivation
