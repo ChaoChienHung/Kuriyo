@@ -41,3 +41,6 @@ data/amazon_reviews/test/
 # Slurm stdout (scripts/run.sbatch --output=slurm-%x-%j.out). Records live in the run directory
 # and Experiment-log; force-add a log only to share it, and remove it once recorded.
 /slurm-*.out
+
+# Community implementations run unmodified by scripts/external_tiger.sbatch (clone, venv, data, outputs).
+/third_party/

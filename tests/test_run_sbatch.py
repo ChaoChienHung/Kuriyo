@@ -339,6 +339,16 @@ esac
                                         text=True, capture_output=True)
                 self.assertEqual(result.returncode, 2)
 
+    def test_external_script_refuses_unknown_implementation_before_cloning(self):
+        script = SCRIPT.parent / "external_tiger.sbatch"
+        for external in ("", "grid-unsupported", "../x"):
+            with self.subTest(external=external):
+                result = subprocess.run(["bash", str(script)], cwd=self.root, env=dict(self.env, EXTERNAL=external),
+                                        text=True, capture_output=True)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("EXTERNAL must be", result.stderr)
+                self.assertFalse((self.root / "third_party").exists())
+
     def test_invalid_model_settings_stop_before_work(self):
         for settings in ({"MODEL": "bert4rec"}, {"MODEL": "sasrec", "STAGE": "sid"},
                          {"CATEGORY": "Books"}, {"SEED": "-1"}, {"TRAIN_ARGS": "--loss bce; rm"},
