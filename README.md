@@ -1,6 +1,14 @@
 # Kuriyo
 
-Kuriyo is a place for recommendation experiments. It started with sequential recommendation on Amazon Reviews 2014: TIGER, SASRec and FMRec, trained and evaluated the same way so their numbers can actually be compared. Other kinds of recommenders will follow; anything to do with recommendation belongs here.
+Kuriyo is a place for recommendation experiments. Each model is trained and evaluated the same way as the others on the same data, so their numbers can actually be compared.
+
+What is here so far:
+
+- **Sequential recommendation** on Amazon Reviews 2014
+  - [TIGER](Recall/TIGER/README.md): generative retrieval with semantic IDs
+  - [SASRec](Recall/SASRec/README.md): self-attention over item IDs
+  - [FMRec](Recall/FMRec/README.md): flow matching over item embeddings
+- **Semantic IDs** ([Representations/SID](Representations/SID/README.md)): RQ-VAE IDs built from item text, shared by any model that uses them
 
 The name comes from Kuriyo Urima, the door-to-door salesperson in *Crayon Shin-chan*. A good salesperson knows what you want and brings it to your door. A recommender should do the same.
 
