@@ -6,7 +6,7 @@
 
 ## 2026-11-23
 
-### 加入商品描述的 SID：`tiger-t5x-adafactor-desc-v1`（H3，待執行）
+### 加入商品描述的 SID：`tiger-t5x-adafactor-desc-v1`（H3）
 
 #### Motivation
 
@@ -18,7 +18,7 @@
 - **Baseline:** `tiger-t5x-adafactor-eval2k-v1`（seed 42，SID `tiger-paper-v1`，最佳 20k，Recall@10 0.0800）。
 - **Change:** SID `tiger-paper-v1` → `tiger-desc-v1`（只換文字來源）。
 - **Data:** 2014 Beauty；validation 22,363 筆。
-- **Environment:** SoC（待提交）。
+- **Environment:** SoC job 1186471，程式 `8ceeceb`。
 - **Command:** `SID_TEXT=description SID_RECIPE=stable SID_VERSION=tiger-desc-v1 RUN_NAME=tiger-t5x-adafactor-desc-v1 TRAIN_ARGS="--eval-every 2000 --steps 40000" STAGE=all sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch`（prepare 檢查 → 建文字檔 → SID → materialize → train）
 - **Artifacts:** `Recall/TIGER/baseline/runs/tiger-t5x-adafactor-desc-v1/`。
 
@@ -36,13 +36,23 @@ run 前寫下（2026-11-23）：學習曲線與 baseline 相似，最佳 step �
 
 #### Results
 
-待執行。
+SoC job 1186471（程式 `8ceeceb`；含建文字檔、SID 20,000 epochs 與 TIGER 40k step）。
+
+| step | 10k | 14k | 18k | 20k | 22k | 26k | 30k | 34k | 40k |
+|---|---|---|---|---|---|---|---|---|---|
+| 描述 SID | 0.0762 | 0.0781 | 0.0785 | 0.0798 | **0.0783** | 0.0790 | 0.0748 | 0.0711 | 0.0719 |
+| baseline | 0.0739 | 0.0779 | 0.0775 | **0.0800** | 0.0782 | 0.0771 | 0.0759 | 0.0729 | 0.0713 |
+
+- **最佳**（以 NDCG@10 選）：22k，Recall@10 0.07834、NDCG@10 0.04367、Recall@5 0.05424、NDCG@5 0.03591；無效 beam 0.09%。分組：1–4 組 0.0107（baseline 0.0134）、5+ 組 0.0961（0.0975）。
+- **對 baseline 的逐使用者配對（單一 seed）：**Recall@10 −0.0017（p 0.35，CI [−0.0051, +0.0019]）；NDCG@10 +0.0002（p 0.82）。
+- **SID：**詞表 2,805（baseline 2,780），所以最大碰撞群是 34 件（baseline 9 件）；碰撞群組數與碼本使用率在 SoC 的 SID `manifest.json`，未推上 Git。
+- **對照 Expectation：**曲線相似、最佳在 14k–26k（是）；最佳 0.077–0.085（是）；±0.003 內不下結論（差 −0.0017，不下結論）；1–4 組稍好（否，0.0107 對 0.0134，單一 seed）。
 
 #### Conclusion
 
-待執行。
+加入商品描述沒有改善 TIGER：Recall@10 −0.0017、NDCG@10 +0.0002，都在單一 seed 的雜訊內。描述反而讓最大碰撞群從 9 件變成 34 件（推測：長描述在 Sentence-T5 截斷後，相似商品的向量更接近）。與 H3 一致：在目前的設定下，SID 的文字來源不是 TIGER 與 item-ID 模型差距的主因。不補 seed。
 
-### Beam 寬度：`tiger-t5x-adafactor-eval2k-v1` 以 beam 10／20／50／100 重新評估 validation（待執行）
+### Beam 寬度：`tiger-t5x-adafactor-eval2k-v1` 以 beam 10／20／50／100 重新評估 validation
 
 #### Motivation
 
@@ -54,7 +64,7 @@ TIGER 的 top-10 是 10 個 beam 的近似：beam search 不保證找到分數�
 - **Baseline:** 同一個 `best.pt`（20k）在訓練時的 beam 10 評估（`best.json`：Recall@10 0.08000）。
 - **Change:** 評估的 beam 寬度 10 → 20、50、100，並丟掉無效與重複的 beam；beam 10 也用丟掉的規則重評一次，分開這兩個效果。
 - **Data:** 2014 Beauty SID `tiger-paper-v1`；validation 22,363 筆。不碰 test。
-- **Environment:** SoC（待提交）。
+- **Environment:** SoC job 1186531，程式 `8ceeceb`。
 - **Command:** `SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-eval2k-v1 STAGE=beams sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch`；比較：`python -m core.compare --metric recall@10 --setting beam10 Recall/TIGER/baseline/runs/tiger-t5x-adafactor-eval2k-v1 --setting beam100 Recall/TIGER/baseline/runs/tiger-t5x-adafactor-eval2k-v1/validation/amazon2014-beauty/best-beam100-ranks.json`（其他寬度與 NDCG@10 同理）。
 - **Artifacts:** `Recall/TIGER/baseline/runs/tiger-t5x-adafactor-eval2k-v1/validation/amazon2014-beauty/best-beam{010,020,050,100}{,-ranks}.json`。
 
@@ -72,15 +82,27 @@ run 前寫下（2026-11-23）：beam 10 加上丟掉無效 beam 的規則幾乎�
 
 #### Results
 
-待執行。
+SoC job 1186531（程式 `8ceeceb`），4 個寬度共約 6 分鐘（beam 100 約 2 分鐘）。
+
+| beam | Recall@5 | Recall@10 | NDCG@5 | NDCG@10 | 無效 beam | 1–4 組 R@10 | 5+ 組 R@10 |
+|---|---|---|---|---|---|---|---|
+| 訓練時（10，無效占位） | 0.05290 | 0.08000 | 0.03467 | 0.04344 | 0.06% | 0.0134 | 0.0975 |
+| 10 | 0.05290 | 0.08000 | 0.03467 | 0.04344 | 0.06% | 0.0134 | 0.0975 |
+| 20 | 0.05317 | 0.08129 | 0.03483 | 0.04388 | 0.13% | 0.0134 | 0.0992 |
+| 50 | 0.05321 | 0.08121 | 0.03483 | 0.04383 | 0.36% | 0.0134 | 0.0991 |
+| 100 | 0.05330 | 0.08125 | 0.03487 | 0.04386 | 0.94% | 0.0134 | 0.0991 |
+
+- **對 beam 10 的逐使用者配對（`core.compare`，同一模型，只反映評估）：**beam 20 Recall@10 +0.0013（p 0.036，CI [+0.0001, +0.0025]）、NDCG@10 +0.0004（p 0.036）；beam 50 +0.0012（p 0.062）；beam 100 +0.0013（p 0.053，CI [−0.0000, +0.0025]）。
+- **Observations:** 丟掉無效 beam 對 beam 10 完全沒有影響（無效 beam 都排在 10 名之外）。加寬只在 10 → 20 帶來約 0.0013，之後持平；增益全部來自 5+ 組，1–4 組不變。
+- **對照 Expectation：**beam 10 不變（是）；beam 20 高 0.002–0.006（否，0.0013）；beam 100 高 0.004–0.012（否，0.0013）；差距縮小但不消失（是，幾乎沒縮小）；beam 100 顯著（邊緣，配對 p 0.053）。
 
 #### Conclusion
 
-待執行。
+Beam search 幾乎沒有漏掉 TIGER 自己排在前 10 的商品：從 10 加寬到 100 只多 0.0013 Recall@10，且在 20 之後就停了。TIGER 與 item-ID 模型約 0.022 的差距不是搜尋誤差，是模型本身的分數。對逐層溫度校準（TODO Ideas）的意義：它能救回的「被剪掉的正確前綴」很少，只能靠改變排序發揮作用。社群實作的 beam 100 也不是它們分數較高的主因。
 
 ## 2026-11-21
 
-### 3 個 seed：`tiger-t5x-adafactor-eval2k-s43`／`-s44`（H8，待執行）
+### 3 個 seed：`tiger-t5x-adafactor-eval2k-s43`／`-s44`（H8）
 
 #### Motivation
 
@@ -92,7 +114,7 @@ TIGER 的 Beauty 結論（最佳約 0.080、20k 後過擬合、冷門組弱）�
 - **Baseline:** `tiger-t5x-adafactor-eval2k-v1`（seed 42）。
 - **Change:** 只改 seed（43、44）。
 - **Data:** 2014 Beauty SID `tiger-paper-v1`；validation 22,363 筆。
-- **Environment:** SoC（待提交）。
+- **Environment:** SoC jobs 1186394–95，程式 `8609ee1`。
 - **Command:** `for s in 43 44; do SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-eval2k-s$s SEED=$s TRAIN_ARGS="--eval-every 2000 --steps 40000" STAGE=train sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch; done`
 - **Artifacts:** `Recall/TIGER/baseline/runs/tiger-t5x-adafactor-eval2k-s{43,44}/`。
 
@@ -110,11 +132,30 @@ run 前寫下（2026-11-21）：每個 seed 的最佳 step 在 14k–26k，之�
 
 #### Results
 
-待執行。
+SoC jobs 1186394（s43）、1186395（s44），程式 `8609ee1`，各約 2.6 小時。
+
+| seed | 最佳 step | Recall@5 | Recall@10 | NDCG@5 | NDCG@10 | 1–4 組 R@10 | 5+ 組 R@10 | 40k R@10 |
+|---|---|---|---|---|---|---|---|---|
+| 42（`eval2k-v1`） | 20k | 0.05290 | 0.08000 | 0.03467 | 0.04344 | 0.0134 | 0.0975 | 0.0713 |
+| 43 | 22k | 0.05531 | 0.08125 | 0.03655 | 0.04493 | 0.0131 | 0.0992 | 0.0723 |
+| 44 | 22k | 0.05357 | 0.08067 | 0.03535 | 0.04413 | 0.0116 | 0.0988 | 0.0711 |
+| **平均 ± sd（95% CI）** | | | **0.08064 ± 0.00063（0.07908–0.08220）** | | **0.04416 ± 0.00075（0.04231–0.04602）** | | | |
+
+`python -m core.compare`，seed 42–44，validation：
+
+| 對 TIGER | 平均 | 差 | 配對 t p | Welch p | 判定 |
+|---|---|---|---|---|---|
+| SASRec 只換 CE（Recall@10） | 0.10237 ± 0.00061 | +0.0217 | 2e-48 | 2e-6 | 顯著較好 |
+| FMRec（Recall@10） | 0.10391 ± 0.00105 | +0.0233 | 3e-56 | 3e-5 | 顯著較好 |
+| SASRec 只換 CE（NDCG@10） | 0.05072 ± 0.00042 | +0.0066 | 1e-15 | 7e-4 | 顯著較好 |
+| FMRec（NDCG@10） | 0.06097 ± 0.00064 | +0.0168 | 1e-69 | 1e-5 | 顯著較好 |
+
+- **Observations:** 三個 seed 都在 20k–22k 最好、之後下降到 40k 的 0.071–0.072，與 seed 42 的形狀相同。seed 間差異很小（sd 0.0006）。
+- **對照 Expectation：**最佳 step 14k–26k（是）；各 seed 0.077–0.083（是）；平均 0.078–0.081、sd ≤ 0.002（是）；1–4 組都低於 0.02（是）；對 SASRec CE 與 FMRec 都顯著較差（是）。
 
 #### Conclusion
 
-待執行。
+TIGER（論文設定、T5X 式 Adafactor）在 Kuriyo Beauty validation 的 Recall@10 是 0.0806 ± 0.0006、NDCG@10 0.0442 ± 0.0008（3 seeds），最佳點 20k–22k 之後過擬合。依 README 規則，SASRec 只換 CE 與 FMRec 兩個指標都顯著較好。H8 由單一 seed 變成 3 個 seed 支持。
 
 ### Sports_and_Outdoors：`tiger-t5x-adafactor-sports_and_outdoors-v1`（待執行）
 

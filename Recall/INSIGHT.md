@@ -2,7 +2,7 @@
 
 召回階段的研究筆記：跨家族的比較、基線與共用評估協定。事實與假設分開，每個結果都註明資料版本、切分、模型設定、指標與來源。家族自己的發現寫在 `Recall/<family>/INSIGHT.md`，run 紀錄在各家族的 `Recall/<family>/Experiment-log.md`（家族所有變體共用）；總覽見 [根 INSIGHT](../INSIGHT.md)。
 
-*建立：2026-11-18（由根 INSIGHT 分出）；最後更新：2026-11-21。Experiment log：[TIGER](TIGER/Experiment-log.md)、[SASRec](SASRec/Experiment-log.md)、[FMRec](FMRec/Experiment-log.md)。熱門商品基線是一次性的本機計算，數字直接記在本檔 Facts。*
+*建立：2026-11-18（由根 INSIGHT 分出）；最後更新：2026-11-23。Experiment log：[TIGER](TIGER/Experiment-log.md)、[SASRec](SASRec/Experiment-log.md)、[FMRec](FMRec/Experiment-log.md)。熱門商品基線是一次性的本機計算，數字直接記在本檔 Facts。*
 
 ## Insights
 
@@ -25,6 +25,7 @@
   | TIGER baseline | 舊 SID（6/26/25）、200k steps | 0.02057 | 0.03421 | 0.01241 | 0.01679 | SoC job 1153307；[log](TIGER/Experiment-log.md) 2026-11-17 |
   | TIGER baseline | 新 SID `tiger-paper-v1`（stable，256/256/256）、200k steps | 0.02182 | 0.03680 | 0.01349 | 0.01835 | SoC job 1163052；[log](TIGER/Experiment-log.md) 2026-11-18 |
   | TIGER baseline | 新 SID、T5X 式 Adafactor（`scale_parameter=True`），20k 最佳（之後下降，100k 0.0546；TIGER INSIGHT H8） | 0.05290 | 0.07999 | 0.03467 | 0.04344 | SoC job 1165519；[log](TIGER/Experiment-log.md) 2026-11-19 |
+  | TIGER baseline | T5X 式 Adafactor、每 2k step 評估，3 seeds（42–44）平均 ± sd，最佳 20k–22k | — | 0.08064 ± 0.00063 | — | 0.04416 ± 0.00075 | SoC jobs 1167955、1186394–95；[log](TIGER/Experiment-log.md) 2026-11-21（3 個 seed） |
   | SASRec baseline | 論文設定（BCE、hidden 50、1 head），3 seeds 平均 ± sd | 0.03404 ± 0.00135 | 0.06016 ± 0.00145 | 0.01751 ± 0.00061 | 0.02591 ± 0.00064 | SoC jobs 1166902–04；[log](SASRec/Experiment-log.md) 2026-11-19 |
   | SASRec baseline | 論文設定只換 CE，3 seeds 平均 ± sd | 0.06885 ± 0.00049 | 0.10237 ± 0.00061 | 0.03992 ± 0.00043 | 0.05072 ± 0.00042 | SoC jobs 1166905–07；[log](SASRec/Experiment-log.md) 2026-11-19 |
   | SASRec baseline | CE、hidden 64、2 層，SoC best epoch 85 | 0.06882 | 0.10227 | 0.04010 | 0.05083 | SoC job 1165570；本機同設定 0.09382；[log](SASRec/Experiment-log.md) 2026-11-19 |
@@ -32,6 +33,16 @@
   | FMRec baseline | 作者預設，5 seeds（42–46）平均 ± sd | 0.07285 ± 0.00207 | 0.10335 ± 0.00164 | 0.05033 ± 0.00187 | 0.06016 ± 0.00173 | SoC jobs 1165520、1168952–54、1170268；[log](FMRec/Experiment-log.md) 2026-11-21 |
 
   逐 step／epoch 的數字與 run 證據只記在各變體的 Experiment-log；本表只並列最佳 validation，新增 run 時同時更新 log 與本表。
+- **2014 Sports_and_Outdoors validation（35,598 examples，18,357 件商品，全商品排名，seed 42，單一 seed）：**
+
+  | Model | Setting | Recall@5 | Recall@10 | NDCG@5 | NDCG@10 | 1–4 組 R@10 | Evidence |
+  |---|---|---|---|---|---|---|---|
+  | SASRec baseline | 論文設定（BCE、hidden 50、1 head），epoch 80 | 0.01759 | 0.03186 | 0.00924 | 0.01385 | 0.0042 | SoC job 1186397；[log](SASRec/Experiment-log.md) 2026-11-21（Sports） |
+  | SASRec baseline | 論文設定只換 CE，epoch 75 | 0.03930 | 0.06132 | 0.02260 | 0.02969 | 0.0071 | SoC job 1186529；同上 |
+  | FMRec baseline | 作者預設（Beauty 的值），epoch 80 | 0.03908 | 0.05691 | 0.02609 | 0.03182 | 0.0110 | SoC job 1186530；[log](FMRec/Experiment-log.md) 2026-11-21（Sports） |
+  | TIGER baseline | T5X 式 Adafactor、60k step | 訓練中 | | | | | SoC job 1186528；[log](TIGER/Experiment-log.md) |
+
+  與 Beauty 相同的模式：只換 CE 約為論文設定的 2 倍；FMRec 的 NDCG@10 高於 SASRec CE（配對 p 2e-4）、Recall@10 略低（−0.0044，p 6e-5），冷門組最好。TIGER 論文表中的 Sports test：SASRec 0.0350、TIGER 0.0400（Recall@10）。
 - **Held-out test（2014 Beauty，22,363 examples，全商品排名，各一次、seed 42）：**
 
   | 模型 | 設定 | Recall@5 | Recall@10 | NDCG@5 | NDCG@10 | 論文 test（Recall@10／NDCG@10） | 來源 |

@@ -13,14 +13,10 @@
 
 依優先順序。
 
-- [ ] TIGER 3 個 seed（Beauty），然後 Sports_and_Outdoors 三個模型
-  - **Context:** 使用者 2026-11-21 選定方向 (b)：先把 TIGER 約 0.080 的 Beauty 結果補到 3 個 seed，再看 TIGER 在 Sports 是否同樣落後 item-ID 模型。Expectation 都已事先寫在各 Experiment-log（2026-11-21，待執行）。
-  - **Scope:** 使用者提交（可同時）：
-    - TIGER seeds：`for s in 43 44; do SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-eval2k-s$s SEED=$s TRAIN_ARGS="--eval-every 2000 --steps 40000" STAGE=train sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch; done`
-    - TIGER Sports：`CATEGORY=Sports_and_Outdoors SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-sports_and_outdoors-v1 TRAIN_ARGS="--eval-every 2000 --steps 60000" STAGE=all sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch`
-    - SASRec Sports：`MODEL=sasrec CATEGORY=Sports_and_Outdoors STAGE=train sbatch --export=ALL --job-name=kuriyo-sasrec scripts/run.sbatch`，以及加 `RUN_NAME=sasrec-paperce-sports_and_outdoors-v1 TRAIN_ARGS="--loss ce"` 的同一指令
-    - FMRec Sports：`MODEL=fmrec CATEGORY=Sports_and_Outdoors STAGE=train sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch`
-  - **Acceptance:** 各條目填入 Results／Conclusion；TIGER 3 seed 以 `core.compare` 對 SASRec CE 與 FMRec（seed 42–44）；Sports 的跨家族表加進 `Recall/INSIGHT.md`。Toys_and_Games 之後另開。
+- [ ] Sports_and_Outdoors：等 TIGER 跑完並整理跨模型比較
+  - **Context:** 2026-11-23：TIGER 3 個 seed（Beauty）、SASRec 兩種設定與 FMRec 的 Sports 都已記錄；TIGER Sports（job 1186528，60k step）仍在訓練，34k 時最佳 0.0428。
+  - **Scope:** TIGER Sports 跑完後填入 TIGER Experiment-log 的 Sports 條目與 `Recall/INSIGHT.md` 的 Sports 表；若 Sports 的模式要下結論，SASRec CE、FMRec、TIGER 各補 seed 43、44。
+  - **Acceptance:** Sports 條目都有 Results／Conclusion；`Recall/INSIGHT.md` Sports 表完整。Toys_and_Games 之後另開。
 - [ ] 以各論文自己的協定重現（確認沒有低估模型）
   - **Context:** 共用切分與全 catalog 評估適合比較模型，但無法和論文數字直接對照。原始 SASRec 論文用 50 件歷史、每位使用者 1 個正例 + 100 個未互動過的隨機商品排名；TIGER test 比論文低 14%。
   - **Scope:** 在 `--eval-groups` 的重新評估框架加「抽樣負例」協定（100 個、排除使用者看過的商品、固定 seed），各模型都能跑；之後視結果建立 50 件歷史的切分（另一個資料版本，結果分開報告）並用論文設定重訓。

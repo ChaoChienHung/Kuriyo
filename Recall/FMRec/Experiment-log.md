@@ -6,7 +6,7 @@
 
 ## 2026-11-21
 
-### Sports_and_Outdoors：作者預設 `fmrec-sports_and_outdoors-v1`（待執行）
+### Sports_and_Outdoors：作者預設 `fmrec-sports_and_outdoors-v1`
 
 #### Motivation
 
@@ -18,7 +18,7 @@
 - **Baseline:** Beauty 的 `fmrec-beauty-v1`（設定相同，換資料）。
 - **Change:** 分類 Beauty → Sports_and_Outdoors。
 - **Data:** 2014 Sports_and_Outdoors（job 1166748）：18,357 件商品、189,543 train／35,598 validation。
-- **Environment:** SoC（待提交）。
+- **Environment:** SoC job 1186530，程式 `8ceeceb`（job 1186399 因節點 CUDA 故障失敗，未建立 run）。
 - **Command:** `MODEL=fmrec CATEGORY=Sports_and_Outdoors STAGE=train sbatch --export=ALL --job-name=kuriyo-fmrec scripts/run.sbatch`（預設 RUN_NAME `fmrec-sports_and_outdoors-v1`）
 - **Artifacts:** `Recall/FMRec/baseline/runs/fmrec-sports_and_outdoors-v1/`。
 
@@ -36,11 +36,14 @@ run 前寫下（2026-11-21）：validation Recall@10 0.050–0.065，與 SASRec 
 
 #### Results
 
-待執行。
+- **最佳：**epoch 80，validation Recall@10 0.05691、NDCG@10 0.03182（Recall@5 0.03908、NDCG@5 0.02609）；epoch 100 後持平略降，epoch 180 early stop，約 65 分鐘。Beauty 的最佳在 epoch 160。
+- **分組 Recall@10：**1–4 組 0.0110、5+ 組 0.0688（SASRec CE 0.0071／0.0753）。
+- **對 SASRec 只換 CE（逐使用者配對，單一 seed）：**Recall@10 −0.0044（p 6e-5，CI [−0.0066, −0.0022]）；NDCG@10 +0.0021（p 2e-4，CI [+0.0010, +0.0033]）。
+- **對照 Expectation：**0.050–0.065（是）；與 SASRec CE 差在 ±0.005 內（是，−0.0044）；NDCG@10 較高（是）。
 
 #### Conclusion
 
-待執行。
+與 Beauty 相同的模式：FMRec 的 NDCG@10 高於 SASRec CE（把目標排得更前），Recall@10 則略低；冷門（1–4）組明顯較好。單一 seed，Beauty 用 3 個 seed 確認過同樣模式；Sports 的正式結論需補 seed。作者對 Sports 是否用不同超參數仍未核對。
 
 ### 作者預設 5 個 seed（42–46）的 held-out test
 

@@ -6,7 +6,7 @@
 
 ## 2026-11-23
 
-### 加入商品描述的 SID（`tiger-desc-v1`，待執行）
+### 加入商品描述的 SID（`tiger-desc-v1`）
 
 #### Motivation
 
@@ -17,7 +17,7 @@
 - **Baseline:** `tiger-paper-v1`（`stable` 配方，catalog 文字）。
 - **Change:** 文字來源 `catalog` → `description`：原本的文字之後接 ` | Description: <描述>`（空白合併；沒有描述的商品維持原文字）。描述放最後，Sentence-T5 截斷時先截掉它。
 - **Data:** 2014 Beauty 商品目錄（12,101 件，`items.jsonl` 不變）；描述取自 `raw/Beauty/meta_Beauty.json.gz`，寫成 `catalog/Beauty/texts/description.jsonl`（`scripts.build_item_texts`）。本機檢查：11,163 件（92%）有描述，中位 50 字、P90 171 字；每件的描述前文字與 catalog 文字完全相同。
-- **Environment:** SoC（待提交，與 TIGER run 同一個 job）。
+- **Environment:** SoC job 1186471，程式 `8ceeceb`。
 - **Command:** `SID_TEXT=description SID_RECIPE=stable SID_VERSION=tiger-desc-v1 RUN_NAME=tiger-t5x-adafactor-desc-v1 TRAIN_ARGS="--eval-every 2000 --steps 40000" STAGE=all sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch`
 - **Artifacts:** SoC 的 `data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/tiger-desc-v1/`（`manifest.json` 的 `text_source` 記錄文字檔 sha256）。
 
@@ -35,11 +35,15 @@ run 前寫下（2026-11-23）：三層仍全碼本使用。描述讓文字更具
 
 #### Results
 
-待執行。
+SoC job 1186471（程式 `8ceeceb`），與 TIGER run 同一個 job。
+
+- **最大碰撞群：**34 件（由 TIGER 詞表 2,805 推得：771 個 SID token + 34 個碰撞 token + 2,000 個 user token；`tiger-paper-v1` 為 9 件）。
+- **其他（碰撞群組數、三層使用碼數、loss）：**在 SoC 的 `data/amazon_reviews/2014/artifacts/sids/sentence-t5_rqvae/Beauty/tiger-desc-v1/manifest.json`，未推上 Git；Slurm log 顯示 epoch 6,100–6,500 總 loss 約 0.684–0.688、每層重設未使用碼 0。
+- **對照 Expectation：**三層全碼本使用（未核對）；碰撞群組較少（未核對，但最大群變大）。
 
 #### Conclusion
 
-待執行。
+文字加入描述後最大碰撞群變大（9 → 34），與「描述讓文字更具區分度」的預期相反。對 TIGER 沒有改善（TIGER Experiment-log 2026-11-23）。碰撞群組數待從 SoC manifest 補上。
 
 ### `stable` 配方的 SoC 完整 SID（`tiger-paper-v1`）
 
