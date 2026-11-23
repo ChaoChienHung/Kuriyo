@@ -1,0 +1,2 @@
+{"event": "session_started", "timestamp": "2026-11-23T09:28:52.696009+00:00", "session_id": "c144c208c679403197127c804dcd03df", "elapsed_seconds": 3.206898691132665e-05}
+{"starting_step": 0, "target_steps": 40000, "git_revision": "8609ee1861ae6f263c63367260bab0be7d4e2cb7", "slurm_job_id": "1186394", "event": "training_started", "timestamp": "2026-11-23T09:28:52.699467+00:00", "session_id": "c144c208c679403197127c804dcd03df", "elapsed_seconds": 0.003481682011624798}

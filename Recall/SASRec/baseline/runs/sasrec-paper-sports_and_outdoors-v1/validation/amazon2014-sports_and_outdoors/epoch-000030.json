@@ -1,0 +1,35 @@
+{
+  "recall@5": 0.01348390359008933,
+  "recall@10": 0.023063093432215295,
+  "ndcg@5": 0.007630748047996751,
+  "ndcg@10": 0.010692875227629175,
+  "groups": {
+    "0": {
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "ndcg@5": 0.0,
+      "ndcg@10": 0.0,
+      "examples": 188
+    },
+    "1-4": {
+      "recall@5": 0.00014124293785310735,
+      "recall@10": 0.0002824858757062147,
+      "ndcg@5": 8.911437197336971e-05,
+      "ndcg@10": 0.00013163273294285858,
+      "examples": 7080
+    },
+    "5+": {
+      "recall@5": 0.0169078715142958,
+      "recall@10": 0.02890928344511119,
+      "ndcg@5": 0.009566129165514185,
+      "ndcg@10": 0.013403212587501165,
+      "examples": 28330
+    }
+  },
+  "examples": 35598,
+  "ranking": "full catalog, inner product with item embeddings; history items not filtered",
+  "split": "validation",
+  "set": "amazon2014-sports_and_outdoors",
+  "epoch": 30,
+  "step": 8610
+}
