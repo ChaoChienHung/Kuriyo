@@ -78,6 +78,7 @@
 
 ## Ideas to discuss
 
+- TIGER 的逐層溫度校準（Sequential Temperature Scaling，使用者 2026-11-23 提出，等 beam 寬度與描述 SID 兩個實驗之後）：beam 分數是 4 層條件機率的累積乘積，各層過度自信會在連乘後放大、讓 beam 錯剪目標前綴。由第 1 層往後逐層以一維網格搜尋溫度 T_j，最小化「前 j 層累積機率」對「目標前 j 碼是否仍在」的 ECE。注意：單層溫度保序，但不同層用不同 T_j 會改變完整 SID 的排序，所以在 TIGER 上它同時是重新排序，Recall 可能變好或變壞；校準集要從 validation 切出一半（另一半報告），不碰 test。beam 寬度實驗會先告訴我們搜尋誤差有多大。
 - 啟用 2023 `All_Beauty`：需要另訂切分與評估，不與 2014 混用。
 - 實作 `sentence-t5_kmeans`、`sentence-t5_lsh` 比較 SID 方法（`Recall/TIGER/INSIGHT.md` H6）；等 TIGER 的訓練正常後才有意義。
 - FMRec 以 50 件歷史對照論文設定（需另建 `--max-history 50` 的切分），優先度低。
