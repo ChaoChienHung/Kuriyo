@@ -33,7 +33,7 @@ runs/<RUN_NAME>/
 
 `settings.json` 分成 `run`（名稱、家族、變體、實作、Git revision、建立時間、Slurm job、裝置、seed）、`data`（catalog、各 split 的路徑與 SHA-256、前處理規則與筆數、歷史上限、樣本上限、訓練樣本如何構成；TIGER 另有 SID）、`model`、`training`、`evaluation`。續訓與 test 只比對影響結果的欄位（各模型 `train.py` 的 `RESUME_KEYS`、`TEST_KEYS`），不符就拒絕並說明是哪一項。
 
-`--eval-groups`（`run.sbatch` 的 `STAGE=groups`）不訓練，只把 `checkpoints/best.pt` 再評估一次，輸出依目標在 train 當目標的次數（0、1–4、5 以上）分組的指標（`Recall/core/popularity.py`），並記下整體數字與原紀錄的最大差異 `max_abs_difference`。validation 一定做；test 只在該 run 已經跑過那一次 test 時才做，所以不會產生新的 test 結果。2026-11-19 之後的 validation 與 test 指標本身也帶 `groups`。
+`--eval-groups`（`run.sbatch` 的 `STAGE=groups`）不訓練，只把 `checkpoints/best.pt` 再評估一次，輸出依目標在 train 當目標的次數（0、1–4、5 以上）分組的指標（`Recall/core/popularity.py`），並記下整體數字與原紀錄的最大差異 `max_abs_difference`。validation 一定做；test 只在該 run 已經跑過那一次 test 時才做，所以不會產生新的 test 結果。2026-11-19 之後的 validation 與 test 指標本身也帶 `groups`。 TIGER 另有 `--eval-beams`（`STAGE=beams`），以不同 beam 寬度只重新評估 validation（見 TIGER baseline README）。
 
 逐使用者排名檔（`best-ranks.json`、`ranks.json`）記錄 `users` 與同序的 `ranks`：目標在前 `max_rank`（10）名中的名次，不在其中記 0；任何 K ≤ 10 的 Recall@K、NDCG@K 都可由它逐使用者重算，規則與整體指標相同（同一商品取第一次出現；TIGER 的無效 beam 不算命中）。評估器回傳的 `per_user` 由 `runs.py` 取出另存，不進指標 JSON 與 `events.log`。訓練中每次 best 更新就重寫 `best-ranks.json`。之前的 run 沒有排名檔：`--eval-groups` 會補上缺的分組檔與排名檔，已有的不覆寫，全都有時拒絕。一個檔案約數百 KB（Beauty 22,363 位使用者），在 Git 白名單內。
 

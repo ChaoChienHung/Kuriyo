@@ -27,8 +27,10 @@ from Recall.core.metrics import per_user, ranking_metrics
 from Recall.core.popularity import GROUPING, popularity_groups, target_counts
 from core.experiment import file_sha256, seed_everything
 from core.runs import (RunError, RunLayout, Selection, add_run_arguments, check_run_arguments,
-                       configure_threads, display_path, eval_set_name, evaluate_groups, evaluate_test_once,
-                       load_checkpoint, open_run, run_section, save_checkpoint)
+                       PER_USER, check_settings, configure_threads, display_path, eval_set_name,
+                       evaluate_groups, evaluate_test_once, load_checkpoint, open_run, run_section,
+                       save_checkpoint, write_ranks)
+from core.experiment import write_json
 
 # Must match to resume; keys are the flat config.json names of runs before 2026-11-19, which
 # all used scale_parameter=False before the option was recorded.
@@ -67,7 +69,11 @@ def build_model(tokenizer, dropout=0.1):
 
 
 @torch.no_grad()
-def evaluate(model, tokenizer, examples, max_history, device, batch_size, beam_size, groups=None):
+def evaluate(model, tokenizer, examples, max_history, device, batch_size, beam_size, groups=None,
+             valid_only=False):
+    """Beam search over the full SID space. By default every returned beam keeps its place,
+    an invalid or repeated item counting as a miss; valid_only drops those beams, so the
+    list holds the best distinct valid items (used by --eval-beams with wide beams)."""
     model.eval()
     requests = []
     invalid = 0
@@ -91,9 +97,11 @@ def evaluate(model, tokenizer, examples, max_history, device, batch_size, beam_s
                 item = tokenizer.token_item.get(tokens)
                 if item is None:
                     invalid += 1
-                    items.append(None)
+                    if not valid_only:
+                        items.append(None)
                 elif item in seen:
-                    items.append(None)
+                    if not valid_only:
+                        items.append(None)
                 else:
                     seen.add(item)
                     items.append(item)
@@ -102,7 +110,50 @@ def evaluate(model, tokenizer, examples, max_history, device, batch_size, beam_s
             "per_user": per_user((row["user_id"] for row in examples), requests, 10),
             "validation_examples": len(examples), "beam_size": beam_size,
             "invalid_beam_fraction": invalid / total_beams,
-            "decoding": "unconstrained beam search; invalid IDs count as misses"}
+            "decoding": VALID_ONLY_DECODING if valid_only else "unconstrained beam search; invalid IDs count as misses"}
+
+
+VALID_ONLY_DECODING = ("unconstrained beam search; invalid and repeated items dropped, the first "
+                       "valid distinct items ranked")
+
+
+def evaluate_beams(layout, settings, model, evaluate_with, beams):
+    """--eval-beams: evaluate checkpoints/best.pt on validation once per beam width.
+
+    Validation only, so no test result is created. Writes validation/<set>/best-beam<NNN>.json
+    and best-beam<NNN>-ranks.json for each width that lacks them; refuses when all exist.
+    The training record (settings.json, best.json) is not changed."""
+    if layout.is_legacy:
+        raise RunError("move this run into the current layout first (resume or --eval-groups)")
+    if not layout.best.is_file() or not layout.best_metrics.is_file():
+        raise RunError("best checkpoint or best.json missing: {}".format(layout.root))
+    outputs = [(beam, layout.validation / "best-beam{:03d}.json".format(beam),
+                layout.validation / "best-beam{:03d}-ranks.json".format(beam)) for beam in beams]
+    jobs = [job for job in outputs if not (job[1].exists() and job[2].exists())]
+    if not jobs:
+        raise RunError("beam widths already evaluated: {}".format(", ".join(map(str, beams))))
+    check_settings(json.loads(layout.settings.read_text()), settings, TEST_KEYS, "evaluation settings")
+    best = json.loads(layout.best_metrics.read_text())
+    model.load_state_dict(torch.load(layout.best, map_location="cpu", weights_only=True))
+    with layout.logger() as logger:
+        for beam, output, ranks_path in jobs:
+            metrics = evaluate_with(beam)
+            ranks = metrics.pop(PER_USER)
+            metrics.update(split="validation", set=layout.eval_set, checkpoint="checkpoints/best.pt",
+                           step=best.get("step"), git_revision=settings["run"]["git_revision"],
+                           slurm_job_id=os.environ.get("SLURM_JOB_ID"))
+            written = []
+            if not output.exists():
+                write_json(output, metrics)
+                written.append(output)
+            if not ranks_path.exists() and write_ranks(ranks_path, ranks, split="validation",
+                                                       set=layout.eval_set, checkpoint="checkpoints/best.pt",
+                                                       beam_size=beam):
+                written.append(ranks_path)
+            logger.event("beams_evaluated", beam_size=beam,
+                         paths=[str(path.relative_to(layout.root)) for path in written],
+                         recall10=metrics["recall@10"])
+            print(json.dumps(metrics), flush=True)
 
 
 def main():
@@ -122,6 +173,10 @@ def main():
     parser.add_argument("--max-history", type=int, default=20)
     parser.add_argument("--max-train-examples", type=int)
     parser.add_argument("--max-validation-examples", type=int)
+    parser.add_argument("--eval-beams", type=int, nargs="+", metavar="N",
+                        help="evaluate checkpoints/best.pt on validation with each beam width N (>= 10), "
+                             "dropping invalid and repeated beams; writes best-beamNNN.json beside "
+                             "best.json and never touches test")
     parser.add_argument("--dropout", type=float, default=0.1,
                         help="T5 dropout_rate (paper and default 0.1); resume refuses a change")
     parser.add_argument("--adafactor-scale-parameter", action=argparse.BooleanOptionalAction,
@@ -144,6 +199,11 @@ def main():
         parser.error("--beam-size must be at least 10")
     if not 0 <= args.dropout < 1:
         parser.error("--dropout must be in [0, 1)")
+    if args.eval_beams is not None:
+        if args.resume or args.eval_test_only or args.eval_groups:
+            parser.error("--eval-beams cannot be combined with --resume, --eval-test-only, --eval-groups")
+        if min(args.eval_beams) < 10 or len(set(args.eval_beams)) != len(args.eval_beams):
+            parser.error("--eval-beams needs distinct widths of at least 10")
     sid_path = args.sid_run / "semantic_ids.jsonl"
     sid_manifest_path = args.sid_run / "manifest.json"
     if not sid_path.is_file() or not sid_manifest_path.is_file():
@@ -225,6 +285,15 @@ def main():
             metrics["test_examples"] = metrics.pop("validation_examples")
         return metrics
 
+    if args.eval_beams is not None:
+        try:
+            evaluate_beams(layout, settings, model, lambda beam: evaluate(
+                model, tokenizer, validation, args.max_history, args.device, args.eval_batch_size, beam,
+                groups=popularity_groups([row["target_asin"] for row in validation], counts),
+                valid_only=True), sorted(args.eval_beams))
+        except RunError as error:
+            parser.error(str(error))
+        return
     if args.eval_test_only or args.eval_groups:
         rows = {"validation": validation, "test": read_examples(paths["test"], None, tokenizer)}
         try:

@@ -95,6 +95,18 @@ class CompareTests(unittest.TestCase):
         comparison["welch"]["p_holm"] = 0.01
         self.assertTrue(verdict(comparison, base, other).startswith("tendency better"))
 
+    def test_ranks_file_in_place_of_run(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run = write_run(root, "tiger", 42, [3, 0, 1, 0])
+            wide = run / "validation/amazon2014-beauty/best-beam100-ranks.json"
+            wide.write_text(json.dumps({"max_rank": 10, "users": ["U0", "U1", "U2", "U3"], "ranks": [1, 2, 1, 0]}))
+            (run / "validation/amazon2014-beauty/best-beam100.json").write_text(json.dumps({"recall@10": 0.75}))
+            report = compare([("beam10", [run]), ("beam100", [wide])], metric="recall@10", resamples=100)
+            self.assertEqual(report["settings"][1]["seeds"], [42])
+            self.assertAlmostEqual(report["comparisons"][0]["difference"], 0.25)
+            self.assertEqual(report["warnings"], [])
+
     def test_refuses_different_users(self):
         with TemporaryDirectory() as temporary:
             root = Path(temporary)

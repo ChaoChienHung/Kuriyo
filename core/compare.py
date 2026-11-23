@@ -2,8 +2,9 @@
 
 Each setting is one or more run directories (one per seed) with per-user ranks
 (validation/<set>/best-ranks.json, or test/<set>/ranks.json with --split test; runs
-evaluated before ranks existed get them from STAGE=groups). Every other setting is
-compared with the first:
+evaluated before ranks existed get them from STAGE=groups). A ranks file may be given
+instead of a run directory, such as TIGER's validation/<set>/best-beam100-ranks.json
+from STAGE=beams. Every other setting is compared with the first:
 
     python -m core.compare --metric ndcg@10 \\
         --setting paper Recall/SASRec/baseline/runs/sasrec-paper-beauty-{v1,s43,s44} \\
@@ -56,19 +57,28 @@ def ranks_path(run, split, eval_set=None):
 
 
 def load_run(run, split, metric, eval_set=None):
-    path = ranks_path(run, split, eval_set)
+    """run is a run directory, or one ranks file inside it (for example a TIGER
+    validation/<set>/best-beam100-ranks.json); a file is used as given."""
+    run = Path(run)
+    if run.is_file():
+        path = run
+        root = next((parent for parent in path.parents if (parent / "settings.json").is_file()), path.parent)
+        recorded = path.with_name(path.name.replace("-ranks.json", ".json"))
+    else:
+        path = ranks_path(run, split, eval_set)
+        root = run
+        recorded = path.parent / ("best.json" if split == "validation" else "metrics.json")
     if not path.is_file():
         raise ValueError("{} missing; run STAGE=groups for this run first".format(path))
     record = json.loads(path.read_text())
     _, _, k = metric.partition("@")
     if int(k) > record["max_rank"]:
         raise ValueError("{}: ranks only go to {}".format(path, record["max_rank"]))
-    settings_path = Path(run) / "settings.json"
+    settings_path = root / "settings.json"
     seed = json.loads(settings_path.read_text())["run"].get("seed") if settings_path.is_file() else None
     values = metric_values(record["ranks"], metric)
-    recorded = path.parent / ("best.json" if split == "validation" else "metrics.json")
     difference = None
-    if recorded.is_file():
+    if recorded != path and recorded.is_file():
         stored = json.loads(recorded.read_text()).get(metric)
         if stored is not None:
             difference = abs(float(values.mean()) - stored)

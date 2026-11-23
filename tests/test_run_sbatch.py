@@ -278,6 +278,31 @@ esac
         self.assertEqual(result.returncode, 2)
         self.assertIn("No best checkpoint for STAGE=groups", result.stderr)
 
+    def test_beams_stage_reevaluates_tiger_validation_only(self):
+        self.env.update(STAGE="beams")
+        result = self.run_job()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("No best checkpoint for STAGE=beams", result.stderr)
+        checkpoints = self.root / "Recall/TIGER/baseline/runs/test-v1/checkpoints"
+        checkpoints.mkdir(parents=True)
+        (checkpoints / "best.pt").write_text("")
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        args = Path(str(self.trace) + ".train").read_text().split()
+        self.assertEqual(args[args.index("--eval-beams"):], ["--eval-beams", "10", "20", "50", "100"])
+        self.assertNotIn("--eval-test-only", args)
+        self.assertNotIn("--resume", args)
+        self.env.update(BEAMS="10 100")
+        result = self.run_job()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        args = Path(str(self.trace) + ".train").read_text().split()
+        self.assertEqual(args[args.index("--eval-beams"):], ["--eval-beams", "10", "100"])
+        for settings in ({"BEAMS": "10;rm"}, {"MODEL": "fmrec"}):
+            with self.subTest(settings=settings):
+                result = subprocess.run(["bash", str(SCRIPT)], cwd=self.root, env=dict(self.env, **settings),
+                                        text=True, capture_output=True)
+                self.assertEqual(result.returncode, 2)
+
     def test_invalid_model_settings_stop_before_work(self):
         for settings in ({"MODEL": "bert4rec"}, {"MODEL": "sasrec", "STAGE": "sid"},
                          {"CATEGORY": "Books"}, {"SEED": "-1"}, {"TRAIN_ARGS": "--loss bce; rm"},

@@ -70,6 +70,17 @@ class PaperBaselineTests(unittest.TestCase):
             self.assertIn("dropout", dropout.stderr)
             run(*base_command, "--steps", "2", "--resume")
             run(*base_command, "--eval-test-only")
+            run(*base_command, "--eval-beams", "10", "12")
+            beam_dir = base / "runs/smoke/validation/amazon2014-beauty"
+            wide = json.loads((beam_dir / "best-beam012.json").read_text())
+            self.assertEqual(wide["beam_size"], 12)
+            self.assertIn("dropped", wide["decoding"])
+            self.assertEqual(json.loads((beam_dir / "best-beam010-ranks.json").read_text())["users"], ["U"])
+            repeat = subprocess.run([sys.executable, "-m", *base_command, "--eval-beams", "10", "12"],
+                                    cwd=ROOT, capture_output=True, text=True, timeout=120)
+            self.assertNotEqual(repeat.returncode, 0, "beam widths already evaluated")
+            self.assertIn("already evaluated", repeat.stderr)
+            self.assertFalse((base / "runs/smoke/test/amazon2014-beauty/best-beam012.json").exists())
             run_dir = base / "runs/smoke"
             self.assertIs(json.loads((run_dir / "settings.json").read_text())
                           ["training"]["adafactor_scale_parameter"], True)
