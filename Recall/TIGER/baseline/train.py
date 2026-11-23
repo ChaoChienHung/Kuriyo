@@ -59,6 +59,16 @@ def collate(examples, tokenizer, max_history):
     return source, source.ne(tokenizer.PAD), labels
 
 
+def text_source(sid_manifest):
+    """The SID's item-text record; a path is kept only as its repository-relative tail."""
+    source = dict(sid_manifest.get("text_source") or {"recipe": "catalog"})
+    path = source.get("path")
+    if path and Path(path).is_absolute():
+        parts = Path(path).parts
+        source["path"] = str(Path(*parts[parts.index("data"):])) if "data" in parts else Path(path).name
+    return source
+
+
 def build_model(tokenizer, dropout=0.1):
     config = T5Config(vocab_size=tokenizer.vocab_size + 2000, d_model=128,
                       d_kv=64, d_ff=1024, num_layers=4, num_decoder_layers=4,
@@ -251,7 +261,7 @@ def main():
                  "sid": {"run": display_path(args.sid_run, ROOT), "method": args.sid_method,
                          "version": sid_version, "sha256": file_sha256(sid_path),
                          "recipe": sid_manifest.get("recipe"),
-                         "text_source": sid_manifest.get("text_source") or {"recipe": "catalog"},
+                         "text_source": text_source(sid_manifest),
                          "codebook_size": sid_manifest["codebook_size"],
                          "item_count": sid_manifest["item_count"]},
                  "splits": {split: {"path": display_path(path, ROOT),

@@ -123,6 +123,7 @@ class SIDComponentTests(unittest.TestCase):
             text_source = json.loads((described / "manifest.json").read_text())["text_source"]
             self.assertEqual(text_source["recipe"], "description")
             self.assertEqual(len(text_source["sha256"]), 64)
+            self.assertEqual(text_source["path"], "description.jsonl")  # outside the repository: name only
             texts.write_text(texts.read_text().split("\n", 1)[1])  # one item missing
             missing = subprocess.run(command[:6] + [str(described) + "-missing"] + command[7:]
                                      + ["--texts", str(texts)], cwd=root, capture_output=True, text=True,

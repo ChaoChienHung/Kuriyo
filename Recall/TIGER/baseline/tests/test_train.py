@@ -16,6 +16,15 @@ ROOT = Path(__file__).resolve().parents[4]
 @unittest.skipUnless(importlib.util.find_spec("torch") and importlib.util.find_spec("transformers"),
                      "T5 modeling dependencies are not installed")
 class PaperBaselineTests(unittest.TestCase):
+    def test_text_source_drops_home_directories(self):
+        from Recall.TIGER.baseline.train import text_source
+        self.assertEqual(text_source({}), {"recipe": "catalog"})
+        recorded = text_source({"text_source": {
+            "recipe": "description", "sha256": "x",
+            "path": "/home/someone/Kuriyo/data/amazon_reviews/2014/catalog/Beauty/texts/description.jsonl"}})
+        self.assertEqual(recorded["path"], "data/amazon_reviews/2014/catalog/Beauty/texts/description.jsonl")
+        self.assertEqual(text_source({"text_source": {"path": "/tmp/x/texts.jsonl"}})["path"], "texts.jsonl")
+
     def test_one_step_resume_and_held_out_test(self):
         with TemporaryDirectory() as temporary:
             base = Path(temporary)

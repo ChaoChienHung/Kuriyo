@@ -25,7 +25,7 @@
       "recipe": "stable",
       "text_source": {
         "recipe": "description",
-        "path": "/home/c/chaoch/Kuriyo/data/amazon_reviews/2014/catalog/Beauty/texts/description.jsonl",
+        "path": "data/amazon_reviews/2014/catalog/Beauty/texts/description.jsonl",
         "sha256": "6c8e408e5ff55594177912af77178bedacf74b66cbeb35eea97f74e1ac99eb12"
       },
       "codebook_size": 256,

@@ -91,7 +91,12 @@ def apply_texts(items, path):
     sidecar = path.with_name(path.name.replace(".jsonl", ".manifest.json"))
     recipe = json.loads(sidecar.read_text()).get("recipe") if sidecar.is_file() else None
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
-    return {"recipe": recipe or path.stem, "path": str(path.resolve()), "sha256": digest}
+    resolved = path.resolve()
+    try:  # repository-relative, so manifests and the settings that copy them hold no home directory
+        shown = str(resolved.relative_to(ROOT.resolve()))
+    except ValueError:
+        shown = path.name
+    return {"recipe": recipe or path.stem, "path": shown, "sha256": digest}
 
 
 def embed_items(items, args):
