@@ -19,6 +19,9 @@
 #                 least 24 GB (e.g. sbatch --gpus=a100-40:1). The only change is a copy of the
 #                 config with wandb_logging=False. Note: it evaluates on the TEST split every
 #                 full_eval_every steps (data/processed.py), not on validation.
+#                 Its requirements give only lower bounds; sentence-transformers is pinned
+#                 to 5.3.0 because 5.4.0+ rejects the pandas Series that data/preprocessing.py
+#                 passes to encode() ("Unsupported input type: Series", job 1189939).
 #
 # Submit from the repository root:
 #   EXTERNAL=botta sbatch --export=ALL --gpus=a100-40:1 scripts/external_tiger.sbatch
@@ -28,7 +31,8 @@ external="${EXTERNAL:-}"
 case "$external" in
   botta)
     repo=https://github.com/EdoardoBotta/RQ-VAE-Recommender.git
-    commit=957d32bda43958ba641ae919abb1092ac6738798 ;;
+    commit=957d32bda43958ba641ae919abb1092ac6738798
+    pins=("sentence-transformers==5.3.0") ;;
   *) echo "EXTERNAL must be botta" >&2; exit 2 ;;
 esac
 
@@ -52,12 +56,13 @@ if [[ ! -x "$dir/.venv/bin/python" ]]; then
   python3 -m venv "$dir/.venv"
 fi
 # Same torch pin as run.sbatch (cu126 keeps sm_70 GPUs working); the project's own
-# dependencies are installed around it.
+# dependencies are installed around it, with the per-implementation pins above.
 "$dir/.venv/bin/python" -m pip install --quiet \
   --extra-index-url https://download.pytorch.org/whl/cu126 "torch==2.7.1+cu126"
-"$dir/.venv/bin/python" -m pip install --quiet -e "$dir"
+"$dir/.venv/bin/python" -m pip install --quiet -e "$dir" "${pins[@]}"
 
 echo "job=${SLURM_JOB_ID:-local} kuriyo_commit=$(git rev-parse HEAD) external=$external repo=$repo commit=$(git -C "$dir" rev-parse HEAD)"
+"$dir/.venv/bin/python" -m pip list 2>/dev/null | grep -iE "^(torch|sentence-transformers|transformers|torch-geometric) " || true
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader || true
 
 case "$external" in

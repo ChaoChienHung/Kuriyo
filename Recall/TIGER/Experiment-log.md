@@ -16,7 +16,7 @@ Kuriyo 的 TIGER 在 test 比論文低 14%，beam 寬度、dropout、參數量�
 
 - **Variant:** 外部實作，不是 Kuriyo 的變體。來源：Edoardo Botta, [RQ-VAE-Recommender](https://github.com/EdoardoBotta/RQ-VAE-Recommender)（MIT，commit `957d32bda43958ba641ae919abb1092ac6738798`，[Zenodo](https://doi.org/10.5281/zenodo.22076163)），實作 Rajput et al., [Recommender Systems with Generative Retrieval](https://arxiv.org/abs/2305.05065)（NeurIPS 2023）。
 - **Baseline:** Kuriyo `baseline` 的 3 個 seed（validation Recall@10 0.0806 ± 0.0006）與 `tiger-t5x-adafactor-v1` 的 test（0.0556）；論文 test 0.0648。
-- **Change:** 整套換成外部程式：P5 Beauty（與 Kuriyo 切分逐使用者相同）、sentence-t5-xxl 商品向量、它附帶的 RQ-VAE checkpoint（`checkpoint_399999.pt`）、`configs/decoder_amazon.gin`（d_model 384、6 heads、d_ff 1024、4 層、AdamW lr 1e-3、weight decay 1e-4、batch 640、10k iterations、10k warmup 的 inverse-sqrt、限制在既有 SID 的生成 top 10）。唯一改動：`wandb_logging=False`。
+- **Change:** 整套換成外部程式：P5 Beauty（與 Kuriyo 切分逐使用者相同）、sentence-t5-xxl 商品向量、它附帶的 RQ-VAE checkpoint（`checkpoint_399999.pt`）、`configs/decoder_amazon.gin`（d_model 384、6 heads、d_ff 1024、4 層、AdamW lr 1e-3、weight decay 1e-4、batch 640、10k iterations、10k warmup 的 inverse-sqrt、限制在既有 SID 的生成 top 10）。程式唯一改動：`wandb_logging=False`。環境：它的 requirements 只有下限，`sentence-transformers` 固定在 5.3.0（5.4.0 起拒收它傳入的 pandas Series；第一次提交 job 1189939 在編碼商品文字時失敗，log 印出實際安裝的版本）。
 - **Data:** P5 `P5_data.zip`（程式自動從 Google Drive 下載）。
 - **Environment:** SoC（待提交）；需要 24 GB 以上的 GPU（sentence-t5-xxl）。
 - **Command:** `EXTERNAL=botta sbatch --export=ALL --gpus=a100-40:1 scripts/external_tiger.sbatch`
