@@ -80,6 +80,8 @@ SASRec 論文設定（BCE）3 個 seed 的 validation Recall@10 0.0602 ± 0.0015
 
 2026-11-23 深夜：Kuriyo 的 Beauty 切分與 P5 `sequential_data.txt` 逐使用者相同（資料不是 TIGER 差距的原因）。新增 `scripts/external_tiger.sbatch`，原封不動地在固定 commit 執行社群實作（clone 在 Git 忽略的 `third_party/`）；先做 Botta 的 RQ-VAE-Recommender（`EXTERNAL=botta`，需要 24 GB 以上 GPU，它在 test 上評估），已事先登記在 TIGER Experiment-log。GRID 與 HSTU 之後再加；來源表在 `Recall/TIGER/README.md`「外部實作對照」。
 
+2026-11-24：TIGER Sports（job 1186528）跑完：最佳 34k，validation Recall@10 0.0428／NDCG@10 0.0225，之後降到 0.0378（60k）；是 SASRec CE 的 0.70 倍，1–4 組 0.24 倍，與 Beauty 模式相同（單一 seed）。Botta 的外部 run 尚未提交或尚未推上 log。
+
 ## Logging 與匯入狀態
 
 新版 `core/run_logging.py` 已接入 paper trainer 和 SID generator：TIGER 每 step 寫 run 的 `train/train.jsonl`、SID 每 epoch 寫 `train.jsonl`，生命週期等事件寫 `events.log`（JSON Lines），含 UTC timestamp、session ID、elapsed_seconds。續訓追加，不抹掉歷史；重跑相同 step 用 session ID 區分。SIGKILL、斷電或 logger 啟動前的錯誤未必留下失敗事件。舊 smoke trainer 尚未接入。

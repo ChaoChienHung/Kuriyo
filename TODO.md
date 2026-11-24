@@ -13,10 +13,10 @@
 
 依優先順序。
 
-- [ ] Sports_and_Outdoors：等 TIGER 跑完並整理跨模型比較
-  - **Context:** 2026-11-23：TIGER 3 個 seed（Beauty）、SASRec 兩種設定與 FMRec 的 Sports 都已記錄；TIGER Sports（job 1186528，60k step）仍在訓練，34k 時最佳 0.0428。
-  - **Scope:** TIGER Sports 跑完後填入 TIGER Experiment-log 的 Sports 條目與 `Recall/INSIGHT.md` 的 Sports 表；若 Sports 的模式要下結論，SASRec CE、FMRec、TIGER 各補 seed 43、44。
-  - **Acceptance:** Sports 條目都有 Results／Conclusion；`Recall/INSIGHT.md` Sports 表完整。Toys_and_Games 之後另開。
+- [ ] Sports_and_Outdoors：補 seed 才能下結論
+  - **Context:** 2026-11-23：TIGER 3 個 seed（Beauty）、SASRec 兩種設定與 FMRec 的 Sports 都已記錄；TIGER Sports（job 1186528）跑完：最佳 34k，validation Recall@10 0.0428，是 SASRec CE 的 0.70 倍，模式與 Beauty 相同（單一 seed），條目與 `Recall/INSIGHT.md` 的 Sports 表已填。
+  - **Scope:** 若要對 Sports 的模式下結論，SASRec CE、FMRec、TIGER 各補 seed 43、44（`SEED=43`／`44`、RUN_NAME 加 `-s43`／`-s44`，提交時排除 xgpe）；可選取回 Sports SID manifest 的碰撞統計。
+  - **Acceptance:** 三個模型各 3 個 seed，`core.compare` 的 verdict 寫入各 Experiment-log 與 `Recall/INSIGHT.md` Sports 表。Toys_and_Games 之後另開。
 - [ ] 以各論文自己的協定重現（確認沒有低估模型）
   - **Context:** 共用切分與全 catalog 評估適合比較模型，但無法和論文數字直接對照。原始 SASRec 論文用 50 件歷史、每位使用者 1 個正例 + 100 個未互動過的隨機商品排名；TIGER test 比論文低 14%。
   - **Scope:** 在 `--eval-groups` 的重新評估框架加「抽樣負例」協定（100 個、排除使用者看過的商品、固定 seed），各模型都能跑；之後視結果建立 50 件歷史的切分（另一個資料版本，結果分開報告）並用論文設定重訓。

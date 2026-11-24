@@ -193,7 +193,7 @@ SoC jobs 1186394（s43）、1186395（s44），程式 `8609ee1`，各約 2.6 小
 
 TIGER（論文設定、T5X 式 Adafactor）在 Kuriyo Beauty validation 的 Recall@10 是 0.0806 ± 0.0006、NDCG@10 0.0442 ± 0.0008（3 seeds），最佳點 20k–22k 之後過擬合。依 README 規則，SASRec 只換 CE 與 FMRec 兩個指標都顯著較好。H8 由單一 seed 變成 3 個 seed 支持。
 
-### Sports_and_Outdoors：`tiger-t5x-adafactor-sports_and_outdoors-v1`（待執行）
+### Sports_and_Outdoors：`tiger-t5x-adafactor-sports_and_outdoors-v1`
 
 #### Motivation
 
@@ -205,7 +205,7 @@ TIGER（論文設定、T5X 式 Adafactor）在 Kuriyo Beauty validation 的 Reca
 - **Baseline:** Beauty 的 `tiger-t5x-adafactor-eval2k-v1`（設定相同，換資料）；跨家族對照 `sasrec-paper-sports_and_outdoors-v1`、`sasrec-paperce-sports_and_outdoors-v1`、`fmrec-sports_and_outdoors-v1`。
 - **Change:** 分類 Beauty → Sports_and_Outdoors；步數 40k → 60k（train 樣本多 44%，最佳點預期較晚）。
 - **Data:** 2014 Sports_and_Outdoors（job 1166748 準備）：18,357 件商品、189,543 train／35,598 validation；SID 由本 job 以 `stable` recipe 在 Sports 商品目錄上新建（版本名 `tiger-paper-v1`，依分類分開存放）。
-- **Environment:** SoC（待提交）。
+- **Environment:** SoC job 1186528（60k step 跑完，`session_completed`，約 2.8 小時）。
 - **Command:** `CATEGORY=Sports_and_Outdoors SID_RECIPE=stable SID_VERSION=tiger-paper-v1 RUN_NAME=tiger-t5x-adafactor-sports_and_outdoors-v1 TRAIN_ARGS="--eval-every 2000 --steps 60000" STAGE=all sbatch --export=ALL --job-name=kuriyo-tiger scripts/run.sbatch`（all = prepare 檢查 → sid → materialize → train）
 - **Artifacts:** Sports SID 目錄；`Recall/TIGER/baseline/runs/tiger-t5x-adafactor-sports_and_outdoors-v1/`。
 
@@ -223,11 +223,32 @@ run 前寫下（2026-11-21）：SID 無塌縮（碰撞層的最大值在個位�
 
 #### Results
 
-待執行。
+Validation（35,598 examples，全商品排名，beam 10，seed 42，單一 seed）。每 4k step 的 Recall@10／NDCG@10：
+
+| step | 4k | 8k | 12k | 16k | 20k | 24k | 28k | 32k | **34k** | 36k | 40k | 44k | 48k | 52k | 56k | 60k |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Recall@10 | 0.0311 | 0.0333 | 0.0368 | 0.0383 | 0.0407 | 0.0418 | 0.0409 | 0.0408 | **0.0428** | 0.0417 | 0.0400 | 0.0412 | 0.0400 | 0.0378 | 0.0378 | 0.0378 |
+| NDCG@10 | 0.0158 | 0.0173 | 0.0194 | 0.0203 | 0.0210 | 0.0217 | 0.0216 | 0.0218 | **0.0225** | 0.0220 | 0.0208 | 0.0218 | 0.0212 | 0.0200 | 0.0195 | 0.0197 |
+
+- **最佳（34k）：**Recall@5 0.02632、Recall@10 0.04276、NDCG@5 0.01723、NDCG@10 0.02255；無效 beam 0.01%。22k–36k 是平台（0.041–0.043），之後下降，60k 為 0.0378（比最佳低 12%）。
+- **分組 Recall@10（最佳點）：**0 組（188）0；1–4 組（7,080）0.0017；5+ 組（28,330）0.0533。SASRec CE 分別是 0.0071／0.0753，FMRec 0.0110／0.0688。TIGER 對 SASRec CE 的比例：1–4 組 0.24 倍、5+ 組 0.71 倍（Beauty 是 0.23–0.45 倍與 0.69–0.80 倍）。
+- **與 item-ID 模型的配對比較（`core.compare`，單一 seed，不下結論）：**
+
+  | 對 TIGER | Recall@10 差 | 配對 t p（Holm） | NDCG@10 差 | 配對 t p（Holm） |
+  |---|---|---|---|---|
+  | SASRec 只換 CE | +0.01857 | 5e-46 | +0.00714 | 2e-25 |
+  | FMRec | +0.01416 | 6e-28 | +0.00927 | 3e-34 |
+  | SASRec 論文設定 | −0.01090 | 2e-19 | −0.00869 | 1e-41 |
+
+  Bootstrap 95% CI 都不含 0。TIGER 的 Recall@10 是 SASRec CE 的 0.70 倍（Beauty 0.78）。
+- **SID：**Sports 的 `tiger-paper-v1` 碰撞統計只在 SoC 的 manifest，未取回。
+- **對照 Expectation：**最佳 step 在 20k–40k（是，34k，之後下降）；validation Recall@10 0.040–0.055（是，下緣）；排序 FMRec ≈ SASRec CE > TIGER > SASRec 論文設定（是）；TIGER 是 SASRec CE 的 0.70–0.85 倍（差一點，0.697）；1–4 組低於 SASRec CE 的一半（是，0.24 倍）；SID 無塌縮（未核對）。
+
+證據：`Recall/TIGER/baseline/runs/tiger-t5x-adafactor-sports_and_outdoors-v1/`（`events.log`、`validation/`）。
 
 #### Conclusion
 
-待執行。
+Sports 重複 Beauty 的模式（單一 seed）：TIGER 在中段（34k，約 46 個 epoch）達到最佳後過擬合，最佳 validation Recall@10 0.0428 高於論文 Sports test 的 0.0400，但低於兩個 item-ID 模型（SASRec CE 0.0613、FMRec 0.0569），差距主要在冷門目標（1–4 組只有 SASRec CE 的 0.24 倍）。相對差距比 Beauty 略大（0.70 對 0.78 倍）。要下結論需三個模型各補 seed 43、44。
 
 ### Dropout 0.2：`tiger-t5x-adafactor-dropout02-v1`（H8）
 

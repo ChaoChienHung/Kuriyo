@@ -41,9 +41,9 @@
   | SASRec baseline | 論文設定（BCE、hidden 50、1 head），epoch 80 | 0.01759 | 0.03186 | 0.00924 | 0.01385 | 0.0042 | SoC job 1186397；[log](SASRec/Experiment-log.md) 2026-11-21（Sports） |
   | SASRec baseline | 論文設定只換 CE，epoch 75 | 0.03930 | 0.06132 | 0.02260 | 0.02969 | 0.0071 | SoC job 1186529；同上 |
   | FMRec baseline | 作者預設（Beauty 的值），epoch 80 | 0.03908 | 0.05691 | 0.02609 | 0.03182 | 0.0110 | SoC job 1186530；[log](FMRec/Experiment-log.md) 2026-11-21（Sports） |
-  | TIGER baseline | T5X 式 Adafactor、60k step | 訓練中 | | | | | SoC job 1186528；[log](TIGER/Experiment-log.md) |
+  | TIGER baseline | T5X 式 Adafactor，最佳 step 34k（共 60k） | 0.02632 | 0.04276 | 0.01723 | 0.02255 | 0.0017 | SoC job 1186528；[log](TIGER/Experiment-log.md) 2026-11-21（Sports） |
 
-  與 Beauty 相同的模式：只換 CE 約為論文設定的 2 倍；FMRec 的 NDCG@10 高於 SASRec CE（配對 p 2e-4）、Recall@10 略低（−0.0044，p 6e-5），冷門組最好。TIGER 論文表中的 Sports test：SASRec 0.0350、TIGER 0.0400（Recall@10）。
+  與 Beauty 相同的模式：只換 CE 約為論文設定的 2 倍；FMRec 的 NDCG@10 高於 SASRec CE（配對 p 2e-4）、Recall@10 略低（−0.0044，p 6e-5），冷門組最好。TIGER 低於兩者（Recall@10 為 SASRec CE 的 0.70 倍，Beauty 0.78；配對 p < 1e-27），差距集中在 1–4 組（0.24 倍），34k 之後同樣過擬合。TIGER 論文表中的 Sports test：SASRec 0.0350、TIGER 0.0400（Recall@10）。
 - **Held-out test（2014 Beauty，22,363 examples，全商品排名，各一次、seed 42）：**
 
   | 模型 | 設定 | Recall@5 | Recall@10 | NDCG@5 | NDCG@10 | 論文 test（Recall@10／NDCG@10） | 來源 |
